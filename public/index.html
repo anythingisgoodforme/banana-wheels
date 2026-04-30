@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 Banana Wheels - Game</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🍌 Banana Wheels 🎮</h1>
+        <p>Learn JavaScript Game Development</p>
+      </header>
+
+      <main>
+        <div class="game-section">
+          <canvas id="gameCanvas" width="800" height="600"></canvas>
+          <div class="info">
+            <div class="controls">
+              <h3>⬅️ ➡️ Controls</h3>
+              <p>
+                <strong>Arrow Keys:</strong> Move left/right
+              </p>
+              <p>
+                <strong>Space:</strong> Jump
+              </p>
+              <p>
+                <strong>P:</strong> Pause
+              </p>
+            </div>
+            <div class="stats">
+              <h3>📊 Game Stats</h3>
+              <p>
+                Score: <span id="score">0</span>
+              </p>
+              <p>
+                Lives: <span id="lives">3</span>
+              </p>
+              <p>
+                Level: <span id="level">1</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>
+          Built with ❤️ using JavaScript | Read
+          <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for best practices
+        </p>
+      </footer>
+    </div>
+
+    <!-- Game script -->
+    <script src="game.js"></script>
+  </body>
+</html>

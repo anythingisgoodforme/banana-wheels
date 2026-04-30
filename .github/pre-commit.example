@@ -1,0 +1,29 @@
+#!/bin/bash
+# Pre-commit hook for banana-wheels games
+# Install this with: cp .husky/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+#
+# This hook will:
+# 1. Lint your JavaScript files
+# 2. Format your code
+# 3. Prevent commits if code quality checks fail
+
+echo "🎮 Running pre-commit checks..."
+
+# Run linting
+echo "🔍 Checking code quality with ESLint..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint found issues. Run 'npm run lint:fix' to fix them automatically."
+  exit 1
+fi
+
+# Check formatting
+echo "✨ Checking code formatting with Prettier..."
+npm run format:check
+if [ $? -ne 0 ]; then
+  echo "❌ Code formatting issues found. Run 'npm run format' to fix them automatically."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+exit 0

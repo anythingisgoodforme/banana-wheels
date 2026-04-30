@@ -1,0 +1,224 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-color: #ffd700;
+  --secondary-color: #ff6b6b;
+  --dark-bg: #1a1a2e;
+  --light-text: #ffffff;
+  --accent-color: #4ecdc4;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, var(--dark-bg) 0%, #0f3460 100%);
+  color: var(--light-text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1000px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 3px solid var(--primary-color);
+  padding-bottom: 20px;
+}
+
+header h1 {
+  font-size: 3em;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+header p {
+  font-size: 1.2em;
+  color: var(--accent-color);
+}
+
+main {
+  margin-bottom: 30px;
+}
+
+.game-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .game-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+canvas {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  display: block;
+  background: linear-gradient(to bottom, #87ceeb, #90ee90);
+  border: 4px solid var(--primary-color);
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.controls,
+.stats {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 4px solid var(--accent-color);
+}
+
+.controls h3,
+.stats h3 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.controls p,
+.stats p {
+  margin: 10px 0;
+  line-height: 1.6;
+  color: var(--light-text);
+}
+
+.stats span {
+  color: var(--secondary-color);
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+footer {
+  text-align: center;
+  border-top: 2px solid var(--accent-color);
+  padding-top: 20px;
+  color: var(--accent-color);
+  font-size: 0.9em;
+}
+
+footer a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+/* Game UI Elements */
+.message {
+  text-align: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-top: 20px;
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+button {
+  padding: 12px 30px;
+  font-size: 1em;
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+button:hover {
+  background: var(--primary-color);
+  color: var(--dark-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Animation */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.bouncing {
+  animation: bounce 0.6s ease-in-out infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .container {
+    padding: 20px;
+  }
+
+  header h1 {
+    font-size: 2em;
+  }
+
+  header p {
+    font-size: 1em;
+  }
+
+  .controls,
+  .stats {
+    padding: 15px;
+  }
+
+  .controls h3,
+  .stats h3 {
+    font-size: 1em;
+  }
+
+  .controls p,
+  .stats p {
+    font-size: 0.9em;
+  }
+}
