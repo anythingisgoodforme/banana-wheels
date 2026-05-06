@@ -73,8 +73,8 @@ class Enemy {
    * Apply velocity to all directions
    * @param {number} deltaTime - Time since last frame
    */
-  applyPhysics(deltaTime = 1) {
-    this.velocity += (Math.random() - 0.5) * 0.1;
+  applyPhysics(_deltaTime = 1) {
+    this.velocityX += (Math.random() - 0.5) * 0.1;
   }
 
   /**

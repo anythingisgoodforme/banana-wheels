@@ -40,7 +40,7 @@ class Player {
    * Update player position and state
    * Called every frame
    */
-  update(deltaTime = 1) {
+  update(_deltaTime = 1) {
     // Apply velocity
     this.x += this.velocityX;
     this.y += this.velocityY;

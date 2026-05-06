@@ -21,11 +21,13 @@ This project is set up with industry best practices to help you develop games pr
 **Setup:** Already configured in `.eslintrc.json`
 
 **Rules:**
+
 - `semi: true` - Requires semicolons at end of statements
 - `eqeqeq: 'always'` - Requires === instead of ==
 - `no-unused-vars: 'warn'` - Warns about unused variables
 
 **Before committing:**
+
 ```bash
 npm run lint         # Check for issues
 npm run lint:fix     # Automatically fix issues
@@ -38,6 +40,7 @@ npm run lint:fix     # Automatically fix issues
 **Setup:** Configured in `.prettierrc.json`
 
 **Before committing:**
+
 ```bash
 npm run format       # Format all code
 npm run format:check # Check if formatting is needed
@@ -60,6 +63,7 @@ main (production - stable releases)
 **Format:** `<type>: <description>`
 
 **Types:**
+
 - `feat:` - New feature (`feat: add double jump mechanic`)
 - `fix:` - Bug fix (`fix: correct player collision`)
 - `docs:` - Documentation (`docs: update README`)
@@ -68,6 +72,7 @@ main (production - stable releases)
 - `style:` - Formatting only (`style: fix indentation`)
 
 **Good vs Bad Examples:**
+
 ```bash
 # ✅ GOOD
 git commit -m "feat: add enemy spawning system"
@@ -112,6 +117,7 @@ Tests help catch bugs early and document how code should work.
 **Test File Location:** `tests/` directory with `.test.js` extension
 
 **Example Test:**
+
 ```javascript
 describe('Collision Detection', () => {
   test('should detect collision when rectangles overlap', () => {
@@ -123,12 +129,14 @@ describe('Collision Detection', () => {
 ```
 
 **Run Tests:**
+
 ```bash
 npm test              # Run once
 npm run test:watch    # Run and re-run on changes
 ```
 
 **Best Practices:**
+
 - Test game logic separately from rendering
 - Test collision detection thoroughly
 - Test edge cases (boundaries, zero values)
@@ -139,16 +147,18 @@ npm run test:watch    # Run and re-run on changes
 ### Game Loop Best Practices
 
 ✅ **DO:**
+
 ```javascript
 // Use requestAnimationFrame for smooth animation
 function gameLoop() {
-  update();      // Update game state
-  draw();        // Render graphics
+  update(); // Update game state
+  draw(); // Render graphics
   requestAnimationFrame(gameLoop);
 }
 ```
 
 ❌ **DON'T:**
+
 ```javascript
 // Don't use setInterval - it's less efficient
 setInterval(gameLoop, 16); // Roughly 60 FPS but not smooth
@@ -178,7 +188,7 @@ this.obstacles = [];
 // Never clear the array
 
 // ✅ Remove off-screen objects
-this.obstacles = this.obstacles.filter(obs => !obs.isOffScreen());
+this.obstacles = this.obstacles.filter((obs) => !obs.isOffScreen());
 ```
 
 ## 🔒 Security
@@ -186,15 +196,17 @@ this.obstacles = this.obstacles.filter(obs => !obs.isOffScreen());
 ### JavaScript Game Security Best Practices
 
 1. **Don't store sensitive data in client-side code**
+
    ```javascript
    // ❌ DON'T - Anyone can see this
    const API_KEY = 'secret123';
-   
+
    // ✅ DO - Use environment variables (server-side)
    const apiKey = process.env.API_KEY;
    ```
 
 2. **Validate user input**
+
    ```javascript
    // ✅ Check input bounds
    if (playerX < 0 || playerX > CANVAS_WIDTH) {
@@ -254,6 +266,7 @@ npm run dev          # Starts server with live reload
 ### Standard Workflow
 
 1. **Start your dev server**
+
    ```bash
    npm run dev
    ```
@@ -261,6 +274,7 @@ npm run dev          # Starts server with live reload
 2. **Edit code** (browser auto-refreshes)
 
 3. **Before committing:**
+
    ```bash
    npm run lint:fix
    npm run format
@@ -268,6 +282,7 @@ npm run dev          # Starts server with live reload
    ```
 
 4. **Commit with meaningful message**
+
    ```bash
    git commit -m "feat: add new game feature"
    ```
@@ -304,13 +319,13 @@ class Game {
   update() {
     // Update all game objects
     this.player.update();
-    this.enemies.forEach(e => e.update());
+    this.enemies.forEach((e) => e.update());
   }
 
   draw() {
     // Render all game objects
     this.player.draw();
-    this.enemies.forEach(e => e.draw());
+    this.enemies.forEach((e) => e.draw());
   }
 }
 

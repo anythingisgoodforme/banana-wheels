@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Initial game development project setup
 - GitHub Actions CI/CD workflows
 - ESLint and Prettier configuration
@@ -15,14 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 
 ### Changed
+
 - Project structure for best practices
 
 ### Fixed
+
 - N/A
 
 ## [1.0.0] - 2026-04-30
 
 ### Added
+
 - Initial project setup
 - Banana Wheels starter game
 - Complete documentation (README, CONTRIBUTING, BEST_PRACTICES)
@@ -33,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sample HTML5 Canvas implementation
 
 ### Features
+
 - Player movement (left/right with arrow keys)
 - Jumping mechanic
 - Collision detection

@@ -5,7 +5,7 @@ const {
   randomInt,
   toRadians,
   toDegrees,
-} = require('./utils');
+} = require('../src/utils');
 
 describe('Game Utilities', () => {
   describe('detectCollision', () => {
