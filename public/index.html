@@ -9,24 +9,34 @@
   <body>
     <div class="container">
       <header>
-        <h1>🍌 Banana Wheels 🎮</h1>
+        <h1>🍌 BANANA WHEELS! 🎮</h1>
         <p>Learn JavaScript Game Development</p>
       </header>
 
       <main>
         <div class="game-section">
-          <canvas id="gameCanvas" width="800" height="600"></canvas>
+          <div class="game-panel" id="gamePanel">
+            <button
+              id="fullscreenButton"
+              class="fullscreen-button"
+              type="button"
+              aria-label="Toggle fullscreen"
+            >
+              Full Screen
+            </button>
+            <canvas id="gameCanvas" width="1000" height="850"></canvas>
+          </div>
           <div class="info">
             <div class="controls">
-              <h3>⬅️ ➡️ Controls</h3>
+              <h3>🎮 Controls</h3>
               <p>
-                <strong>Arrow Keys:</strong> Move left/right
+                <strong>Arrow Keys or A/D:</strong> Move
               </p>
               <p>
-                <strong>Space:</strong> Jump
+                <strong>Arrow Keys or W:</strong> Jump
               </p>
               <p>
-                <strong>P:</strong> Pause
+                <strong>space:</strong> Pause
               </p>
             </div>
             <div class="stats">
@@ -35,7 +45,7 @@
                 Score: <span id="score">0</span>
               </p>
               <p>
-                Lives: <span id="lives">3</span>
+                Lives: <span id="lives">1</span>
               </p>
               <p>
                 Level: <span id="level">1</span>

@@ -62,6 +62,11 @@ main {
   align-items: start;
 }
 
+.game-panel {
+  position: relative;
+  width: 100%;
+}
+
 @media (max-width: 800px) {
   .game-section {
     grid-template-columns: 1fr;
@@ -79,6 +84,43 @@ canvas {
   border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
   cursor: pointer;
+}
+
+.fullscreen-button {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  background: rgba(26, 26, 46, 0.85);
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  backdrop-filter: blur(6px);
+}
+
+.fullscreen-button:hover {
+  background: var(--primary-color);
+  color: var(--dark-bg);
+}
+
+.game-panel:fullscreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+}
+
+.game-panel:fullscreen canvas {
+  max-width: none;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .info {

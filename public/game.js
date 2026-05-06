@@ -16,6 +16,7 @@
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
+const CANVAS_ASPECT_RATIO = CANVAS_WIDTH / CANVAS_HEIGHT;
 
 const PLAYER_WIDTH = 40;
 const PLAYER_HEIGHT = 40;
@@ -37,8 +38,18 @@ const keys = {};
 document.addEventListener('keydown', (e) => {
   keys[e.key.toLowerCase()] = true;
 
-  // Pause on 'P'
-  if (e.key.toLowerCase() === 'p') {
+  if (e.key === ' ') {
+    e.preventDefault();
+  }
+
+  // Restart on Space after game over
+  if (e.key === ' ' && game.gameOver) {
+    game.restart();
+    return;
+  }
+
+  // Pause on 'P' or Space during the game
+  if ((e.key.toLowerCase() === 'p' || e.key === ' ') && !game.gameOver) {
     game.togglePause();
   }
 });
@@ -79,7 +90,7 @@ class Player {
     }
 
     // Jump
-    if ((keys[' '] || keys['w']) && !this.isJumping) {
+    if (keys['w'] && !this.isJumping) {
       this.velY = -PLAYER_JUMP_POWER;
       this.isJumping = true;
     }
@@ -140,14 +151,51 @@ class Obstacle {
   }
 
   draw(ctx) {
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    const centerX = this.x + this.width / 2;
+    const centerY = this.y + this.height / 2;
 
-    // Draw banana shape indicator
-    ctx.fillStyle = '#FFB700';
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-0.35);
+
+    // Outer banana curve
     ctx.beginPath();
-    ctx.arc(this.x + this.width / 2, this.y + this.height / 2, 15, 0, Math.PI * 2);
+    ctx.moveTo(-16, 12);
+    ctx.quadraticCurveTo(-28, -4, -10, -18);
+    ctx.quadraticCurveTo(10, -30, 24, -12);
+    ctx.quadraticCurveTo(14, -4, 10, 8);
+    ctx.quadraticCurveTo(-1, 20, -16, 12);
+    ctx.closePath();
+    ctx.fillStyle = '#f7d11e';
     ctx.fill();
+
+    // Inner cut to create the crescent banana shape
+    ctx.beginPath();
+    ctx.moveTo(-10, 9);
+    ctx.quadraticCurveTo(-16, -2, -4, -10);
+    ctx.quadraticCurveTo(8, -18, 16, -8);
+    ctx.quadraticCurveTo(9, -2, 7, 6);
+    ctx.quadraticCurveTo(-1, 13, -10, 9);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(135, 206, 235, 0.7)';
+    ctx.fill();
+
+    // Simple shading to keep it readable against the sky
+    ctx.beginPath();
+    ctx.moveTo(-15, 11);
+    ctx.quadraticCurveTo(-21, -1, -8, -14);
+    ctx.quadraticCurveTo(5, -21, 17, -10);
+    ctx.strokeStyle = '#e5a910';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Stem and tip
+    ctx.fillStyle = '#5a3511';
+    ctx.fillRect(18, -13, 5, 6);
+    ctx.fillRect(-19, 10, 4, 4);
+
+    ctx.restore();
   }
 
   getBounds() {
@@ -194,7 +242,7 @@ class Game {
     this.score = 0;
     this.lives = 3;
     this.level = 1;
-    this.spawnRate = 100;
+    this.spawnRate = 60;
     this.gameTime = 0;
 
     this.start();
@@ -209,12 +257,25 @@ class Game {
     console.log(this.paused ? '⏸️ Game Paused' : '▶️ Game Resumed');
   }
 
+  restart() {
+    this.paused = false;
+    this.gameOver = false;
+    this.player = new Player(100, GROUND_LEVEL - PLAYER_HEIGHT);
+    this.obstacles = [];
+    this.score = 0;
+    this.lives = 3;
+    this.level = 1;
+    this.spawnRate = 60;
+    this.gameTime = 0;
+    console.log('🔄 Game Restarted!');
+  }
+
   spawn() {
     if (this.gameTime % this.spawnRate === 0) {
       const obstacle = new Obstacle(
         CANVAS_WIDTH,
         GROUND_LEVEL - OBSTACLE_HEIGHT,
-        2 + this.level * 0.5
+        5 + this.level
       );
       this.obstacles.push(obstacle);
     }
@@ -245,7 +306,7 @@ class Game {
 
       // Remove off-screen obstacles and increment score
       if (obstacle.isOffScreen()) {
-        this.score += 10;
+        this.score += 15;
         return false;
       }
 
@@ -257,7 +318,7 @@ class Game {
       const newLevel = Math.floor(this.score / 100) + 1;
       if (newLevel !== this.level) {
         this.level = newLevel;
-        this.spawnRate = Math.max(40, 100 - this.level * 10);
+        this.spawnRate = Math.max(25, 60 - this.level * 5);
         console.log(`📈 Level ${this.level}! Spawn rate: ${this.spawnRate}`);
       }
     }
@@ -315,7 +376,7 @@ class Game {
     this.ctx.fillText('PAUSED', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30);
 
     this.ctx.font = '20px Arial';
-    this.ctx.fillText('Press P to resume', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30);
+    this.ctx.fillText('Press Space or P to resume', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30);
     this.ctx.textAlign = 'left';
   }
 
@@ -323,17 +384,17 @@ class Game {
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    this.ctx.fillStyle = '#FF6B6B';
+    this.ctx.fillStyle = 'rgba(66, 20, 173, 0.82)';
     this.ctx.font = 'bold 60px Arial';
     this.ctx.textAlign = 'center';
     this.ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 60);
 
-    this.ctx.fillStyle = '#FFD700';
+    this.ctx.fillStyle = '#68159fdd';
     this.ctx.font = 'bold 30px Arial';
     this.ctx.fillText(`Final Score: ${this.score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 10);
 
     this.ctx.font = '20px Arial';
-    this.ctx.fillText('Refresh page to play again', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60);
+    this.ctx.fillText('Press Space to play again', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 60);
     this.ctx.textAlign = 'left';
   }
 
@@ -355,10 +416,61 @@ class Game {
 // ============================================================================
 
 const canvas = document.getElementById('gameCanvas');
+const gamePanel = document.getElementById('gamePanel');
+const fullscreenButton = document.getElementById('fullscreenButton');
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
 const game = new Game(canvas);
+
+function resizeCanvasDisplay() {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  if (document.fullscreenElement === gamePanel) {
+    const viewportRatio = viewportWidth / viewportHeight;
+
+    if (viewportRatio > CANVAS_ASPECT_RATIO) {
+      canvas.style.height = '100vh';
+      canvas.style.width = `${Math.floor(viewportHeight * CANVAS_ASPECT_RATIO)}px`;
+    } else {
+      canvas.style.width = '100vw';
+      canvas.style.height = `${Math.floor(viewportWidth / CANVAS_ASPECT_RATIO)}px`;
+    }
+
+    return;
+  }
+
+  canvas.style.width = '';
+  canvas.style.height = '';
+}
+
+async function toggleFullscreen() {
+  if (document.fullscreenElement === gamePanel) {
+    await document.exitFullscreen();
+    return;
+  }
+
+  await gamePanel.requestFullscreen();
+}
+
+function updateFullscreenButton() {
+  fullscreenButton.textContent =
+    document.fullscreenElement === gamePanel ? 'Exit Full Screen' : 'Full Screen';
+  resizeCanvasDisplay();
+}
+
+fullscreenButton.addEventListener('click', () => {
+  toggleFullscreen().catch((error) => {
+    console.error('Fullscreen failed:', error);
+  });
+});
+
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+window.addEventListener('resize', resizeCanvasDisplay);
+updateFullscreenButton();
 
 console.log('🎮 Game Started!');
 console.log('Controls:');
 console.log('  Arrow Keys or A/D - Move');
-console.log('  Space or W - Jump');
-console.log('  P - Pause/Resume');
+console.log('  W - Jump');
+console.log('  Space or P - Pause/Resume');
