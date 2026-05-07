@@ -1,5 +1,7 @@
 # Banana Wheels Game Spec
 
+Agent history and accountability are tracked in `docs/AGENTS.md`. The current V3 agent mandate is tracked in `docs/V3_AGENT_MANDATE.md`.
+
 ## Version 1.0 Baseline
 
 Version 1.0 is the preserved browser-game baseline tagged as `v1.0`.
@@ -75,6 +77,20 @@ Banana Wheels GT is a first-person arcade lane-driving game. The player drives t
 - Accessibility options are limited.
 
 ## Version 2 Enhanced Spec
+
+### V2 Retrospective
+
+V2 is no longer the design target. It improved structure and added common arcade-runner systems, but it failed the gameplay bar.
+
+What went wrong:
+
+- The prototype added breadth before proving the core loop.
+- The spec described fun but did not define a strict playable feel target.
+- The implementation emphasized modularity over a distinctive moment-to-moment hook.
+- Progression and upgrades arrived before the base run was strong enough.
+- Acceptance criteria were too technical and not playtest-driven.
+
+V2 remains useful as a code-organization reference, but V3 must restart from gameplay feel.
 
 ### Product Goal
 
@@ -287,3 +303,60 @@ The first V2 implementation should include:
 - Full asset pipeline.
 - Large campaign mode.
 - Monetization.
+
+## Version 3 Direction
+
+### Core Fun Promise
+
+Banana Wheels V3 is a fast arcade drifting game where every banana is a tempting risk: stay clean to build boost, spend boost to thread dangerous gaps, and recover instantly when the run goes wrong.
+
+### V3 Priorities
+
+1. Prove the 10-second loop before adding systems.
+2. Make steering, drifting, boosting, and recovery feel good without upgrades.
+3. Make obstacles readable and failures understandable.
+4. Make score feedback immediate and skill-based.
+5. Keep restart instant.
+6. Add structure only after the core action is fun.
+
+### Ten-Second Prototype Loop
+
+The minimum V3 prototype is:
+
+1. Player starts already moving.
+2. A banana line pulls the player toward a risky lane.
+3. A hazard pattern forces a drift or lane cut.
+4. Boost lets the player either escape safely or chase a higher-value banana arc.
+5. A clean pass triggers combo feedback.
+6. A crash causes a readable spinout and instant restart prompt.
+
+If this loop is not fun, no additional modes, upgrades, menus, or architecture work should proceed.
+
+### Required Mechanics
+
+- Analog-feeling lane drift rather than binary lane snapping.
+- Banana trails placed to teach and tempt movement.
+- Boost that is earned by clean driving and spent for speed plus score multiplier.
+- Hazards that create choices, not only lane checks.
+- Recoverable crashes with strong feedback and rapid restart.
+- Combo based on clean banana streaks, close calls, drift timing, and boost commitment.
+
+### V3 Acceptance Criteria
+
+- A new player understands the goal within 5 seconds.
+- A failed run can restart within 1 second.
+- The player can identify why they crashed.
+- Boost use has a visible upside and a visible risk.
+- The best score path is more dangerous than the safe path.
+- The game remains engaging for at least five immediate retries without upgrades.
+- The code supports changing speed, steering, hazard spacing, and scoring values quickly.
+
+### V3 Non-Goals Until The Loop Works
+
+- Upgrade economy.
+- Cosmetic unlocks.
+- Daily challenges.
+- Complex menus.
+- Multiple biomes.
+- Large folder expansion.
+- Leaderboards.
