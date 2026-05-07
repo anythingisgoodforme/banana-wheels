@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Banana Wheels V2</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="stage" aria-label="Banana Wheels V2 game">
+        <canvas id="gameCanvas" width="960" height="640"></canvas>
+
+        <div class="hud" aria-live="polite">
+          <div>
+            <span class="label">Score</span>
+            <strong id="scoreText">0</strong>
+          </div>
+          <div>
+            <span class="label">Combo</span>
+            <strong id="comboText">x1.0</strong>
+          </div>
+          <div>
+            <span class="label">Boost</span>
+            <strong id="boostText">0%</strong>
+          </div>
+          <div>
+            <span class="label">Damage</span>
+            <strong id="damageText">0/5</strong>
+          </div>
+        </div>
+
+        <div class="touch-controls" aria-hidden="true">
+          <button id="touchLeft" type="button">Left</button>
+          <button id="touchBoost" type="button">Boost</button>
+          <button id="touchRight" type="button">Right</button>
+        </div>
+
+        <section id="menuOverlay" class="overlay">
+          <div class="overlay-panel">
+            <p class="eyebrow">Banana Wheels V2</p>
+            <h1>Jungle Rush</h1>
+            <p class="summary">
+              Collect bananas, chain clean driving, and spend boost before the road spends you.
+            </p>
+            <div class="button-row">
+              <button id="startButton" type="button">Start Run</button>
+              <button id="upgradeButton" type="button" class="secondary">Upgrades</button>
+            </div>
+            <dl class="save-stats">
+              <div>
+                <dt>Best</dt>
+                <dd id="bestScoreText">0</dd>
+              </div>
+              <div>
+                <dt>Wallet</dt>
+                <dd id="walletText">0</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section id="pauseOverlay" class="overlay hidden">
+          <div class="overlay-panel compact">
+            <h2>Paused</h2>
+            <div class="button-row">
+              <button id="resumeButton" type="button">Resume</button>
+              <button id="restartButton" type="button" class="secondary">Restart</button>
+            </div>
+            <label class="toggle-line">
+              <input id="muteToggle" type="checkbox" />
+              Mute SFX
+            </label>
+            <label class="toggle-line">
+              <input id="motionToggle" type="checkbox" />
+              Reduced motion
+            </label>
+          </div>
+        </section>
+
+        <section id="summaryOverlay" class="overlay hidden">
+          <div class="overlay-panel">
+            <p class="eyebrow">Run Complete</p>
+            <h2 id="summaryTitle">Crashed Out</h2>
+            <dl class="run-summary">
+              <div>
+                <dt>Score</dt>
+                <dd id="summaryScore">0</dd>
+              </div>
+              <div>
+                <dt>Distance</dt>
+                <dd id="summaryDistance">0m</dd>
+              </div>
+              <div>
+                <dt>Bananas</dt>
+                <dd id="summaryBananas">0</dd>
+              </div>
+              <div>
+                <dt>Best Combo</dt>
+                <dd id="summaryCombo">x1.0</dd>
+              </div>
+            </dl>
+            <div class="button-row">
+              <button id="againButton" type="button">Run Again</button>
+              <button id="summaryUpgradeButton" type="button" class="secondary">Upgrades</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="upgradeOverlay" class="overlay hidden">
+          <div class="overlay-panel upgrades">
+            <p class="eyebrow">Garage</p>
+            <h2>Upgrades</h2>
+            <p class="wallet-line">Bananas: <strong id="upgradeWalletText">0</strong></p>
+            <div id="upgradeList" class="upgrade-list"></div>
+            <div class="button-row">
+              <button id="closeUpgradesButton" type="button">Done</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="brief">
+        <h2>Controls</h2>
+        <p><strong>A/D or arrows</strong> change lanes.</p>
+        <p><strong>Space</strong> boosts when banana energy is available.</p>
+        <p><strong>Esc</strong> pauses. <strong>R</strong> restarts.</p>
+      </aside>
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

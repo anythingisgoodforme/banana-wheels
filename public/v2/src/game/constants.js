@@ -1,0 +1,9 @@
+export const WIDTH = 960;
+export const HEIGHT = 640;
+export const LANES = [-1, 0, 1];
+export const MAX_DAMAGE = 5;
+export const BASE_SPEED = 18;
+export const BOOST_COST = 34;
+export const BOOST_GAIN = 34;
+export const COURSE_AHEAD = 130;
+export const COLLISION_Z = 4;
