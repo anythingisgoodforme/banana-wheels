@@ -10,7 +10,14 @@ const SPRING_READY_MAX = 1.35;
 const SPRING_DELAY_SECONDS = 60;
 const SPRING_SPAWN_Z = 15;
 const COLLISION_Z = 0.7;
-const COLLISION_TOLERANCE = 0.3;
+const LANE_POSITIONS = [-0.92, 0, 0.92];
+const STEER_EASE = 0.22;
+const MAX_FRAME_SCALE = 2.2;
+const CAMERA_STEER_STRENGTH = 54;
+const MONKEY_WAVE_SPACING = 4.8;
+const INITIAL_MONKEY_WAVES = 5;
+const HITS_PER_LIFE = 5;
+const STARTING_LIVES = 3;
 
 const keys = {};
 
@@ -24,12 +31,20 @@ document.addEventListener('keydown', (event) => {
     event.preventDefault();
   }
 
+  if (!event.repeat && (event.key === 'ArrowLeft' || key === 'a')) {
+    game.shiftLane(-1);
+  }
+
+  if (!event.repeat && (event.key === 'ArrowRight' || key === 'd')) {
+    game.shiftLane(1);
+  }
+
   if (event.key === ' ' && !event.repeat) {
     game.handleSpace();
   }
 
   if (key === 'r' && !event.repeat) {
-    game.restart();
+    game.restart(true);
   }
 });
 
@@ -99,48 +114,95 @@ class Game {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.audio = new AudioEngine();
-    this.lane = 0;
+    this.laneIndex = 1;
+    this.targetLane = 1;
+    this.lane = LANE_POSITIONS[this.laneIndex];
     this.carOffset = 0;
+    this.carLean = 0;
     this.trackOffset = 0;
     this.forwardDistance = 0;
     this.elapsedFrames = 0;
-    this.attempts = 1;
+    this.livesRemaining = STARTING_LIVES;
+    this.damageHits = 0;
     this.hitFlash = 0;
     this.shake = 0;
     this.goalPulse = 0;
     this.springReady = false;
     this.springUnlocked = false;
     this.springWarningFlash = 0;
+    this.nextMonkeyWaveZ = 0;
+    this.lastOpenLane = 1;
     this.phase = 'intro';
-    this.message = 'Arrow keys or A/D to steer. Press Space to drive.';
+    this.message = 'Arrow keys or A/D to swerve through the gaps. Press Space to drive.';
     this.objects = [];
+    this.lastFrameTime = null;
 
-    this.restart(false);
+    this.restart(true);
     this.gameLoop();
   }
 
   buildTrack() {
-    return [
-      { type: 'monkey', lane: -0.85, z: 15.5, hit: false },
-      { type: 'monkey', lane: 0.85, z: 14.2, hit: false },
-      { type: 'monkey', lane: 0, z: 11.8, hit: false },
-      { type: 'monkey', lane: -0.7, z: 10.6, hit: false },
-      { type: 'monkey', lane: 0.7, z: 7.9, hit: false },
-      { type: 'monkey', lane: 0, z: 6.4, hit: false },
-    ];
+    const waves = [];
+    this.nextMonkeyWaveZ = 7.8;
+
+    for (let i = 0; i < INITIAL_MONKEY_WAVES; i += 1) {
+      waves.push(this.createMonkeyWave(this.nextMonkeyWaveZ));
+      this.nextMonkeyWaveZ += MONKEY_WAVE_SPACING;
+    }
+
+    return waves;
   }
 
   createSpring() {
     return { type: 'spring', lane: 0, z: SPRING_SPAWN_Z, armed: false, spent: false };
   }
 
-  restart(incrementAttempts = false) {
-    if (incrementAttempts) {
-      this.attempts += 1;
+  pickOpenLane() {
+    const lanes = [0, 1, 2];
+    const alternatives = lanes.filter((lane) => lane !== this.lastOpenLane);
+    const weightedPool = Math.random() < 0.78 ? alternatives : lanes;
+    const openLane = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+    this.lastOpenLane = openLane;
+    return openLane;
+  }
+
+  createMonkeyWave(z) {
+    const openLane = this.pickOpenLane();
+    const blockedLanes = LANE_POSITIONS.map((_, index) => index).filter((index) => index !== openLane);
+
+    if (Math.random() < 0.22) {
+      blockedLanes.splice(Math.floor(Math.random() * blockedLanes.length), 1);
     }
 
-    this.lane = 0;
+    return {
+      type: 'wave',
+      lanes: blockedLanes,
+      openLane,
+      z,
+      hit: false,
+    };
+  }
+
+  recycleMonkeyWave(wave) {
+    const replacement = this.createMonkeyWave(this.nextMonkeyWaveZ + Math.random() * 0.6);
+    this.nextMonkeyWaveZ += MONKEY_WAVE_SPACING;
+    wave.lanes = replacement.lanes;
+    wave.openLane = replacement.openLane;
+    wave.z = replacement.z;
+    wave.hit = false;
+  }
+
+  restart(resetLives = false) {
+    if (resetLives) {
+      this.livesRemaining = STARTING_LIVES;
+      this.damageHits = 0;
+    }
+
+    this.laneIndex = 1;
+    this.targetLane = 1;
+    this.lane = LANE_POSITIONS[this.laneIndex];
     this.carOffset = 0;
+    this.carLean = 0;
     this.trackOffset = 0;
     this.forwardDistance = 0;
     this.elapsedFrames = 0;
@@ -150,15 +212,21 @@ class Game {
     this.springReady = false;
     this.springUnlocked = false;
     this.springWarningFlash = 0;
+    this.lastOpenLane = 1;
     this.phase = 'intro';
-    this.message = 'Arrow keys or A/D to steer. Press Space to drive.';
+    this.message = 'Arrow keys or A/D to swerve through the gaps. Press Space to drive.';
     this.objects = this.buildTrack();
+  }
+
+  shiftLane(direction) {
+    const nextLane = Math.max(0, Math.min(LANE_POSITIONS.length - 1, this.targetLane + direction));
+    this.targetLane = nextLane;
   }
 
   handleSpace() {
     if (this.phase === 'intro') {
       this.phase = 'drive';
-      this.message = 'Stay centered, dodge the primates, hit Space on the spring.';
+      this.message = 'Need for Speed rules: read the open lane, flick across, avoid the monkeys.';
       this.audio.launch();
       return;
     }
@@ -183,25 +251,36 @@ class Game {
     }
 
     if (this.phase === 'won' || this.phase === 'lost') {
-      this.restart(this.phase === 'lost');
+      this.restart(true);
     }
   }
 
-  loseRound(message) {
-    this.phase = 'lost';
-    this.message = `${message} Press Space to retry.`;
+  loseLife() {
     this.audio.fail();
+    this.damageHits = 0;
+    this.livesRemaining -= 1;
+
+    if (this.livesRemaining <= 0) {
+      this.phase = 'lost';
+      this.message = 'Out of lives. Press Space to restart the run.';
+      return;
+    }
+
+    this.restart(false);
+    this.message = `You lost a life. ${this.livesRemaining} left. Press Space to jump back in.`;
   }
 
-  updateSteering() {
-    this.lane = 0;
-    this.carOffset = 0;
+  updateSteering(frameScale) {
+    this.lane = LANE_POSITIONS[this.targetLane];
+    const easing = 1 - Math.pow(1 - STEER_EASE, frameScale);
+    this.carOffset += (this.lane - this.carOffset) * easing;
+    this.carLean += ((this.lane - this.carOffset) * 1.8 - this.carLean) * easing;
   }
 
-  updateSpringUnlock() {
+  updateSpringUnlock(frameScale) {
     if (this.phase !== 'drive') return;
 
-    this.elapsedFrames += 1;
+    this.elapsedFrames += frameScale;
     const elapsedSeconds = this.elapsedFrames / 60;
 
     if (!this.springUnlocked && elapsedSeconds >= SPRING_DELAY_SECONDS) {
@@ -212,13 +291,15 @@ class Game {
     }
   }
 
-  updateDrive() {
-    this.forwardDistance += DRIVE_SPEED;
+  updateDrive(frameScale) {
+    this.forwardDistance += DRIVE_SPEED * frameScale;
     this.springReady = false;
-    this.updateSpringUnlock();
+    this.updateSpringUnlock(frameScale);
+    const retainedObjects = [];
+    const playerLane = this.getPlayerLaneIndex();
 
-    this.objects = this.objects.filter((object) => {
-      object.z -= DRIVE_SPEED;
+    for (const object of this.objects) {
+      object.z -= DRIVE_SPEED * frameScale;
 
       if (object.type === 'spring') {
         if (!object.spent && object.z <= SPRING_READY_MAX && object.z >= SPRING_READY_MIN) {
@@ -228,36 +309,48 @@ class Game {
         }
 
         if (!object.spent && object.z < SPRING_READY_MIN) {
-          this.loseRound('You missed the spring timing.');
+          this.loseLife();
+          return;
         }
 
-        return !object.spent && object.z > -1.5;
+        if (!object.spent && object.z > -1.5) {
+          retainedObjects.push(object);
+        }
+        continue;
       }
 
       if (
         !object.hit &&
         object.z <= COLLISION_Z &&
-        Math.abs(this.lane - object.lane) < COLLISION_TOLERANCE
+        object.z > COLLISION_Z - DRIVE_SPEED * frameScale * 2 &&
+        object.lanes.includes(playerLane)
       ) {
         object.hit = true;
-        this.hitFlash = 14;
-        this.shake = 16;
-        this.message = 'Monkey swipe. Keep steering through the chaos.';
+        this.damageHits += 1;
+        this.hitFlash = 16;
+        this.shake = 22;
+
+        if (this.damageHits >= HITS_PER_LIFE) {
+          this.loseLife();
+          return;
+        }
+
+        this.message = `Monkey hit ${this.damageHits}/${HITS_PER_LIFE}. Find the open lane.`;
       }
 
       if (object.z < -1.5) {
-        object.z = TRACK_LENGTH + Math.random() * 4;
-        object.hit = false;
-        object.lane = -0.9 + Math.random() * 1.8;
+        this.recycleMonkeyWave(object);
       }
 
-      return true;
-    });
+      retainedObjects.push(object);
+    }
+
+    this.objects = retainedObjects;
   }
 
-  updateSpringFlight() {
-    this.goalPulse = Math.max(0, this.goalPulse - 1);
-    this.forwardDistance += DRIVE_SPEED * 0.6;
+  updateSpringFlight(frameScale) {
+    this.goalPulse = Math.max(0, this.goalPulse - frameScale);
+    this.forwardDistance += DRIVE_SPEED * 0.6 * frameScale;
 
     if (this.forwardDistance > 2.8) {
       this.phase = 'won';
@@ -265,45 +358,45 @@ class Game {
     }
   }
 
-  updateEffects() {
+  updateEffects(frameScale) {
     if (this.hitFlash > 0) {
-      this.hitFlash -= 1;
+      this.hitFlash = Math.max(0, this.hitFlash - frameScale);
     }
 
     if (this.shake > 0) {
-      this.shake -= 1;
+      this.shake = Math.max(0, this.shake - frameScale);
     }
 
     if (this.springWarningFlash > 0) {
-      this.springWarningFlash -= 1;
+      this.springWarningFlash = Math.max(0, this.springWarningFlash - frameScale);
     }
   }
 
-  update() {
-    this.updateEffects();
+  update(frameScale) {
+    this.updateEffects(frameScale);
 
     if (this.phase === 'won' || this.phase === 'lost') {
       return;
     }
 
-    this.updateSteering();
+    this.updateSteering(frameScale);
 
     if (this.phase === 'drive') {
-      this.updateDrive();
+      this.updateDrive(frameScale);
     } else if (this.phase === 'spring-flight') {
-      this.updateSpringFlight();
+      this.updateSpringFlight(frameScale);
     }
   }
 
   getRoadCenter(y) {
     const perspective = (y - HORIZON_Y) / (ROAD_BOTTOM_Y - HORIZON_Y);
     const curve = Math.sin(this.trackOffset + perspective * 1.9) * 72 * (1 - perspective);
-    return CANVAS_WIDTH / 2 + curve;
+    return CANVAS_WIDTH / 2 + curve - this.carOffset * CAMERA_STEER_STRENGTH * (0.2 + perspective * 0.85);
   }
 
   getRoadHalfWidth(y) {
     const perspective = (y - HORIZON_Y) / (ROAD_BOTTOM_Y - HORIZON_Y);
-    return 90 + perspective * perspective * 380;
+    return 120 + perspective * perspective * 450;
   }
 
   projectObject(object) {
@@ -314,11 +407,25 @@ class Game {
     const y = HORIZON_Y + easedDepth * (ROAD_BOTTOM_Y - HORIZON_Y);
     const halfWidth = this.getRoadHalfWidth(y);
     const centerX = this.getRoadCenter(y);
-    const relativeLane = object.lane - this.lane;
-    const x = centerX + relativeLane * halfWidth * 0.43;
+    const x = centerX + object.lane * halfWidth * 0.43;
     const scale = 0.35 + easedDepth * 2.1;
 
     return { x, y, scale, depth };
+  }
+
+  getPlayerLaneIndex() {
+    let closestIndex = 0;
+    let closestDistance = Infinity;
+
+    LANE_POSITIONS.forEach((lanePosition, index) => {
+      const distance = Math.abs(this.carOffset - lanePosition);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    return closestIndex;
   }
 
   drawBackground() {
@@ -356,17 +463,17 @@ class Game {
   drawJungleBackdrop() {
     const ctx = this.ctx;
     const clusters = [
-      { x: 40, width: 160, height: 90, dark: '#1d4725', mid: '#2d7d3d' },
-      { x: 130, width: 150, height: 74, dark: '#285d32', mid: '#4fa65d' },
-      { x: 235, width: 165, height: 102, dark: '#183f21', mid: '#458f50' },
-      { x: 350, width: 190, height: 94, dark: '#20492a', mid: '#41894b' },
-      { x: 470, width: 170, height: 110, dark: '#173b1e', mid: '#4b9b57' },
-      { x: 600, width: 175, height: 98, dark: '#1f4727', mid: '#4a9454' },
-      { x: 735, width: 165, height: 86, dark: '#285a30', mid: '#55a862' },
+      { x: 10, width: 320, height: 240, dark: '#1d4725', mid: '#2d7d3d' },
+      { x: 118, width: 290, height: 210, dark: '#285d32', mid: '#4fa65d' },
+      { x: 240, width: 330, height: 270, dark: '#183f21', mid: '#458f50' },
+      { x: 380, width: 380, height: 255, dark: '#20492a', mid: '#41894b' },
+      { x: 520, width: 350, height: 290, dark: '#173b1e', mid: '#4b9b57' },
+      { x: 665, width: 340, height: 260, dark: '#1f4727', mid: '#4a9454' },
+      { x: 805, width: 310, height: 225, dark: '#285a30', mid: '#55a862' },
     ];
 
     ctx.fillStyle = 'rgba(100, 170, 115, 0.2)';
-    ctx.fillRect(0, HORIZON_Y - 8, CANVAS_WIDTH, 72);
+    ctx.fillRect(0, HORIZON_Y - 34, CANVAS_WIDTH, 165);
 
     clusters.forEach((cluster) => {
       ctx.fillStyle = cluster.dark;
@@ -398,20 +505,20 @@ class Game {
     ctx.fillStyle = 'rgba(24, 71, 37, 0.78)';
     for (let i = 0; i < 18; i += 1) {
       const bushX = 20 + i * 46;
-      const bushY = HORIZON_Y + 24 + Math.sin(i * 1.7) * 10;
+      const bushY = HORIZON_Y + 52 + Math.sin(i * 1.7) * 16;
       ctx.beginPath();
-      ctx.arc(bushX, bushY, 18 + (i % 3) * 7, Math.PI, 0);
+      ctx.arc(bushX, bushY, 40 + (i % 3) * 14, Math.PI, 0);
       ctx.fill();
     }
 
     ctx.strokeStyle = 'rgba(35, 92, 44, 0.55)';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 10;
     for (let i = 0; i < 10; i += 1) {
       const vineX = 30 + i * 82;
       ctx.beginPath();
-      ctx.moveTo(vineX, HORIZON_Y - 48 - (i % 2) * 18);
-      ctx.quadraticCurveTo(vineX + 10, HORIZON_Y - 8, vineX - 6, HORIZON_Y + 34);
-      ctx.quadraticCurveTo(vineX - 16, HORIZON_Y + 54, vineX + 2, HORIZON_Y + 68);
+      ctx.moveTo(vineX, HORIZON_Y - 150 - (i % 2) * 38);
+      ctx.quadraticCurveTo(vineX + 18, HORIZON_Y - 42, vineX - 14, HORIZON_Y + 72);
+      ctx.quadraticCurveTo(vineX - 30, HORIZON_Y + 110, vineX + 8, HORIZON_Y + 156);
       ctx.stroke();
     }
   }
@@ -451,25 +558,22 @@ class Game {
   drawRoadsideJungle() {
     const ctx = this.ctx;
 
-    for (let y = HORIZON_Y + 14; y <= ROAD_BOTTOM_Y; y += 18) {
+    for (let y = HORIZON_Y + 24; y <= ROAD_BOTTOM_Y; y += 28) {
       const center = this.getRoadCenter(y);
       const halfWidth = this.getRoadHalfWidth(y);
       const perspective = (y - HORIZON_Y) / (ROAD_BOTTOM_Y - HORIZON_Y);
-      const scale = 0.45 + perspective * 1.5;
-      const sway = Math.sin(this.forwardDistance * 3.5 + y * 0.04) * 6;
-      const leftBase = center - halfWidth - 18 - perspective * 46;
-      const rightBase = center + halfWidth + 18 + perspective * 46;
+      const scale = 1.05 + perspective * 2.9;
+      const sway = Math.sin(this.forwardDistance * 3.5 + y * 0.04) * 10;
+      const vergeInset = 40 + perspective * 74;
+      const leftBase = center - halfWidth - vergeInset;
+      const rightBase = center + halfWidth + vergeInset;
 
       this.drawPalmClump(leftBase + sway, y + 2, scale, false);
       this.drawPalmClump(rightBase - sway, y + 2, scale, true);
-      this.drawPalmClump(leftBase - 24 + sway * 0.6, y + 10, scale * 0.78, false);
-      this.drawPalmClump(rightBase + 24 - sway * 0.6, y + 10, scale * 0.78, true);
 
-      if (perspective > 0.24) {
-        this.drawBroadLeaf(leftBase - 10 - perspective * 18, y + 8, scale * 0.92, false);
-        this.drawBroadLeaf(rightBase + 10 + perspective * 18, y + 8, scale * 0.92, true);
-        this.drawBroadLeaf(leftBase - 38 - perspective * 16, y + 14, scale * 0.76, false);
-        this.drawBroadLeaf(rightBase + 38 + perspective * 16, y + 14, scale * 0.76, true);
+      if (perspective > 0.32) {
+        this.drawBroadLeaf(leftBase - 30 - perspective * 10, y + 16, scale, false);
+        this.drawBroadLeaf(rightBase + 30 + perspective * 10, y + 16, scale, true);
       }
     }
   }
@@ -477,8 +581,8 @@ class Game {
   drawPalmClump(x, y, scale, mirror) {
     const ctx = this.ctx;
     const direction = mirror ? -1 : 1;
-    const trunkHeight = 18 * scale;
-    const trunkWidth = Math.max(2, 4 * scale);
+    const trunkHeight = 34 * scale;
+    const trunkWidth = Math.max(4, 7 * scale);
 
     ctx.save();
     ctx.translate(x, y);
@@ -495,14 +599,14 @@ class Game {
     const leafAngles = [-1.12, -0.56, -0.06, 0.42, 0.82];
     leafAngles.forEach((angle, index) => {
       ctx.strokeStyle = leafColors[index % leafColors.length];
-      ctx.lineWidth = Math.max(2, 5 * scale);
+      ctx.lineWidth = Math.max(3, 8 * scale);
       ctx.beginPath();
       ctx.moveTo(0, -trunkHeight);
       ctx.quadraticCurveTo(
-        Math.cos(angle) * 18 * scale,
-        -trunkHeight + Math.sin(angle) * 11 * scale,
         Math.cos(angle) * 30 * scale,
-        -trunkHeight + Math.sin(angle) * 22 * scale
+        -trunkHeight + Math.sin(angle) * 18 * scale,
+        Math.cos(angle) * 52 * scale,
+        -trunkHeight + Math.sin(angle) * 38 * scale
       );
       ctx.stroke();
     });
@@ -543,49 +647,81 @@ class Game {
   }
 
   drawCockpit() {
-    const shift = this.carOffset * 62;
-    const turnTilt = this.carOffset * -0.18;
+    const ctx = this.ctx;
+    const centerX = CANVAS_WIDTH / 2 + this.carOffset * 112;
+    const centerY = CANVAS_HEIGHT - 6;
+    const turnTilt = this.carLean * -0.22;
 
-    this.ctx.save();
-    this.ctx.translate(400 + shift, 565);
-    this.ctx.rotate(turnTilt);
-    this.ctx.translate(-400, -565);
-    this.ctx.fillStyle = '#20150e';
-    this.ctx.beginPath();
-    this.ctx.moveTo(0, CANVAS_HEIGHT);
-    this.ctx.lineTo(220, 470);
-    this.ctx.lineTo(580, 470);
-    this.ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
-    this.ctx.closePath();
-    this.ctx.fill();
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(turnTilt);
+    ctx.translate(-centerX, -centerY);
 
-    this.ctx.fillStyle = '#f7cf42';
-    this.ctx.beginPath();
-    this.ctx.moveTo(230, CANVAS_HEIGHT);
-    this.ctx.quadraticCurveTo(308 + this.carOffset * 34, 520, 390 + this.carOffset * 18, 536);
-    this.ctx.quadraticCurveTo(510 + this.carOffset * 42, 494, 570, CANVAS_HEIGHT);
-    this.ctx.closePath();
-    this.ctx.fill();
+    ctx.fillStyle = '#12161d';
+    ctx.beginPath();
+    ctx.moveTo(0, CANVAS_HEIGHT);
+    ctx.lineTo(140, 488);
+    ctx.lineTo(278, 432);
+    ctx.lineTo(522, 432);
+    ctx.lineTo(660, 488);
+    ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.closePath();
+    ctx.fill();
 
-    this.ctx.strokeStyle = 'rgba(110, 69, 22, 0.55)';
-    this.ctx.lineWidth = 6;
-    this.ctx.beginPath();
-    this.ctx.moveTo(398, CANVAS_HEIGHT);
-    this.ctx.quadraticCurveTo(404 + this.carOffset * 18, 560, 404 + this.carOffset * 10, 530);
-    this.ctx.stroke();
+    const hoodGradient = ctx.createLinearGradient(0, 448, 0, CANVAS_HEIGHT);
+    hoodGradient.addColorStop(0, '#ffe15e');
+    hoodGradient.addColorStop(0.52, '#f7be22');
+    hoodGradient.addColorStop(1, '#d18f0f');
+    ctx.fillStyle = hoodGradient;
+    ctx.beginPath();
+    ctx.moveTo(178, CANVAS_HEIGHT);
+    ctx.quadraticCurveTo(252 + this.carOffset * 16, 520, 304, 470);
+    ctx.quadraticCurveTo(354, 432, 400, 444);
+    ctx.quadraticCurveTo(446, 432, 496, 470);
+    ctx.quadraticCurveTo(548 - this.carOffset * 16, 520, 622, CANVAS_HEIGHT);
+    ctx.closePath();
+    ctx.fill();
 
-    this.ctx.strokeStyle = '#3f2a19';
-    this.ctx.lineWidth = 8;
-    this.ctx.beginPath();
-    this.ctx.arc(
-      400,
-      612,
-      138,
-      Math.PI + this.carOffset * 0.52,
-      Math.PI * 2 + this.carOffset * 0.52
-    );
-    this.ctx.stroke();
-    this.ctx.restore();
+    ctx.fillStyle = '#2b313d';
+    ctx.beginPath();
+    ctx.moveTo(336, CANVAS_HEIGHT);
+    ctx.quadraticCurveTo(352, 546, 400, 500);
+    ctx.quadraticCurveTo(448, 546, 464, CANVAS_HEIGHT);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#0b0f14';
+    ctx.beginPath();
+    ctx.moveTo(304, 494);
+    ctx.lineTo(496, 494);
+    ctx.lineTo(448, 534);
+    ctx.lineTo(352, 534);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(400, 448);
+    ctx.quadraticCurveTo(398 + this.carOffset * 10, 516, 400, CANVAS_HEIGHT);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#0f1218';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.arc(400, 612, 144, Math.PI + this.carLean * 0.46, Math.PI * 2 + this.carLean * 0.46);
+    ctx.stroke();
+
+    ctx.fillStyle = '#161c25';
+    ctx.beginPath();
+    ctx.arc(400, 612, 118, Math.PI, Math.PI * 2);
+    ctx.arc(400, 612, 76, Math.PI * 2, Math.PI, true);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#7ce7ff';
+    ctx.fillRect(386, 590, 28, 8);
+    ctx.restore();
   }
 
   drawMonkey(projected) {
@@ -746,8 +882,13 @@ class Game {
       .sort((a, b) => a.object.z - b.object.z);
 
     drawables.forEach(({ object, projected }) => {
-      if (object.type === 'monkey') {
-        this.drawMonkey(projected);
+      if (object.type === 'wave') {
+        object.lanes.forEach((laneIndex) => {
+          const halfWidth = this.getRoadHalfWidth(projected.y);
+          const centerX = this.getRoadCenter(projected.y);
+          const laneX = centerX + LANE_POSITIONS[laneIndex] * halfWidth * 0.34;
+          this.drawMonkey({ ...projected, x: laneX });
+        });
       } else if (object.type === 'spring') {
         this.drawSpring(projected, object);
       }
@@ -759,7 +900,7 @@ class Game {
 
     const glow = this.phase === 'won' ? 34 : 16 + this.goalPulse * 0.3;
     this.ctx.save();
-    this.ctx.translate(400, 210);
+    this.ctx.translate(CANVAS_WIDTH / 2, 210);
 
     this.ctx.fillStyle = 'rgba(255, 245, 182, 0.32)';
     this.ctx.beginPath();
@@ -777,14 +918,14 @@ class Game {
   }
 
   drawUi() {
-    this.ctx.fillStyle = 'rgba(14, 19, 26, 0.7)';
-    this.ctx.fillRect(18, 18, 458, 96);
+    this.ctx.fillStyle = 'rgba(10, 16, 24, 0.78)';
+    this.ctx.fillRect(18, 18, 510, 118);
 
     this.ctx.fillStyle = '#ffd85b';
     this.ctx.font = 'bold 22px Arial';
-    this.ctx.fillText('Straight Run', 34, 50);
-    this.ctx.fillText(`Time ${Math.floor(this.elapsedFrames / 60)}s`, 200, 50);
-    this.ctx.fillText(`Attempt ${this.attempts}`, 360, 50);
+    this.ctx.fillText('Banana Wheels GT', 34, 50);
+    this.ctx.fillText(`Time ${Math.floor(this.elapsedFrames / 60)}s`, 246, 50);
+    this.ctx.fillText(`Lives ${this.livesRemaining}`, 418, 50);
 
     this.ctx.fillStyle = '#ffffff';
     this.ctx.font = '18px Arial';
@@ -796,27 +937,31 @@ class Game {
     this.ctx.fillText(
       this.springUnlocked ? 'Spring Active' : `Spring in ${secondsLeft}s`,
       34,
-      108
+      110
     );
 
-    const indicatorCenterX = 392;
-    const indicatorY = 84;
+    this.ctx.fillStyle = '#ff8c69';
+    this.ctx.fillText(`Damage ${this.damageHits}/${HITS_PER_LIFE}`, 208, 110);
+
+    const indicatorCenterX = 444;
+    const indicatorY = 104;
     this.ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    this.ctx.fillRect(indicatorCenterX - 54, indicatorY - 11, 108, 22);
-    this.ctx.fillRect(indicatorCenterX, indicatorY - 11, 2, 22);
+    this.ctx.fillRect(indicatorCenterX - 66, indicatorY - 11, 132, 22);
+    this.ctx.fillRect(indicatorCenterX - 22, indicatorY - 11, 2, 22);
+    this.ctx.fillRect(indicatorCenterX + 22, indicatorY - 11, 2, 22);
     this.ctx.fillStyle = '#f7cf42';
     this.ctx.beginPath();
-    this.ctx.moveTo(indicatorCenterX + this.lane * 28 - 10, indicatorY + 8);
+    this.ctx.moveTo(indicatorCenterX + this.carOffset * 34 - 10, indicatorY + 8);
     this.ctx.quadraticCurveTo(
-      indicatorCenterX + this.lane * 28,
+      indicatorCenterX + this.carOffset * 34,
       indicatorY - 10,
-      indicatorCenterX + this.lane * 28 + 10,
+      indicatorCenterX + this.carOffset * 34 + 10,
       indicatorY + 8
     );
     this.ctx.quadraticCurveTo(
-      indicatorCenterX + this.lane * 28,
+      indicatorCenterX + this.carOffset * 34,
       indicatorY + 2,
-      indicatorCenterX + this.lane * 28 - 10,
+      indicatorCenterX + this.carOffset * 34 - 10,
       indicatorY + 8
     );
     this.ctx.fill();
@@ -860,7 +1005,14 @@ class Game {
   }
 
   drawVignette() {
-    const gradient = this.ctx.createRadialGradient(400, 300, 160, 400, 300, 440);
+    const gradient = this.ctx.createRadialGradient(
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2,
+      160,
+      CANVAS_WIDTH / 2,
+      CANVAS_HEIGHT / 2,
+      440
+    );
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
     gradient.addColorStop(1, 'rgba(0,0,0,0.38)');
     this.ctx.fillStyle = gradient;
@@ -870,15 +1022,15 @@ class Game {
   draw() {
     const offsetX = this.shake > 0 ? (Math.random() - 0.5) * this.shake : 0;
     const offsetY = this.shake > 0 ? (Math.random() - 0.5) * this.shake * 0.5 : 0;
-    const worldTilt = this.carOffset * -0.09;
-    const worldShift = this.carOffset * 58;
+    const cameraBank = this.carLean * -0.035;
+    const cameraShift = -this.carOffset * 32;
 
     this.ctx.save();
-    this.ctx.translate(offsetX, offsetY);
+    this.ctx.translate(offsetX + cameraShift, offsetY);
+    this.ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT - 120);
+    this.ctx.rotate(cameraBank);
+    this.ctx.translate(-CANVAS_WIDTH / 2, -(CANVAS_HEIGHT - 120));
     this.ctx.save();
-    this.ctx.translate(CANVAS_WIDTH / 2 + worldShift, CANVAS_HEIGHT * 0.58);
-    this.ctx.rotate(worldTilt);
-    this.ctx.translate(-CANVAS_WIDTH / 2, -CANVAS_HEIGHT * 0.58);
     this.drawBackground();
     this.drawRoad();
     this.drawObjects();
@@ -893,11 +1045,11 @@ class Game {
     this.drawSpringAlert();
 
     if (this.phase === 'intro') {
-      this.drawOverlay('FIRST PERSON MODE', 'Steer with A/D or arrow keys. Space starts the run.');
+      this.drawOverlay('BANANA WHEELS GT', 'Swerve across three lanes. Space starts the run.');
     } else if (this.phase === 'won') {
       this.drawOverlay('BANANA BOOST', 'You hit the spring perfectly. Space resets the track.');
     } else if (this.phase === 'lost') {
-      this.drawOverlay('CRASHED OUT', 'Space restarts. R also resets instantly.');
+      this.drawOverlay('CRASHED OUT', 'Out of lives. Space restarts. R also resets instantly.');
     }
   }
 
@@ -909,12 +1061,20 @@ class Game {
     return 'Ready';
   }
 
-  gameLoop = () => {
-    this.update();
+  gameLoop = (timestamp = 0) => {
+    if (this.lastFrameTime === null) {
+      this.lastFrameTime = timestamp;
+    }
+
+    const deltaMs = timestamp - this.lastFrameTime;
+    this.lastFrameTime = timestamp;
+    const frameScale = Math.min(MAX_FRAME_SCALE, Math.max(deltaMs / (1000 / 60), 0.6));
+
+    this.update(frameScale);
     this.draw();
 
     document.getElementById('score').textContent = Math.floor(this.elapsedFrames / 60);
-    document.getElementById('lives').textContent = this.attempts;
+    document.getElementById('lives').textContent = this.livesRemaining;
     document.getElementById('level').textContent = this.getPhaseLabel();
 
     requestAnimationFrame(this.gameLoop);
