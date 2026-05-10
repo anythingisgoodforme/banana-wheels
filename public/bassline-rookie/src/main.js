@@ -1,0 +1,778 @@
+(function initBasslineRookie(root) {
+  const { LESSONS, getLesson } = root.BasslineLessons;
+  const notes = root.BasslineNotes;
+  const storage = root.BasslineStorage;
+  const lessonEngine = root.BasslineLessonEngine;
+  const scoring = root.BasslineScoring;
+  const { BassAudio } = root.BasslineAudio;
+  const { MicrophonePitch } = root.BasslineMicrophone;
+  const { setFeedback } = root.BasslineFeedback;
+  const { renderFretboard, renderLabelChips } = root.BasslineFretboard;
+  const { renderLessonMap } = root.BasslineLessonMap;
+  const { renderPulse } = root.BasslineRhythmTrainer;
+  const { QUARTER_PULSE } = root.BasslineRhythms;
+
+  const elements = {
+    lessonMap: document.querySelector('#lessonMap'),
+    lessonTitle: document.querySelector('#lessonTitle'),
+    lessonGoal: document.querySelector('#lessonGoal'),
+    lessonPrompt: document.querySelector('#lessonPrompt'),
+    helpButton: document.querySelector('#helpButton'),
+    lessonHelp: document.querySelector('#lessonHelp'),
+    micButton: document.querySelector('#micButton'),
+    micLabel: document.querySelector('#micLabel'),
+    micStatus: document.querySelector('#micStatus'),
+    fretboard: document.querySelector('#fretboard'),
+    labelChips: document.querySelector('#labelChips'),
+    actionArea: document.querySelector('#actionArea'),
+    feedback: document.querySelector('#feedback'),
+    attempts: document.querySelector('#attempts'),
+    streak: document.querySelector('#streak'),
+    accuracy: document.querySelector('#accuracy'),
+    completed: document.querySelector('#completed'),
+    pulse: document.querySelector('#pulse'),
+  };
+
+  const audio = new BassAudio();
+  const app = {
+    progress: storage.loadProgress(),
+    activeLessonId: 'meet-the-bass',
+    lessonState: null,
+    selectedLabel: null,
+    placedLabels: {},
+    recognitionTarget: null,
+    fretTarget: null,
+    guidedTarget: null,
+    selectedFret: null,
+    selectedFinger: null,
+    sessionBaseline: null,
+    pulseBeat: 0,
+    pulseTimer: null,
+    mic: null,
+    micListening: false,
+    lastMicAnswerAt: 0,
+  };
+
+  function init() {
+    selectLesson(firstPlayableLessonId());
+    elements.micButton.addEventListener('click', toggleMicrophone);
+    window.addEventListener('beforeunload', () => clearPulse());
+  }
+
+  function firstPlayableLessonId() {
+    const firstOpen = LESSONS.find(
+      (lesson) =>
+        lesson.type !== 'locked' &&
+        lessonEngine.isLessonUnlocked(lesson, app.progress) &&
+        !app.progress.lessons[lesson.id]?.completed
+    );
+    return firstOpen?.id || 'meet-the-bass';
+  }
+
+  function selectLesson(lessonId) {
+    const lesson = getLesson(lessonId);
+    if (
+      !lesson ||
+      !lessonEngine.isLessonUnlocked(lesson, app.progress) ||
+      lesson.type === 'locked'
+    ) {
+      return;
+    }
+
+    clearPulse();
+    app.activeLessonId = lesson.id;
+    app.lessonState = lessonEngine.createLessonState(lesson);
+    app.sessionBaseline = app.progress.lessons[lesson.id] || {};
+    app.lessonState.completed = Boolean(app.sessionBaseline.completed);
+    app.selectedLabel = null;
+    app.placedLabels = {};
+    app.recognitionTarget = null;
+    app.fretTarget = null;
+    app.guidedTarget = null;
+    app.selectedFret = null;
+    app.selectedFinger = null;
+    elements.feedback.textContent = '';
+    render();
+  }
+
+  function render() {
+    const lesson = getLesson(app.activeLessonId);
+    renderLessonMap({
+      container: elements.lessonMap,
+      lessons: LESSONS,
+      progress: app.progress,
+      activeLessonId: app.activeLessonId,
+      isUnlocked: lessonEngine.isLessonUnlocked,
+      onSelect: selectLesson,
+    });
+
+    elements.lessonTitle.textContent = `${lesson.number}. ${lesson.title}`;
+    elements.lessonGoal.textContent = lesson.goal;
+    elements.lessonPrompt.textContent = lesson.prompt;
+    renderLessonHelp(lesson);
+    renderStats();
+
+    if (app.lessonState.completed) {
+      renderCompletedLesson(lesson);
+      return;
+    }
+
+    if (lesson.type === 'labeling') {
+      renderLabelingLesson();
+    } else if (lesson.type === 'recognition') {
+      renderRecognitionLesson();
+    } else if (lesson.type === 'fret-placement') {
+      renderFretLesson();
+    } else if (lesson.type === 'guided-choice') {
+      renderGuidedChoiceLesson();
+    }
+  }
+
+  function renderLessonHelp(lesson) {
+    updateLessonHelp(lesson);
+    elements.lessonHelp.hidden = true;
+    elements.helpButton.setAttribute('aria-expanded', 'false');
+    elements.helpButton.onclick = () => {
+      updateLessonHelp(getLesson(app.activeLessonId));
+      const shouldShow = elements.lessonHelp.hidden;
+      elements.lessonHelp.hidden = !shouldShow;
+      elements.helpButton.setAttribute('aria-expanded', shouldShow ? 'true' : 'false');
+    };
+  }
+
+  function updateLessonHelp(lesson) {
+    const targetHelp = explainCurrentTarget();
+    elements.lessonHelp.textContent = targetHelp
+      ? `${lesson.explanation} ${targetHelp}`
+      : lesson.explanation || 'This lesson helps you practice one small bass skill.';
+  }
+
+  function explainCurrentTarget() {
+    const target = app.guidedTarget || app.fretTarget;
+    if (!target) return '';
+
+    if (target.stringId && Number.isInteger(target.fret)) {
+      const noteName = notes.noteNameForFret(target.stringId, target.fret);
+      if (target.fret === 0) {
+        return `${noteName} on ${target.stringId} string means play the ${target.stringId} string with no finger pressing down.`;
+      }
+      return `${noteName} on ${target.stringId} string means put your finger just behind fret ${target.fret} on the ${target.stringId} string.`;
+    }
+
+    if (target.answer === 'Rest') {
+      return 'Rest means stay quiet for that beat. Do not play a note.';
+    }
+
+    if (target.answer === 'Play') {
+      return 'Play means make a sound on that beat.';
+    }
+
+    return '';
+  }
+
+  function renderCompletedLesson(lesson) {
+    clearPulse();
+    elements.labelChips.innerHTML = '';
+    elements.pulse.hidden = true;
+
+    const nextLesson = nextPlayableLessonAfter(lesson);
+    elements.actionArea.innerHTML = nextLesson
+      ? `<button class="primary-action" type="button" id="nextLesson">Start ${nextLesson.shortTitle}</button>`
+      : '<button class="secondary-action" type="button" disabled>Next lesson coming soon</button>';
+
+    renderFretboard({
+      container: elements.fretboard,
+      strings: notes.OPEN_STRINGS,
+      showHeadLabels: true,
+      onStringClick: (stringId) => playOpenString(stringId),
+    });
+
+    if (nextLesson) {
+      document
+        .querySelector('#nextLesson')
+        .addEventListener('click', () => selectLesson(nextLesson.id));
+      setFeedback(
+        elements.feedback,
+        `Complete. ${nextLesson.title} is unlocked, so you can move on.`,
+        'good'
+      );
+    } else {
+      setFeedback(elements.feedback, 'Complete. More lessons can be built next.', 'good');
+    }
+  }
+
+  function renderStats() {
+    const state = app.lessonState;
+    const lesson = getLesson(app.activeLessonId);
+    const displayedAccuracy = lesson.completion?.scoreTarget
+      ? scoring.boundedScore(state.score)
+      : scoring.percent(state.correct, state.attempts);
+
+    elements.attempts.textContent = String(state.attempts);
+    elements.streak.textContent = String(state.bestStreak);
+    elements.accuracy.textContent = `${displayedAccuracy}%`;
+    elements.completed.textContent = state.completed ? 'Yes' : 'No';
+  }
+
+  function renderLabelingLesson() {
+    elements.actionArea.innerHTML = `
+      <button class="primary-action" type="button" id="checkLabels">Check Labels</button>
+      <button class="secondary-action" type="button" id="clearLabels">Clear</button>
+    `;
+    elements.pulse.hidden = true;
+
+    renderLabelChips({
+      container: elements.labelChips,
+      strings: shuffled(notes.OPEN_STRINGS),
+      selectedLabel: app.selectedLabel,
+      onSelect: (stringId) => {
+        app.selectedLabel = stringId;
+        setFeedback(
+          elements.feedback,
+          `Selected ${stringId}. Tap the matching string on the bass.`,
+          'neutral'
+        );
+        renderLabelingLesson();
+      },
+    });
+
+    renderFretboard({
+      container: elements.fretboard,
+      strings: notes.OPEN_STRINGS,
+      labels: app.placedLabels,
+      onStringClick: placeSelectedLabel,
+    });
+
+    document.querySelector('#checkLabels').addEventListener('click', checkLabels);
+    document.querySelector('#clearLabels').addEventListener('click', () => {
+      app.placedLabels = {};
+      app.selectedLabel = null;
+      setFeedback(elements.feedback, 'Labels cleared. Start again from E, A, D, and G.', 'neutral');
+      renderLabelingLesson();
+    });
+
+    if (!elements.feedback.textContent) {
+      setFeedback(
+        elements.feedback,
+        'Select a string label, then tap where it belongs on the bass.',
+        'neutral'
+      );
+    }
+  }
+
+  function placeSelectedLabel(stringId) {
+    if (!app.selectedLabel) {
+      setFeedback(elements.feedback, 'Pick a label first, then tap a string.', 'neutral');
+      return;
+    }
+
+    app.placedLabels[stringId] = app.selectedLabel;
+    audio.playNote(notes.frequencyForFret(stringId, 0), 0.26);
+    app.selectedLabel = null;
+    renderLabelingLesson();
+  }
+
+  function checkLabels() {
+    const lesson = getLesson(app.activeLessonId);
+    const correctCount = notes.OPEN_STRINGS.filter(
+      (string) => app.placedLabels[string.id] === string.id
+    ).length;
+
+    app.lessonState = lessonEngine.recordLabelRound(
+      app.lessonState,
+      lesson,
+      correctCount,
+      notes.OPEN_STRINGS.length
+    );
+
+    if (correctCount === notes.OPEN_STRINGS.length) {
+      audio.click(true);
+      setFeedback(
+        elements.feedback,
+        app.lessonState.completed
+          ? 'Lesson complete. Open Strings is unlocked.'
+          : 'Perfect. Do it once more to lock it in.',
+        'good'
+      );
+      app.placedLabels = {};
+    } else {
+      audio.click(false);
+      setFeedback(
+        elements.feedback,
+        `${correctCount} of 4 are correct. Listen low to high: E, A, D, G.`,
+        'bad'
+      );
+    }
+
+    persistLessonIfComplete();
+    render();
+  }
+
+  function renderRecognitionLesson() {
+    elements.labelChips.innerHTML = '';
+
+    elements.actionArea.innerHTML = `
+      <button class="primary-action" type="button" id="playTarget">Play String</button>
+      <div class="choice-grid" id="choiceGrid"></div>
+    `;
+    elements.pulse.hidden = false;
+    renderPulse({
+      container: elements.pulse,
+      beats: QUARTER_PULSE.beats,
+      activeBeat: app.pulseBeat,
+    });
+    startPulse();
+
+    if (!app.recognitionTarget) {
+      app.recognitionTarget = randomStringId();
+    }
+
+    renderFretboard({
+      container: elements.fretboard,
+      strings: notes.OPEN_STRINGS,
+      showHeadLabels: true,
+      onStringClick: (stringId) => playOpenString(stringId),
+    });
+
+    const choiceGrid = document.querySelector('#choiceGrid');
+    shuffled(notes.OPEN_STRINGS).forEach((string) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'choice-button';
+      button.textContent = string.id;
+      button.addEventListener('click', () => answerRecognition(string.id));
+      choiceGrid.appendChild(button);
+    });
+
+    document.querySelector('#playTarget').addEventListener('click', () => {
+      playOpenString(app.recognitionTarget);
+      setFeedback(elements.feedback, 'Choose the string name that matches that sound.', 'neutral');
+    });
+
+    if (!elements.feedback.textContent) {
+      setFeedback(
+        elements.feedback,
+        'Press Play String, listen, then choose E, A, D, or G.',
+        'neutral'
+      );
+    }
+  }
+
+  function answerRecognition(selectedId) {
+    const lesson = getLesson(app.activeLessonId);
+    const correct = notes.isCorrectString(app.recognitionTarget, selectedId);
+    app.lessonState = lessonEngine.recordAnswer(app.lessonState, lesson, correct);
+
+    if (correct) {
+      audio.click(true);
+      setFeedback(
+        elements.feedback,
+        app.lessonState.completed
+          ? 'Complete. Frets is unlocked, so you can move on to lesson 3.'
+          : 'Correct. The next sound is ready.',
+        'good'
+      );
+      app.recognitionTarget = randomStringId(app.recognitionTarget);
+    } else {
+      audio.click(false);
+      setFeedback(elements.feedback, `That was ${app.recognitionTarget}. Try the next one.`, 'bad');
+      app.recognitionTarget = randomStringId(app.recognitionTarget);
+    }
+
+    persistLessonIfComplete();
+    render();
+    if (!app.lessonState.completed) {
+      playOpenString(app.recognitionTarget);
+    }
+  }
+
+  function renderFretLesson() {
+    clearPulse();
+    elements.labelChips.innerHTML = '';
+    elements.pulse.hidden = true;
+
+    if (!app.fretTarget) {
+      app.fretTarget = randomFretTarget();
+    }
+    updateLessonHelp(getLesson(app.activeLessonId));
+
+    elements.actionArea.innerHTML = `
+      <div class="target-card">
+        <span>Target</span>
+        <strong>${app.fretTarget.stringId} string, fret ${app.fretTarget.fret}, finger ${app.fretTarget.finger}</strong>
+      </div>
+      <div class="control-label">Fret</div>
+      <div class="choice-grid" id="fretChoices"></div>
+      <div class="control-label">Finger</div>
+      <div class="choice-grid" id="fingerChoices"></div>
+      <button class="primary-action" type="button" id="checkFret">Check</button>
+      <button class="secondary-action" type="button" id="newFretTarget">New Target</button>
+    `;
+
+    renderFretboard({
+      container: elements.fretboard,
+      strings: notes.OPEN_STRINGS,
+      showHeadLabels: true,
+      targetId: app.fretTarget.stringId,
+      onStringClick: (stringId) => playOpenString(stringId),
+    });
+
+    renderNumberChoices(
+      document.querySelector('#fretChoices'),
+      shuffled([0, 1, 2, 3, 4]),
+      app.selectedFret,
+      (value) => {
+        app.selectedFret = value;
+        renderFretLesson();
+      }
+    );
+    renderNumberChoices(
+      document.querySelector('#fingerChoices'),
+      shuffled([1, 2, 3, 4]),
+      app.selectedFinger,
+      (value) => {
+        app.selectedFinger = value;
+        renderFretLesson();
+      }
+    );
+
+    document.querySelector('#checkFret').addEventListener('click', checkFretTarget);
+    document.querySelector('#newFretTarget').addEventListener('click', () => {
+      app.fretTarget = randomFretTarget(app.fretTarget);
+      app.selectedFret = null;
+      app.selectedFinger = null;
+      setFeedback(elements.feedback, 'New fret target ready.', 'neutral');
+      renderFretLesson();
+    });
+
+    if (!elements.feedback.textContent) {
+      setFeedback(elements.feedback, 'Pick the fret and finger shown in the target.', 'neutral');
+    }
+  }
+
+  function renderNumberChoices(container, values, selectedValue, onSelect) {
+    values.forEach((value) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'choice-button';
+      button.dataset.selected = selectedValue === value ? 'true' : 'false';
+      button.textContent = String(value);
+      button.addEventListener('click', () => onSelect(value));
+      container.appendChild(button);
+    });
+  }
+
+  function checkFretTarget() {
+    if (app.selectedFret === null || app.selectedFinger === null) {
+      setFeedback(elements.feedback, 'Choose both a fret and a finger before checking.', 'neutral');
+      return;
+    }
+
+    const lesson = getLesson(app.activeLessonId);
+    const correct =
+      app.selectedFret === app.fretTarget.fret && app.selectedFinger === app.fretTarget.finger;
+    app.lessonState = lessonEngine.recordFretPlacement(app.lessonState, lesson, correct);
+
+    if (correct) {
+      audio.playNote(notes.frequencyForFret(app.fretTarget.stringId, app.fretTarget.fret), 0.32);
+      setFeedback(
+        elements.feedback,
+        app.lessonState.completed
+          ? 'Complete. You placed 10 fret targets with no more than 2 misses.'
+          : 'Correct. Try the next fret target.',
+        'good'
+      );
+      app.fretTarget = randomFretTarget(app.fretTarget);
+    } else {
+      audio.click(false);
+      setFeedback(
+        elements.feedback,
+        `Not yet. Misses: ${app.lessonState.misses}/2. Match both the fret and finger.`,
+        'bad'
+      );
+    }
+
+    app.selectedFret = null;
+    app.selectedFinger = null;
+    persistLessonIfComplete();
+    render();
+  }
+
+  function renderGuidedChoiceLesson() {
+    clearPulse();
+    elements.labelChips.innerHTML = '';
+    elements.pulse.hidden = app.activeLessonId !== 'first-groove-rhythm';
+
+    if (app.activeLessonId === 'first-groove-rhythm') {
+      renderPulse({
+        container: elements.pulse,
+        beats: QUARTER_PULSE.beats,
+        activeBeat: app.pulseBeat,
+      });
+      startPulse();
+    }
+
+    const lesson = getLesson(app.activeLessonId);
+    if (!app.guidedTarget) {
+      app.guidedTarget = randomGuidedTarget(lesson);
+    }
+    updateLessonHelp(lesson);
+
+    elements.actionArea.innerHTML = `
+      <div class="target-card">
+        <span>Target</span>
+        <strong>${app.guidedTarget.label}</strong>
+      </div>
+      <div class="choice-grid" id="guidedChoices"></div>
+    `;
+
+    renderFretboard({
+      container: elements.fretboard,
+      strings: notes.OPEN_STRINGS,
+      showHeadLabels: true,
+      targetId: app.guidedTarget.stringId || null,
+      onStringClick: (stringId) => playOpenString(stringId),
+    });
+
+    const choiceGrid = document.querySelector('#guidedChoices');
+    shuffled(app.guidedTarget.choices).forEach((choice) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'choice-button';
+      button.textContent = choice;
+      button.addEventListener('click', () => answerGuidedChoice(choice));
+      choiceGrid.appendChild(button);
+    });
+
+    if (app.guidedTarget.stringId) {
+      elements.micStatus.textContent = app.micListening
+        ? 'Mic is listening. Play the target note on your bass.'
+        : elements.micStatus.textContent;
+      if (!app.micListening) {
+        audio.playNote(
+          notes.frequencyForFret(app.guidedTarget.stringId, app.guidedTarget.fret),
+          0.24
+        );
+      }
+    }
+
+    if (!elements.feedback.textContent) {
+      setFeedback(elements.feedback, 'Choose the answer that matches the target.', 'neutral');
+    }
+  }
+
+  function answerGuidedChoice(selectedAnswer) {
+    const lesson = getLesson(app.activeLessonId);
+    const correct = selectedAnswer === app.guidedTarget.answer;
+    app.lessonState = lessonEngine.recordPracticeAnswer(app.lessonState, lesson, correct);
+
+    if (correct) {
+      if (app.guidedTarget.stringId) {
+        audio.playNote(
+          notes.frequencyForFret(app.guidedTarget.stringId, app.guidedTarget.fret),
+          0.28
+        );
+      } else {
+        audio.click(true);
+      }
+      setFeedback(
+        elements.feedback,
+        app.lessonState.completed ? 'Complete. You can move on.' : 'Correct. Next target.',
+        'good'
+      );
+      app.guidedTarget = randomGuidedTarget(lesson, app.guidedTarget);
+    } else {
+      audio.click(false);
+      setFeedback(
+        elements.feedback,
+        `Not yet. The answer was ${app.guidedTarget.answer}. Misses: ${app.lessonState.misses}/${lesson.completion.maxMisses}.`,
+        'bad'
+      );
+      app.guidedTarget = randomGuidedTarget(lesson, app.guidedTarget);
+    }
+
+    persistLessonIfComplete();
+    render();
+  }
+
+  async function toggleMicrophone() {
+    if (app.micListening) {
+      stopMicrophone();
+      return;
+    }
+
+    try {
+      app.mic = new MicrophonePitch({ onPitch: handleMicPitch });
+      await app.mic.start();
+      app.micListening = true;
+      elements.micButton.dataset.listening = 'true';
+      elements.micButton.setAttribute('aria-pressed', 'true');
+      elements.micLabel.textContent = 'Mic on';
+      elements.micStatus.textContent = 'Listening. Play one bass note close to the device.';
+    } catch (error) {
+      app.micListening = false;
+      elements.micStatus.textContent = error.message;
+    }
+  }
+
+  function stopMicrophone() {
+    app.mic?.stop();
+    app.mic = null;
+    app.micListening = false;
+    elements.micButton.dataset.listening = 'false';
+    elements.micButton.setAttribute('aria-pressed', 'false');
+    elements.micLabel.textContent = 'Mic off';
+    elements.micStatus.textContent = 'Use the mic to hear a real bass note.';
+  }
+
+  function handleMicPitch(frequency) {
+    const heard = notes.noteFromFrequency(frequency);
+    if (!heard) return;
+
+    const cents = notes.centsOff(frequency, heard.midi);
+    const target = app.guidedTarget || app.fretTarget;
+    const targetNote =
+      target?.stringId && Number.isInteger(target.fret)
+        ? notes.noteNameForFret(target.stringId, target.fret)
+        : app.recognitionTarget;
+    const matchesTarget = Boolean(targetNote && heard.name === targetNote && Math.abs(cents) <= 45);
+    const matchText = targetNote
+      ? matchesTarget
+        ? 'That matches the target.'
+        : `Target is ${targetNote}.`
+      : 'No note target is active right now.';
+
+    if (navigator.vibrate) {
+      navigator.vibrate(45);
+    }
+
+    elements.micStatus.textContent = `Heard ${heard.label} (${Math.round(
+      frequency
+    )} Hz, ${formatCents(cents)}). ${matchText}`;
+
+    if (matchesTarget && performance.now() - app.lastMicAnswerAt > 900) {
+      app.lastMicAnswerAt = performance.now();
+      answerWithCurrentMicTarget();
+    }
+  }
+
+  function answerWithCurrentMicTarget() {
+    const lesson = getLesson(app.activeLessonId);
+    if (lesson.type === 'recognition' && app.recognitionTarget) {
+      answerRecognition(app.recognitionTarget);
+      return;
+    }
+
+    if (lesson.type === 'guided-choice' && app.guidedTarget?.answer) {
+      answerGuidedChoice(app.guidedTarget.answer);
+      return;
+    }
+
+    if (lesson.type === 'fret-placement' && app.fretTarget) {
+      app.selectedFret = app.fretTarget.fret;
+      app.selectedFinger = app.fretTarget.finger;
+      checkFretTarget();
+    }
+  }
+
+  function formatCents(cents) {
+    if (cents === 0) return 'in tune';
+    return cents > 0 ? `${cents} cents sharp` : `${Math.abs(cents)} cents flat`;
+  }
+
+  function playOpenString(stringId) {
+    audio.playNote(notes.frequencyForFret(stringId, 0));
+  }
+
+  function randomStringId(previousId = null) {
+    const ids = notes.getOpenStringIds().filter((id) => id !== previousId);
+    return ids[Math.floor(Math.random() * ids.length)];
+  }
+
+  function randomFretTarget(previousTarget = null) {
+    const targets = notes.OPEN_STRINGS.flatMap((string) =>
+      [0, 1, 2, 3, 4].map((fret) => ({
+        stringId: string.id,
+        fret,
+        finger: fret === 0 ? randomFrom([1, 2]) : Math.min(fret, 4),
+      }))
+    ).filter(
+      (target) =>
+        !previousTarget ||
+        target.stringId !== previousTarget.stringId ||
+        target.fret !== previousTarget.fret ||
+        target.finger !== previousTarget.finger
+    );
+
+    return targets[Math.floor(Math.random() * targets.length)];
+  }
+
+  function randomGuidedTarget(lesson, previousTarget = null) {
+    const targets = lesson.targets.filter(
+      (target) =>
+        !previousTarget ||
+        target.label !== previousTarget.label ||
+        target.answer !== previousTarget.answer
+    );
+    return randomFrom(targets.length ? targets : lesson.targets);
+  }
+
+  function shuffled(items) {
+    const copy = items.slice();
+    for (let index = copy.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+    }
+    return copy;
+  }
+
+  function randomFrom(items) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
+
+  function nextPlayableLessonAfter(currentLesson) {
+    const currentIndex = LESSONS.findIndex((lesson) => lesson.id === currentLesson.id);
+    return (
+      LESSONS.slice(currentIndex + 1).find(
+        (lesson) => lesson.type !== 'locked' && lessonEngine.isLessonUnlocked(lesson, app.progress)
+      ) || null
+    );
+  }
+
+  function persistLessonIfComplete() {
+    const state = app.lessonState;
+    const existing = app.sessionBaseline || {};
+    const completedAt =
+      state.completed && !existing.completed ? new Date().toISOString() : existing.completedAt;
+
+    storage.updateLessonStats(app.progress, state.lessonId, {
+      attempts: (existing.attempts || 0) + state.attempts,
+      bestStreak: Math.max(existing.bestStreak || 0, state.bestStreak),
+      completed: Boolean(existing.completed || state.completed),
+      completedAt: completedAt || null,
+    });
+    storage.saveProgress(app.progress);
+  }
+
+  function startPulse() {
+    if (app.pulseTimer) return;
+    app.pulseTimer = window.setInterval(() => {
+      app.pulseBeat = (app.pulseBeat + 1) % QUARTER_PULSE.beats.length;
+      renderPulse({
+        container: elements.pulse,
+        beats: QUARTER_PULSE.beats,
+        activeBeat: app.pulseBeat,
+      });
+    }, 60000 / QUARTER_PULSE.bpm);
+  }
+
+  function clearPulse() {
+    if (app.pulseTimer) {
+      window.clearInterval(app.pulseTimer);
+      app.pulseTimer = null;
+    }
+    app.pulseBeat = 0;
+  }
+
+  init();
+})(window);

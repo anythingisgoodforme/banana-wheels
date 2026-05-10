@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bassline Rookie</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="lesson-sidebar" aria-label="Lesson map">
+        <div class="brand-block">
+          <p class="eyebrow">Bassline Rookie</p>
+          <h1>Beginner Bass Coach</h1>
+        </div>
+        <nav id="lessonMap" class="lesson-map"></nav>
+      </aside>
+
+      <section class="practice-stage" aria-live="polite">
+        <header class="lesson-header">
+          <div>
+            <p class="eyebrow">Current Lesson</p>
+            <h2 id="lessonTitle"></h2>
+            <p id="lessonGoal" class="lesson-goal"></p>
+          </div>
+          <div class="stats-strip" aria-label="Practice stats">
+            <span><strong id="attempts">0</strong> attempts</span>
+            <span><strong id="streak">0</strong> best streak</span>
+            <span><strong id="accuracy">0%</strong> accuracy</span>
+            <span><strong id="completed">No</strong> complete</span>
+          </div>
+        </header>
+
+        <section class="instruction-panel">
+          <div class="instruction-row">
+            <p id="lessonPrompt"></p>
+            <button
+              id="helpButton"
+              class="help-button"
+              type="button"
+              aria-expanded="false"
+              aria-controls="lessonHelp"
+            >
+              ?
+            </button>
+          </div>
+          <p id="lessonHelp" class="lesson-help" hidden></p>
+        </section>
+
+        <section class="workbench">
+          <div class="bass-visual">
+            <div id="fretboard"></div>
+            <div id="pulse" class="pulse-lane" hidden></div>
+          </div>
+
+          <div class="practice-controls">
+            <button id="micButton" class="mic-button" type="button" aria-pressed="false">
+              <span class="mic-symbol" aria-hidden="true"></span>
+              <span id="micLabel">Mic off</span>
+            </button>
+            <p id="micStatus" class="mic-status">Use the mic to hear a real bass note.</p>
+            <div id="labelChips" class="label-chips"></div>
+            <div id="actionArea" class="action-area"></div>
+            <p id="feedback" class="feedback" data-tone="neutral"></p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="src/data/notes.js"></script>
+    <script src="src/data/lessons.js"></script>
+    <script src="src/data/rhythms.js"></script>
+    <script src="src/core/timing.js"></script>
+    <script src="src/core/storage.js"></script>
+    <script src="src/core/audio.js"></script>
+    <script src="src/core/microphone.js"></script>
+    <script src="src/systems/scoring.js"></script>
+    <script src="src/systems/lessonEngine.js"></script>
+    <script src="src/ui/feedback.js"></script>
+    <script src="src/ui/lessonMap.js"></script>
+    <script src="src/ui/fretboard.js"></script>
+    <script src="src/ui/rhythmTrainer.js"></script>
+    <script src="src/main.js"></script>
+  </body>
+</html>
