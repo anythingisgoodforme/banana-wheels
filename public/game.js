@@ -13,7 +13,9 @@ const COLLISION_Z = 0.7;
 const LANE_POSITIONS = [-0.92, 0, 0.92];
 const STEER_EASE = 0.22;
 const MAX_FRAME_SCALE = 2.2;
-const CAMERA_STEER_STRENGTH = 54;
+const CAMERA_STEER_STRENGTH = 0.38;
+const COCKPIT_LATERAL_STRENGTH = 24;
+const LANE_MARKER_SCALE = 0.34;
 const MONKEY_WAVE_SPACING = 4.8;
 const INITIAL_MONKEY_WAVES = 5;
 const HITS_PER_LIFE = 5;
@@ -168,7 +170,9 @@ class Game {
 
   createMonkeyWave(z) {
     const openLane = this.pickOpenLane();
-    const blockedLanes = LANE_POSITIONS.map((_, index) => index).filter((index) => index !== openLane);
+    const blockedLanes = LANE_POSITIONS.map((_, index) => index).filter(
+      (index) => index !== openLane
+    );
 
     if (Math.random() < 0.22) {
       blockedLanes.splice(Math.floor(Math.random() * blockedLanes.length), 1);
@@ -391,7 +395,10 @@ class Game {
   getRoadCenter(y) {
     const perspective = (y - HORIZON_Y) / (ROAD_BOTTOM_Y - HORIZON_Y);
     const curve = Math.sin(this.trackOffset + perspective * 1.9) * 72 * (1 - perspective);
-    return CANVAS_WIDTH / 2 + curve - this.carOffset * CAMERA_STEER_STRENGTH * (0.2 + perspective * 0.85);
+    const roadWidth = this.getRoadHalfWidth(y);
+    const laneCameraOffset =
+      this.carOffset * roadWidth * CAMERA_STEER_STRENGTH * Math.pow(perspective, 0.88);
+    return CANVAS_WIDTH / 2 + curve - laneCameraOffset;
   }
 
   getRoadHalfWidth(y) {
@@ -407,7 +414,7 @@ class Game {
     const y = HORIZON_Y + easedDepth * (ROAD_BOTTOM_Y - HORIZON_Y);
     const halfWidth = this.getRoadHalfWidth(y);
     const centerX = this.getRoadCenter(y);
-    const x = centerX + object.lane * halfWidth * 0.43;
+    const x = centerX + object.lane * halfWidth * LANE_MARKER_SCALE;
     const scale = 0.35 + easedDepth * 2.1;
 
     return { x, y, scale, depth };
@@ -496,9 +503,21 @@ class Game {
 
       ctx.fillStyle = cluster.mid;
       ctx.beginPath();
-      ctx.arc(cluster.x - cluster.width * 0.22, HORIZON_Y - cluster.height * 0.28, cluster.width * 0.18, Math.PI, 0);
+      ctx.arc(
+        cluster.x - cluster.width * 0.22,
+        HORIZON_Y - cluster.height * 0.28,
+        cluster.width * 0.18,
+        Math.PI,
+        0
+      );
       ctx.arc(cluster.x, HORIZON_Y - cluster.height * 0.4, cluster.width * 0.21, Math.PI, 0);
-      ctx.arc(cluster.x + cluster.width * 0.24, HORIZON_Y - cluster.height * 0.24, cluster.width * 0.17, Math.PI, 0);
+      ctx.arc(
+        cluster.x + cluster.width * 0.24,
+        HORIZON_Y - cluster.height * 0.24,
+        cluster.width * 0.17,
+        Math.PI,
+        0
+      );
       ctx.fill();
     });
 
@@ -542,7 +561,7 @@ class Game {
       }
 
       if (perspective > 0.08) {
-        const laneLineOffset = halfWidth * 0.28;
+        const laneLineOffset = halfWidth / 3;
         const laneDash = Math.floor((perspective * 52 + this.forwardDistance * 10) % 8) < 4;
         if (laneDash) {
           this.ctx.fillStyle = 'rgba(255,255,255,0.6)';
@@ -553,11 +572,43 @@ class Game {
     }
 
     this.drawRoadsideJungle();
+    this.drawLaneFocus();
+  }
+
+  drawLaneFocus() {
+    const ctx = this.ctx;
+    const bottomCenter = this.getRoadCenter(ROAD_BOTTOM_Y);
+    const bottomHalfWidth = this.getRoadHalfWidth(ROAD_BOTTOM_Y);
+    const nearLaneX = bottomCenter + this.carOffset * bottomHalfWidth * LANE_MARKER_SCALE;
+    const farY = HORIZON_Y + 112;
+    const farCenter = this.getRoadCenter(farY);
+    const farHalfWidth = this.getRoadHalfWidth(farY);
+    const farLaneX = farCenter + this.carOffset * farHalfWidth * LANE_MARKER_SCALE;
+    const nearLaneHalf = bottomHalfWidth * 0.16;
+    const farLaneHalf = farHalfWidth * 0.12;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 231, 112, 0.42)';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(farLaneX - farLaneHalf, farY);
+    ctx.lineTo(nearLaneX - nearLaneHalf, ROAD_BOTTOM_Y);
+    ctx.moveTo(farLaneX + farLaneHalf, farY);
+    ctx.lineTo(nearLaneX + nearLaneHalf, ROAD_BOTTOM_Y);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255, 231, 112, 0.07)';
+    ctx.beginPath();
+    ctx.moveTo(farLaneX - farLaneHalf, farY);
+    ctx.lineTo(farLaneX + farLaneHalf, farY);
+    ctx.lineTo(nearLaneX + nearLaneHalf, ROAD_BOTTOM_Y);
+    ctx.lineTo(nearLaneX - nearLaneHalf, ROAD_BOTTOM_Y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 
   drawRoadsideJungle() {
-    const ctx = this.ctx;
-
     for (let y = HORIZON_Y + 24; y <= ROAD_BOTTOM_Y; y += 28) {
       const center = this.getRoadCenter(y);
       const halfWidth = this.getRoadHalfWidth(y);
@@ -648,7 +699,7 @@ class Game {
 
   drawCockpit() {
     const ctx = this.ctx;
-    const centerX = CANVAS_WIDTH / 2 + this.carOffset * 112;
+    const centerX = CANVAS_WIDTH / 2 + this.carOffset * COCKPIT_LATERAL_STRENGTH;
     const centerY = CANVAS_HEIGHT - 6;
     const turnTilt = this.carLean * -0.22;
 
@@ -886,7 +937,7 @@ class Game {
         object.lanes.forEach((laneIndex) => {
           const halfWidth = this.getRoadHalfWidth(projected.y);
           const centerX = this.getRoadCenter(projected.y);
-          const laneX = centerX + LANE_POSITIONS[laneIndex] * halfWidth * 0.34;
+          const laneX = centerX + LANE_POSITIONS[laneIndex] * halfWidth * LANE_MARKER_SCALE;
           this.drawMonkey({ ...projected, x: laneX });
         });
       } else if (object.type === 'spring') {
@@ -907,12 +958,41 @@ class Game {
     this.ctx.arc(0, 0, glow * 2.4, 0, Math.PI * 2);
     this.ctx.fill();
 
-    this.ctx.fillStyle = '#f7d11e';
+    const bananaGradient = this.ctx.createLinearGradient(-54, -32, 54, 28);
+    bananaGradient.addColorStop(0, '#a96516');
+    bananaGradient.addColorStop(0.18, '#f0b72d');
+    bananaGradient.addColorStop(0.42, '#fff08a');
+    bananaGradient.addColorStop(0.72, '#f7d11e');
+    bananaGradient.addColorStop(1, '#8c5614');
+
+    this.ctx.fillStyle = 'rgba(36, 24, 8, 0.22)';
     this.ctx.beginPath();
-    this.ctx.moveTo(-42, 20);
-    this.ctx.quadraticCurveTo(-6, -28, 42, -14);
-    this.ctx.quadraticCurveTo(18, 22, -42, 20);
+    this.ctx.ellipse(2, 22, 54, 10, -0.08, 0, Math.PI * 2);
     this.ctx.fill();
+
+    this.ctx.fillStyle = bananaGradient;
+    this.ctx.beginPath();
+    this.ctx.moveTo(-50, 16);
+    this.ctx.bezierCurveTo(-20, -36, 30, -34, 54, -10);
+    this.ctx.bezierCurveTo(24, 26, -20, 32, -50, 16);
+    this.ctx.closePath();
+    this.ctx.fill();
+
+    this.ctx.strokeStyle = 'rgba(109, 68, 15, 0.78)';
+    this.ctx.lineWidth = 4;
+    this.ctx.stroke();
+
+    this.ctx.strokeStyle = 'rgba(255, 250, 190, 0.84)';
+    this.ctx.lineWidth = 4;
+    this.ctx.beginPath();
+    this.ctx.moveTo(-28, 3);
+    this.ctx.bezierCurveTo(-2, -20, 30, -20, 42, -8);
+    this.ctx.stroke();
+
+    this.ctx.fillStyle = '#744619';
+    this.ctx.fillRect(45, -17, 16, 8);
+    this.ctx.fillStyle = '#56300e';
+    this.ctx.fillRect(-58, 12, 12, 8);
 
     this.ctx.restore();
   }
@@ -934,11 +1014,7 @@ class Game {
     const secondsLeft = Math.max(0, Math.ceil(SPRING_DELAY_SECONDS - this.elapsedFrames / 60));
     this.ctx.fillStyle = '#d6f5ff';
     this.ctx.font = 'bold 16px Arial';
-    this.ctx.fillText(
-      this.springUnlocked ? 'Spring Active' : `Spring in ${secondsLeft}s`,
-      34,
-      110
-    );
+    this.ctx.fillText(this.springUnlocked ? 'Spring Active' : `Spring in ${secondsLeft}s`, 34, 110);
 
     this.ctx.fillStyle = '#ff8c69';
     this.ctx.fillText(`Damage ${this.damageHits}/${HITS_PER_LIFE}`, 208, 110);
@@ -1023,7 +1099,7 @@ class Game {
     const offsetX = this.shake > 0 ? (Math.random() - 0.5) * this.shake : 0;
     const offsetY = this.shake > 0 ? (Math.random() - 0.5) * this.shake * 0.5 : 0;
     const cameraBank = this.carLean * -0.035;
-    const cameraShift = -this.carOffset * 32;
+    const cameraShift = -this.carOffset * 10;
 
     this.ctx.save();
     this.ctx.translate(offsetX + cameraShift, offsetY);

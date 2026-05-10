@@ -43,6 +43,11 @@ export class AudioEngine {
     this.tone(130, 0.2, 'square', 0.05, 70);
   }
 
+  spring() {
+    this.tone(260, 0.08, 'triangle', 0.045, 520);
+    window.setTimeout(() => this.tone(520, 0.11, 'triangle', 0.035, 860), 45);
+  }
+
   combo() {
     this.tone(920, 0.08, 'triangle', 0.035, 1240);
   }

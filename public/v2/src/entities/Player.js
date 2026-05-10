@@ -16,6 +16,7 @@ export class Player {
     this.damage = 0;
     this.boost = 35 + this.save.upgrades.boost * 8;
     this.invulnerable = 0;
+    this.airTime = 0;
   }
 
   shift(direction) {
@@ -30,5 +31,6 @@ export class Player {
     this.x = lerp(this.x, this.lane, clamp(dt * grip, 0, 1));
     this.lean = lerp(this.lean, (this.lane - this.x) * -1.8, clamp(dt * 8, 0, 1));
     this.invulnerable = Math.max(0, this.invulnerable - dt);
+    this.airTime = Math.max(0, this.airTime - dt);
   }
 }

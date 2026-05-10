@@ -1,6 +1,7 @@
 import { Random } from '../core/random.js';
 import { Obstacle } from '../entities/Obstacle.js';
 import { Pickup } from '../entities/Pickup.js';
+import { Spring } from '../entities/Spring.js';
 import { COURSE_AHEAD } from '../game/constants.js';
 import { BIOMES } from './biomes.js';
 import { OBSTACLE_KINDS, PATTERNS } from './obstaclePatterns.js';
@@ -35,6 +36,15 @@ export class CourseGenerator {
       entities.push(
         new Pickup({ laneIndex: pickupLane, z: this.nextZ - this.random.range(3, 8), value: 1 })
       );
+
+      if (distance > 45 && this.random.next() > 0.82) {
+        entities.push(
+          new Spring({
+            laneIndex: this.random.choice(open),
+            z: this.nextZ + this.random.range(6, 12),
+          })
+        );
+      }
 
       if (this.random.next() > 0.62) {
         entities.push(

@@ -36,4 +36,10 @@ export class Scoring {
     this.combo = 1;
     this.comboTimer = 0;
   }
+
+  springLaunch() {
+    this.score += 180 * this.combo;
+    this.combo = Math.min(12, this.combo + 0.45);
+    this.comboTimer = 2.6;
+  }
 }

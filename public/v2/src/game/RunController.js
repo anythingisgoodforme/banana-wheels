@@ -83,6 +83,18 @@ export class RunController {
           continue;
         }
 
+        if (entity.type === 'spring') {
+          entity.used = true;
+          this.player.airTime = 0.95;
+          this.player.boost = Math.min(100, this.player.boost + 22);
+          this.player.speed *= 1.12;
+          this.scoring.springLaunch();
+          this.audio.spring();
+          this.spawnParticles(480 + this.player.x * 110, 520, '#cfd8dc', 18);
+          this.spawnParticles(480 + this.player.x * 110, 500, '#54c6d6', 8);
+          continue;
+        }
+
         if (entity.type === 'obstacle' && this.player.invulnerable <= 0) {
           entity.hit = true;
           this.player.damage += 1;
