@@ -17,6 +17,7 @@
         'Pick a letter button, then tap the string where it belongs. The bass strings go E, A, D, G from low to high.',
       explanation:
         'A bass has four thick strings. Each string has a name. From the lowest sound to the highest sound they are E, A, D, and G.',
+      example: 'The lowest open string is E. The highest open string is G.',
       completion: { correctRounds: 2 },
     },
     {
@@ -30,6 +31,7 @@
         'Press Play String, listen to the sound, then choose the letter you think it is. Right answers add 10. Wrong answers take away 5.',
       explanation:
         'Open string means you play the string without pressing any fret. Listen for which string is making the sound.',
+      example: 'If you play the A string with no finger down, that note is open A.',
       completion: { scoreTarget: 100, correctScore: 10, wrongScore: -5 },
       requires: 'meet-the-bass',
     },
@@ -43,6 +45,7 @@
       prompt: 'Read the target. Pick the same fret number and finger number, then press Check.',
       explanation:
         'Frets are the metal lines on the neck. Fingers have numbers: pointer is 1, middle is 2, ring is 3, pinky is 4.',
+      example: 'Fret 3 with finger 3 means put your ring finger just behind the third fret.',
       completion: { correctTargets: 10, maxMisses: 2 },
       requires: 'open-strings',
     },
@@ -57,6 +60,7 @@
         'Look at the target. It tells you a note on the E string. Choose the matching note name.',
       explanation:
         'The E string is the lowest string. Open E means no finger. F is fret 1. G is fret 3.',
+      example: 'To play G on the E string, press fret 3 on the E string.',
       completion: { correctTargets: 8, maxMisses: 3 },
       targets: [
         { label: 'Open E', answer: 'E', stringId: 'E', fret: 0, choices: ['E', 'F', 'G'] },
@@ -76,12 +80,41 @@
         'Watch the beat numbers blink. When the target is a beat, choose Play to keep the pulse going.',
       explanation:
         'Pulse means the steady beat in music. Count 1, 2, 3, 4 like a heartbeat and play with it.',
+      example: 'Quarter notes on beats 1, 2, 3, and 4 make a steady groove.',
       completion: { correctTargets: 12, maxMisses: 4 },
       targets: [
-        { label: 'Beat 1', answer: 'Play', stringId: 'E', fret: 0, choices: ['Play', 'Wait'] },
-        { label: 'Beat 2', answer: 'Play', stringId: 'E', fret: 0, choices: ['Play', 'Wait'] },
-        { label: 'Beat 3', answer: 'Play', stringId: 'E', fret: 0, choices: ['Play', 'Wait'] },
-        { label: 'Beat 4', answer: 'Play', stringId: 'E', fret: 0, choices: ['Play', 'Wait'] },
+        {
+          label: 'Beat 1',
+          answer: 'Play',
+          stringId: 'E',
+          fret: 0,
+          beatIndex: 0,
+          choices: ['Play', 'Wait'],
+        },
+        {
+          label: 'Beat 2',
+          answer: 'Play',
+          stringId: 'E',
+          fret: 0,
+          beatIndex: 1,
+          choices: ['Play', 'Wait'],
+        },
+        {
+          label: 'Beat 3',
+          answer: 'Play',
+          stringId: 'E',
+          fret: 0,
+          beatIndex: 2,
+          choices: ['Play', 'Wait'],
+        },
+        {
+          label: 'Beat 4',
+          answer: 'Play',
+          stringId: 'E',
+          fret: 0,
+          beatIndex: 3,
+          choices: ['Play', 'Wait'],
+        },
       ],
       requires: 'first-notes-e-string',
     },
@@ -96,6 +129,7 @@
         'Look at the target. It tells you a note on the A string. Choose the matching note name.',
       explanation:
         'The A string is the next string after E. Open A means no finger. B is fret 2. C is fret 3.',
+      example: 'To play B on the A string, press fret 2 on the A string.',
       completion: { correctTargets: 8, maxMisses: 3 },
       targets: [
         { label: 'Open A', answer: 'A', stringId: 'A', fret: 0, choices: ['A', 'B', 'C'] },
@@ -115,6 +149,7 @@
         'Look at the target. It tells you a note on the D string. Choose the matching note name.',
       explanation:
         'The D string is higher than E and A. Open D means no finger. E is fret 2. F is fret 3.',
+      example: 'To play F on the D string, press fret 3 on the D string.',
       completion: { correctTargets: 8, maxMisses: 3 },
       targets: [
         { label: 'Open D', answer: 'D', stringId: 'D', fret: 0, choices: ['D', 'E', 'F'] },
@@ -134,6 +169,7 @@
         'Look at the target. It tells you a note on the G string. Choose the matching note name.',
       explanation:
         'The G string is the highest string on a normal bass. Open G means no finger. A is fret 2. B is fret 4.',
+      example: 'To play A on the G string, press fret 2 on the G string.',
       completion: { correctTargets: 8, maxMisses: 3 },
       targets: [
         { label: 'Open G', answer: 'G', stringId: 'G', fret: 0, choices: ['G', 'A', 'B'] },
@@ -149,39 +185,41 @@
       shortTitle: 'Riffs',
       goal: 'Repeat a short E/A string riff.',
       type: 'guided-choice',
+      practiceMode: 'riff-sequence',
       prompt:
-        'A riff is a tiny bass pattern. Read the target, then choose the next note in the riff.',
+        'Build the whole riff in the four slots, then press Check.',
       explanation:
         'A riff is a short group of notes that repeats. Bass players use riffs to make songs feel strong and fun.',
-      completion: { correctTargets: 10, maxMisses: 3 },
+      example: 'E, G, A, B can be a riff when you play it again and again.',
+      completion: { correctTargets: 3, maxMisses: 4 },
       targets: [
         {
-          label: 'Riff note 1',
+          label: 'Step 1: E',
           answer: 'E',
           stringId: 'E',
           fret: 0,
-          choices: ['E', 'G', 'A', 'B'],
+          choices: ['E', 'G'],
         },
         {
-          label: 'Riff note 2',
+          label: 'Step 2: G',
           answer: 'G',
           stringId: 'E',
           fret: 3,
-          choices: ['E', 'G', 'A', 'B'],
+          choices: ['E', 'G'],
         },
         {
-          label: 'Riff note 3',
+          label: 'Step 3: A',
           answer: 'A',
           stringId: 'A',
           fret: 0,
-          choices: ['E', 'G', 'A', 'B'],
+          choices: ['A', 'B'],
         },
         {
-          label: 'Riff note 4',
+          label: 'Step 4: B',
           answer: 'B',
           stringId: 'A',
           fret: 2,
-          choices: ['E', 'G', 'A', 'B'],
+          choices: ['A', 'B'],
         },
       ],
       requires: 'g-string-notes',
@@ -197,6 +235,7 @@
         'Sometimes music needs quiet space. Choose Play for a note and Rest when the target says silence.',
       explanation:
         'A rest means do not play for that beat. Quiet space is part of the groove, just like the notes.',
+      example: 'Play on beat 1, rest on beat 2, play on beat 3, rest on beat 4.',
       completion: { correctTargets: 12, maxMisses: 2 },
       targets: [
         { label: 'Beat 1: E', answer: 'Play', stringId: 'E', fret: 0, choices: ['Play', 'Rest'] },
@@ -217,6 +256,7 @@
         'This is a full bassline. Choose the note or Rest shown by each target, one step at a time.',
       explanation:
         'A bassline is the bass part of a song. It mixes notes, beats, and rests into one pattern.',
+      example: 'E, G, A, rest is a simple one-bar bassline.',
       completion: { correctTargets: 14, maxMisses: 4 },
       targets: [
         {
@@ -255,6 +295,7 @@
         'A routine is your practice plan. Choose the helpful practice step and avoid silly shortcuts.',
       explanation:
         'A practice routine is a small plan you can repeat: warm up, review notes, practice rhythm, play a riff, then pick what to try next.',
+      example: 'Warm up, review E/A notes, clap the rhythm, play one riff, then choose tomorrow\'s goal.',
       completion: { correctTargets: 5, maxMisses: 2 },
       targets: [
         {

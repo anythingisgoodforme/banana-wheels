@@ -146,4 +146,25 @@ describe('Bassline Rookie lesson engine', () => {
     state = recordPracticeAnswer(state, eNotesLesson, true);
     expect(state.completed).toBe(true);
   });
+
+  test('every lesson explains the concept and gives an example', () => {
+    LESSONS.forEach((lesson) => {
+      expect(lesson.explanation).toEqual(expect.any(String));
+      expect(lesson.explanation.length).toBeGreaterThan(24);
+      expect(lesson.example).toEqual(expect.any(String));
+      expect(lesson.example.length).toBeGreaterThan(16);
+    });
+  });
+
+  test('riff lesson stays beginner friendly', () => {
+    const riffLesson = LESSONS.find((lesson) => lesson.id === 'two-string-riffs');
+
+    expect(riffLesson.practiceMode).toBe('riff-sequence');
+    expect(riffLesson.targets.map((target) => target.answer)).toEqual(['E', 'G', 'A', 'B']);
+    expect(riffLesson.completion).toMatchObject({ correctTargets: 3, maxMisses: 4 });
+    riffLesson.targets.forEach((target) => {
+      expect(target.choices).toHaveLength(2);
+      expect(target.choices).toContain(target.answer);
+    });
+  });
 });

@@ -44,8 +44,68 @@
       oscillator.stop(now + duration + 0.02);
     }
 
+    success() {
+      this.ensure();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+      this.playNoiseHit(now, 0.055, 0.045);
+      this.playBellTone(1046.5, now + 0.045, 0.16, 0.08);
+      this.playBellTone(1568, now + 0.13, 0.28, 0.075);
+    }
+
+    playBellTone(frequency, startTime, duration, volume) {
+      const oscillator = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      oscillator.connect(gain);
+      gain.connect(this.ctx.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + 0.02);
+    }
+
+    playNoiseHit(startTime, duration, volume) {
+      const sampleRate = this.ctx.sampleRate;
+      const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+      const buffer = this.ctx.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let index = 0; index < frameCount; index += 1) {
+        const fade = 1 - index / frameCount;
+        data[index] = (Math.random() * 2 - 1) * fade;
+      }
+
+      const noise = this.ctx.createBufferSource();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      noise.buffer = buffer;
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(4200, startTime);
+      filter.Q.setValueAtTime(1.4, startTime);
+      gain.gain.setValueAtTime(volume, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(startTime);
+      noise.stop(startTime + duration);
+    }
+
     click(success = true) {
-      this.playNote(success ? 196 : 73.42, success ? 0.12 : 0.2);
+      if (success) {
+        this.success();
+        return;
+      }
+
+      this.playNote(73.42, 0.2);
     }
   }
 

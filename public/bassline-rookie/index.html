@@ -17,6 +17,26 @@
       </aside>
 
       <section class="practice-stage" aria-live="polite">
+        <section class="search-tab" aria-label="Bass question search">
+          <form id="questionSearchForm" class="search-form">
+            <label for="questionSearch">Search</label>
+            <div class="search-row">
+              <input
+                id="questionSearch"
+                type="search"
+                autocomplete="off"
+                placeholder="Search"
+              />
+              <button class="primary-action search-button" type="submit">Search</button>
+            </div>
+          </form>
+          <article id="searchResult" class="search-result">
+            <span>Ask about</span>
+            <strong>Riffs, pulse, rests, basslines, open strings, frets, or practice</strong>
+            <p>Type what you are wondering about and the explanation will appear here.</p>
+          </article>
+        </section>
+
         <header class="lesson-header">
           <div>
             <p class="eyebrow">Current Lesson</p>
@@ -32,6 +52,8 @@
         </header>
 
         <section class="instruction-panel">
+          <p id="lessonExplanation" class="lesson-explanation"></p>
+          <p id="lessonExample" class="lesson-example"></p>
           <div class="instruction-row">
             <p id="lessonPrompt"></p>
             <button
@@ -69,6 +91,7 @@
 
     <script src="src/data/notes.js"></script>
     <script src="src/data/lessons.js"></script>
+    <script src="src/data/glossary.js"></script>
     <script src="src/data/rhythms.js"></script>
     <script src="src/core/timing.js"></script>
     <script src="src/core/storage.js"></script>
@@ -76,6 +99,7 @@
     <script src="src/core/microphone.js"></script>
     <script src="src/systems/scoring.js"></script>
     <script src="src/systems/lessonEngine.js"></script>
+    <script src="src/systems/rhythmAnswers.js"></script>
     <script src="src/ui/feedback.js"></script>
     <script src="src/ui/lessonMap.js"></script>
     <script src="src/ui/fretboard.js"></script>
