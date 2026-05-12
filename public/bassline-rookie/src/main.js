@@ -1191,6 +1191,11 @@
           <span>${songComplete ? 'Finished' : app.songPhase === 'count-in' ? 'Count-in' : `Song note ${Math.min(app.songStep + 1, lesson.targets.length)} of ${lesson.targets.length}`}</span>
           <strong>${songComplete ? 'Backed by steady time' : phaseCopy}</strong>
         </div>
+        ${
+          songComplete
+            ? '<div class="song-celebration" aria-label="Celebration">🎉🔥🎊🔥🥳🔥🎉🎊🔥🥳🎉🔥</div>'
+            : ''
+        }
       </div>
       <div class="song-notes" aria-label="Song phrase">
         ${lesson.targets
