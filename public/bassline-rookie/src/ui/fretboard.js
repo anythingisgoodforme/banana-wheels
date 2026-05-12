@@ -6,8 +6,11 @@
     container,
     strings,
     onStringClick,
+    onFretClick = null,
     labels = {},
     targetId = null,
+    targetFret = null,
+    selectedFret = null,
     showHeadLabels = false,
   }) {
     container.innerHTML = '';
@@ -17,8 +20,7 @@
     neck.setAttribute('aria-label', 'Four string bass diagram');
 
     strings.forEach((string, index) => {
-      const row = document.createElement('button');
-      row.type = 'button';
+      const row = document.createElement('div');
       row.className = 'string-row';
       row.dataset.stringId = string.id;
       row.dataset.target = string.id === targetId ? 'true' : 'false';
@@ -27,11 +29,32 @@
       const label = labels[string.id] || '';
       row.innerHTML = `
           <span class="head-label">${showHeadLabels ? string.id : index + 1}</span>
-          <span class="string-line"></span>
+          <span class="fret-buttons"></span>
           <span class="placed-label">${label}</span>
         `;
 
-      row.addEventListener('click', () => onStringClick(string.id));
+      const fretButtons = row.querySelector('.fret-buttons');
+      for (let fret = 0; fret <= 4; fret += 1) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'fret-button';
+        button.dataset.fret = String(fret);
+        button.dataset.targetFret =
+          string.id === targetId && fret === targetFret ? 'true' : 'false';
+        button.dataset.selected = fret === selectedFret ? 'true' : 'false';
+        button.setAttribute('aria-label', `${string.id} string fret ${fret}`);
+        button.innerHTML = `<span class="string-line"></span><span class="fret-number">${fret}</span>`;
+        button.addEventListener('click', () => {
+          if (onFretClick) {
+            onFretClick(string.id, fret);
+            return;
+          }
+
+          onStringClick(string.id);
+        });
+        fretButtons.appendChild(button);
+      }
+
       neck.appendChild(row);
     });
 

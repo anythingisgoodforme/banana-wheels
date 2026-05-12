@@ -187,7 +187,7 @@
       type: 'guided-choice',
       practiceMode: 'riff-sequence',
       prompt:
-        'Build the whole riff in the four slots, then press Check.',
+        'Build the mixed-up riff in the four slots, then press Check.',
       explanation:
         'A riff is a short group of notes that repeats. Bass players use riffs to make songs feel strong and fun.',
       example: 'E, G, A, B can be a riff when you play it again and again.',
@@ -252,8 +252,9 @@
       shortTitle: 'Bassline',
       goal: 'Combine notes, timing, and rests.',
       type: 'guided-choice',
+      practiceMode: 'bassline-sequence',
       prompt:
-        'This is a full bassline. Choose the note or Rest shown by each target, one step at a time.',
+        'Build the whole bassline in order, then press Check bassline.',
       explanation:
         'A bassline is the bass part of a song. It mixes notes, beats, and rests into one pattern.',
       example: 'E, G, A, rest is a simple one-bar bassline.',

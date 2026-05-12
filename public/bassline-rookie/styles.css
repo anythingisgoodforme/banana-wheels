@@ -231,6 +231,58 @@ h2 {
   line-height: 1.45;
 }
 
+.search-results-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.search-hit {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(23, 32, 38, 0.12);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.search-hit-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-hit h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.25;
+}
+
+.search-hit p {
+  max-width: none;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.search-result-action {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: white;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.search-result-action:hover,
+.search-result-action:focus-visible {
+  color: white;
+  background: var(--accent);
+}
+
 .lesson-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -367,11 +419,8 @@ h2 {
   border: 0;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.12);
-  cursor: pointer;
 }
 
-.string-row:hover,
-.string-row:focus-visible,
 .string-row[data-target='true'] {
   outline: 3px solid rgba(47, 127, 132, 0.45);
 }
@@ -392,11 +441,59 @@ h2 {
   color: #8b725f;
 }
 
+.fret-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+
+.fret-button {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0;
+  border: 1px solid rgba(255, 248, 236, 0.45);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 248, 236, 0.9);
+  cursor: pointer;
+}
+
+.fret-button:hover,
+.fret-button:focus-visible,
+.fret-button[data-selected='true'] {
+  border-color: var(--surface-strong);
+  background: rgba(255, 248, 236, 0.22);
+  outline: none;
+}
+
+.fret-button[data-target-fret='true'] {
+  border-color: var(--accent);
+  background: rgba(47, 127, 132, 0.55);
+  color: white;
+}
+
 .string-line {
+  grid-area: 1 / 1;
+  width: 100%;
   height: 7px;
   border-radius: 99px;
   background: linear-gradient(180deg, #f7f7f7, #8e9698 45%, #32393b);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.fret-number {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(23, 32, 38, 0.62);
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .fret-markers {
@@ -579,6 +676,46 @@ h2 {
   color: white;
 }
 
+.bassline-beats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bassline-beat {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.bassline-beat span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bassline-beat strong {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.bassline-beat strong[data-filled='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
 .target-card {
   display: grid;
   gap: 4px;
@@ -678,6 +815,10 @@ h2 {
 
   .search-row {
     grid-template-columns: 1fr;
+  }
+
+  .bassline-beats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .bass-neck {
