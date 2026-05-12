@@ -327,6 +327,40 @@
       ],
       requires: 'first-full-bassline',
     },
+    {
+      id: 'first-song-run',
+      number: 13,
+      title: 'First Song Run',
+      shortTitle: 'Song',
+      goal: 'Play a short bass song in time by choosing the right string and fret.',
+      type: 'guided-choice',
+      practiceMode: 'song-performance',
+      prompt:
+        'Watch the bouncing ball. After the count-in, press the target string and fret on the beat to move through the song.',
+      explanation:
+        'This is a tiny song performance. The ball marks the beat. When the target appears, click the correct string and fret at the right moment to play the next note.',
+      example: 'The phrase moves through two short bars using real string and fret positions.',
+      completion: { correctTargets: 16, maxMisses: 7 },
+      targets: [
+        { label: 'Note 1', answer: 'E', stringId: 'E', fret: 0 },
+        { label: 'Note 2', answer: 'G', stringId: 'E', fret: 3 },
+        { label: 'Note 3', answer: 'A', stringId: 'A', fret: 0 },
+        { label: 'Note 4', answer: 'B', stringId: 'A', fret: 2 },
+        { label: 'Note 5', answer: 'D', stringId: 'D', fret: 0 },
+        { label: 'Note 6', answer: 'E', stringId: 'D', fret: 2 },
+        { label: 'Note 7', answer: 'G', stringId: 'E', fret: 3 },
+        { label: 'Note 8', answer: 'A', stringId: 'A', fret: 0 },
+        { label: 'Note 9', answer: 'B', stringId: 'A', fret: 2 },
+        { label: 'Note 10', answer: 'A', stringId: 'A', fret: 0 },
+        { label: 'Note 11', answer: 'G', stringId: 'E', fret: 3 },
+        { label: 'Note 12', answer: 'E', stringId: 'E', fret: 0 },
+        { label: 'Note 13', answer: 'D', stringId: 'D', fret: 0 },
+        { label: 'Note 14', answer: 'E', stringId: 'D', fret: 2 },
+        { label: 'Note 15', answer: 'G', stringId: 'E', fret: 3 },
+        { label: 'Note 16', answer: 'A', stringId: 'A', fret: 0 },
+      ],
+      requires: 'practice-routine',
+    },
   ];
 
   function getLesson(id) {

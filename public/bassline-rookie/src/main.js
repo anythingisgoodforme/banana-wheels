@@ -57,6 +57,12 @@
     sessionBaseline: null,
     pulseBeat: 0,
     pulseTimer: null,
+    songTimer: null,
+    songPhase: 'ready',
+    songCountIn: 4,
+    songStep: 0,
+    songBeatAt: 0,
+    songBounceTick: 0,
     mic: null,
     micListening: false,
     lastMicAnswerAt: 0,
@@ -72,7 +78,10 @@
     elements.questionSearch.addEventListener('input', searchQuestion);
     elements.searchResult.addEventListener('click', handleSearchResultAction);
     elements.micButton.addEventListener('click', toggleMicrophone);
-    window.addEventListener('beforeunload', () => clearPulse());
+    window.addEventListener('beforeunload', () => {
+      clearPulse();
+      clearSongPlayback();
+    });
   }
 
   function searchQuestion(event) {
@@ -128,6 +137,7 @@
       type: 'Guide',
       title: topic.term,
       body: topic.explanation,
+      toolAction: searchToolActionForTopic(topic),
       score: scoreSearchDocument(searchableQuery, terms, [
         topic.term,
         ...(topic.keywords || []),
@@ -171,20 +181,34 @@
   }
 
   function renderSearchResult(result) {
-    const action = result.lessonId
+    const lessonAction = result.lessonId
       ? `<button class="search-result-action" type="button" data-search-lesson="${result.lessonId}">Open lesson</button>`
+      : '';
+    const toolAction = result.toolAction
+      ? `<a class="search-result-action" href="${result.toolAction.href}">${result.toolAction.label}</a>`
       : '';
 
     return `
       <article class="search-hit">
         <div class="search-hit-meta">
           <span>${result.type}</span>
-          ${action}
+          <div class="search-hit-actions">
+            ${toolAction}
+            ${lessonAction}
+          </div>
         </div>
         <h3>${result.title}</h3>
         <p>${result.body}</p>
       </article>
     `;
+  }
+
+  function searchToolActionForTopic(topic) {
+    if (topic.term === 'Tuning') {
+      return { label: 'Tuner', href: 'tuner.html' };
+    }
+
+    return null;
   }
 
   function scoreSearchDocument(normalizedQuery, words, fields) {
@@ -264,6 +288,7 @@
     }
 
     clearPulse();
+    clearSongPlayback();
     app.activeLessonId = lesson.id;
     app.lessonState = lessonEngine.createLessonState(lesson);
     app.sessionBaseline = app.progress.lessons[lesson.id] || {};
@@ -279,6 +304,7 @@
     app.riffAnswer = [];
     app.riffPattern = [];
     app.riffChoices = [];
+    resetSongRun();
     elements.feedback.textContent = '';
     render();
   }
@@ -471,6 +497,7 @@
     app.riffAnswer = [];
     app.riffPattern = [];
     app.riffChoices = [];
+    resetSongRun();
     elements.feedback.textContent = '';
     render();
   }
@@ -798,6 +825,10 @@
     }
     if (isBasslineSequenceLesson(lesson)) {
       renderBasslineBuilderLesson(lesson);
+      return;
+    }
+    if (isSongPerformanceLesson(lesson)) {
+      renderSongPerformanceLesson(lesson);
       return;
     }
 
@@ -1135,6 +1166,179 @@
     render();
   }
 
+  function renderSongPerformanceLesson(lesson) {
+    clearPulse();
+    app.guidedTarget = lesson.targets[app.songStep] || null;
+    updateLessonHelp(lesson);
+
+    const activeTarget = app.guidedTarget;
+    const songComplete = app.songPhase === 'done';
+    const phaseCopy =
+      app.songPhase === 'ready'
+        ? 'Press Start song. The ball gives a four-beat count-in before the bass begins.'
+        : app.songPhase === 'count-in'
+          ? `Count in: ${Math.max(1, app.songCountIn)}`
+          : songComplete
+            ? 'Song complete. You played the full phrase.'
+            : `Play ${activeTarget.answer} on ${activeTarget.stringId} string, fret ${activeTarget.fret}.`;
+
+    elements.actionArea.innerHTML = `
+      <div class="song-stage">
+        <div class="song-ball-track" aria-label="Rhythm ball">
+          <span class="song-ball" data-tick="${app.songBounceTick % 4}"></span>
+        </div>
+        <div class="song-meter">
+          <span>${songComplete ? 'Finished' : app.songPhase === 'count-in' ? 'Count-in' : `Song note ${Math.min(app.songStep + 1, lesson.targets.length)} of ${lesson.targets.length}`}</span>
+          <strong>${songComplete ? 'Backed by steady time' : phaseCopy}</strong>
+        </div>
+      </div>
+      <div class="song-notes" aria-label="Song phrase">
+        ${lesson.targets
+          .map(
+            (target, index) => `
+              <span data-active="${index === app.songStep && !songComplete ? 'true' : 'false'}" data-complete="${index < app.songStep || songComplete ? 'true' : 'false'}">
+                ${target.answer}<small>${target.stringId}${target.fret}</small>
+              </span>
+            `
+          )
+          .join('')}
+      </div>
+      ${
+        app.songPhase === 'ready'
+          ? '<button class="primary-action" type="button" id="startSong">Start song</button>'
+          : songComplete
+            ? '<button class="secondary-action" type="button" id="replaySong">Play again</button>'
+            : '<button class="secondary-action" type="button" id="stopSong">Restart song</button>'
+      }
+    `;
+
+    renderFretboard({
+      container: elements.fretboard,
+      strings: notes.OPEN_STRINGS,
+      showHeadLabels: true,
+      targetId: activeTarget?.stringId || null,
+      targetFret: Number.isInteger(activeTarget?.fret) ? activeTarget.fret : null,
+      onStringClick: (stringId) => answerSongFret(stringId, 0),
+      onFretClick: answerSongFret,
+    });
+
+    document.querySelector('#startSong')?.addEventListener('click', startSongPlayback);
+    document.querySelector('#stopSong')?.addEventListener('click', () => {
+      resetSongRun();
+      setFeedback(elements.feedback, 'Song reset. Start again when ready.', 'neutral');
+      renderSongPerformanceLesson(lesson);
+    });
+    document.querySelector('#replaySong')?.addEventListener('click', () => {
+      resetSongRun();
+      setFeedback(elements.feedback, 'Song ready. Start the count-in again.', 'neutral');
+      renderSongPerformanceLesson(lesson);
+    });
+
+    if (!elements.feedback.textContent) {
+      setFeedback(elements.feedback, phaseCopy, 'neutral');
+    }
+  }
+
+  function startSongPlayback() {
+    const lesson = getLesson(app.activeLessonId);
+    if (!isSongPerformanceLesson(lesson)) return;
+
+    resetSongRun();
+    app.songPhase = 'count-in';
+    app.songCountIn = 4;
+    app.songBeatAt = performance.now();
+    bounceSongBall();
+    audio.beat(true);
+    setFeedback(elements.feedback, 'Count in: 4', 'neutral');
+    renderSongPerformanceLesson(lesson);
+
+    app.songTimer = window.setInterval(() => advanceSongBeat(lesson), 60000 / QUARTER_PULSE.bpm);
+  }
+
+  function advanceSongBeat(lesson) {
+    bounceSongBall();
+    app.songBeatAt = performance.now();
+    audio.beat(app.songPhase === 'count-in' || app.songStep % 4 === 0);
+
+    if (app.songPhase === 'count-in') {
+      app.songCountIn -= 1;
+      if (app.songCountIn <= 0) {
+        app.songPhase = 'playing';
+        setFeedback(elements.feedback, 'Bass is in. Press the target fret on the bounce.', 'neutral');
+      } else {
+        setFeedback(elements.feedback, `Count in: ${app.songCountIn}`, 'neutral');
+      }
+    }
+
+    renderSongPerformanceLesson(lesson);
+  }
+
+  function answerSongFret(stringId, fret) {
+    const lesson = getLesson(app.activeLessonId);
+    if (!isSongPerformanceLesson(lesson) || app.songPhase !== 'playing') {
+      return;
+    }
+
+    const target = lesson.targets[app.songStep];
+    const elapsed = performance.now() - app.songBeatAt;
+    const inTime = elapsed <= 560;
+    const positionCorrect = target.stringId === stringId && target.fret === fret;
+    const correct = inTime && positionCorrect;
+    playFretNote(stringId, fret);
+    app.lessonState = lessonEngine.recordPracticeAnswer(app.lessonState, lesson, correct);
+
+    if (correct) {
+      app.songStep += 1;
+      if (app.songStep >= lesson.targets.length) {
+        app.songPhase = 'done';
+        clearSongPlayback(false);
+        setFeedback(elements.feedback, 'Song complete. You hit every target in the phrase.', 'good');
+      } else {
+        const next = lesson.targets[app.songStep];
+        setFeedback(
+          elements.feedback,
+          `Good. Next: ${next.answer} on ${next.stringId} string, fret ${next.fret}.`,
+          'good'
+        );
+      }
+    } else {
+      audio.click(false);
+      const timing = inTime ? 'Wrong fret or string.' : 'Too late for that bounce.';
+      setFeedback(
+        elements.feedback,
+        `${timing} Target is ${target.answer} on ${target.stringId} string, fret ${target.fret}. Misses: ${app.lessonState.misses}/${lesson.completion.maxMisses}.`,
+        'bad'
+      );
+    }
+
+    persistLessonIfComplete();
+    render();
+  }
+
+  function bounceSongBall() {
+    app.songBounceTick += 1;
+  }
+
+  function resetSongRun() {
+    clearSongPlayback();
+    app.songPhase = 'ready';
+    app.songCountIn = 4;
+    app.songStep = 0;
+    app.songBeatAt = 0;
+    app.songBounceTick = 0;
+  }
+
+  function clearSongPlayback(resetPhase = true) {
+    if (app.songTimer) {
+      window.clearInterval(app.songTimer);
+      app.songTimer = null;
+    }
+
+    if (resetPhase) {
+      app.songBeatAt = 0;
+    }
+  }
+
   async function toggleMicrophone() {
     if (app.micListening) {
       stopMicrophone();
@@ -1200,6 +1404,11 @@
     const lesson = getLesson(app.activeLessonId);
     if (lesson.type === 'recognition' && app.recognitionTarget) {
       answerRecognition(app.recognitionTarget);
+      return;
+    }
+
+    if (isSongPerformanceLesson(lesson) && app.guidedTarget) {
+      answerSongFret(app.guidedTarget.stringId, app.guidedTarget.fret);
       return;
     }
 
@@ -1274,6 +1483,10 @@
 
   function isBasslineSequenceLesson(lesson) {
     return lesson.practiceMode === 'bassline-sequence';
+  }
+
+  function isSongPerformanceLesson(lesson) {
+    return lesson.practiceMode === 'song-performance';
   }
 
   function shuffled(items) {

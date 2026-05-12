@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bassline Rookie Tuner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="tuner-shell">
+      <section class="tuner-stage" aria-live="polite">
+        <p class="eyebrow">Bassline Rookie</p>
+        <h1>Bass Guitar Tuner</h1>
+        <p class="tuner-intro">
+          Tune one open string at a time. Press Tune to hear the target note, match it on your bass,
+          then continue.
+        </p>
+
+        <section class="tuner-card">
+          <div class="tuner-progress">
+            <span id="tunerStep">String 1 of 4</span>
+            <strong id="tunerString">E</strong>
+          </div>
+          <p id="tunerInstruction" class="tuner-instruction">
+            Tune your lowest open string until it matches E.
+          </p>
+          <div class="tuner-actions">
+            <button id="playTune" class="primary-action" type="button">Tune</button>
+            <button id="continueTune" class="secondary-action" type="button">Continue</button>
+            <a id="backToLessons" class="primary-action tuner-link" href="index.html" hidden>
+              Back to lessons
+            </a>
+          </div>
+        </section>
+
+        <section class="tuner-sequence" aria-label="Bass tuning order">
+          <span data-active="true">E</span>
+          <span>A</span>
+          <span>D</span>
+          <span>G</span>
+        </section>
+      </section>
+    </main>
+
+    <script src="src/data/notes.js"></script>
+    <script src="src/core/audio.js"></script>
+    <script src="src/tuner.js"></script>
+  </body>
+</html>

@@ -20,7 +20,7 @@
       }
     }
 
-    playNote(frequency, duration = 0.42) {
+    playNote(frequency, duration = 0.9) {
       this.ensure();
       if (!this.ctx || !frequency) return;
 
@@ -32,7 +32,7 @@
       oscillator.type = 'sawtooth';
       oscillator.frequency.setValueAtTime(frequency, now);
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(540, now);
+      filter.frequency.setValueAtTime(460, now);
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.exponentialRampToValueAtTime(0.16, now + 0.018);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
@@ -97,6 +97,15 @@
       gain.connect(this.ctx.destination);
       noise.start(startTime);
       noise.stop(startTime + duration);
+    }
+
+    beat(accent = false) {
+      this.ensure();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+      this.playNoiseHit(now, accent ? 0.045 : 0.03, accent ? 0.052 : 0.034);
+      this.playBellTone(accent ? 523.25 : 392, now + 0.004, 0.11, accent ? 0.028 : 0.02);
     }
 
     click(success = true) {

@@ -253,6 +253,13 @@ h2 {
   justify-content: space-between;
 }
 
+.search-hit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .search-hit h3 {
   margin: 0;
   font-size: 1.08rem;
@@ -267,6 +274,8 @@ h2 {
 }
 
 .search-result-action {
+  display: inline-grid;
+  place-items: center;
   min-height: 34px;
   padding: 0 10px;
   border: 1px solid var(--accent);
@@ -275,6 +284,7 @@ h2 {
   color: var(--accent-dark);
   cursor: pointer;
   font-weight: 900;
+  text-decoration: none;
 }
 
 .search-result-action:hover,
@@ -716,6 +726,122 @@ h2 {
   color: white;
 }
 
+.song-stage {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff8ec;
+}
+
+.song-ball-track {
+  position: relative;
+  height: 96px;
+  overflow: hidden;
+  border: 1px solid rgba(23, 32, 38, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(47, 127, 132, 0.08), rgba(216, 155, 50, 0.12)),
+    var(--surface-strong);
+}
+
+.song-ball-track::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  left: 14px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(23, 32, 38, 0.16);
+}
+
+.song-ball {
+  position: absolute;
+  left: 6%;
+  bottom: 16px;
+  z-index: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 10px 18px rgba(35, 94, 98, 0.24);
+  transition:
+    left 360ms ease-in-out,
+    transform 360ms ease-in-out;
+}
+
+.song-ball[data-tick='0'] {
+  left: 6%;
+  transform: translateY(0);
+}
+
+.song-ball[data-tick='1'] {
+  left: 34%;
+  transform: translateY(-48px);
+}
+
+.song-ball[data-tick='2'] {
+  left: 62%;
+  transform: translateY(0);
+}
+
+.song-ball[data-tick='3'] {
+  left: 88%;
+  transform: translateY(-48px);
+}
+
+.song-meter {
+  display: grid;
+  gap: 4px;
+}
+
+.song-meter span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.song-meter strong {
+  line-height: 1.4;
+}
+
+.song-notes {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.song-notes span {
+  display: grid;
+  gap: 4px;
+  place-items: center;
+  min-height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.song-notes small {
+  font-size: 0.72rem;
+}
+
+.song-notes span[data-active='true'] {
+  border-color: var(--accent);
+  background: #e5f2f2;
+  color: var(--accent-dark);
+}
+
+.song-notes span[data-complete='true'] {
+  border-color: var(--good);
+  background: #edf8ef;
+  color: var(--good);
+}
+
 .target-card {
   display: grid;
   gap: 4px;
@@ -756,6 +882,108 @@ h2 {
 .feedback[data-tone='bad'] {
   color: var(--bad);
   background: #fff1ed;
+}
+
+.tuner-shell {
+  display: grid;
+  place-items: center;
+  width: min(920px, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.tuner-stage {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+  padding: 24px;
+  border: 1px solid rgba(23, 32, 38, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 42px rgba(31, 43, 45, 0.12);
+}
+
+.tuner-stage h1 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+}
+
+.tuner-intro,
+.tuner-instruction {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.tuner-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.tuner-progress {
+  display: grid;
+  gap: 6px;
+}
+
+.tuner-progress span {
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tuner-progress strong {
+  font-size: clamp(3rem, 8vw, 5.25rem);
+  line-height: 1;
+}
+
+.tuner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tuner-link {
+  display: inline-grid;
+  place-items: center;
+  min-width: 170px;
+  text-decoration: none;
+}
+
+.tuner-sequence {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tuner-sequence span {
+  display: grid;
+  place-items: center;
+  min-height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.tuner-sequence span[data-active='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.tuner-sequence span[data-complete='true'] {
+  border-color: var(--good);
+  background: #edf8ef;
+  color: var(--good);
 }
 
 .pulse-lane {
@@ -819,6 +1047,23 @@ h2 {
 
   .bassline-beats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .song-notes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tuner-shell {
+    padding: 10px;
+  }
+
+  .tuner-stage {
+    padding: 16px;
+  }
+
+  .tuner-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .bass-neck {
