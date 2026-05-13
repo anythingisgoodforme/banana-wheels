@@ -119,6 +119,7 @@ describe('Bassline Rookie lesson engine', () => {
       'Rests',
       'Bassline',
       'Routine',
+      'Song',
     ]);
     expect(playableLessons.every((lesson) => lesson.type === 'guided-choice')).toBe(true);
 

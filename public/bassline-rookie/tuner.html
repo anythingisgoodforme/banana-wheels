@@ -24,8 +24,19 @@
           <p id="tunerInstruction" class="tuner-instruction">
             Tune your lowest open string until it matches E.
           </p>
+          <div class="tuner-meter" aria-label="Tuning meter">
+            <span>Flat</span>
+            <div class="tuner-meter-track">
+              <i id="tunerNeedle"></i>
+            </div>
+            <span>Sharp</span>
+          </div>
+          <p id="tunerReadout" class="tuner-readout">Press Mic on and play one open string.</p>
           <div class="tuner-actions">
-            <button id="playTune" class="primary-action" type="button">Tune</button>
+            <button id="micTune" class="secondary-action" type="button" aria-pressed="false">
+              Mic on
+            </button>
+            <button id="playTune" class="primary-action" type="button">Hear target</button>
             <button id="continueTune" class="secondary-action" type="button">Continue</button>
             <a id="backToLessons" class="primary-action tuner-link" href="index.html" hidden>
               Back to lessons
@@ -44,6 +55,9 @@
 
     <script src="src/data/notes.js"></script>
     <script src="src/core/audio.js"></script>
+    <script src="src/core/microphone.js"></script>
+    <script src="src/core/noteDetection.js"></script>
+    <script src="src/core/noteApi.js"></script>
     <script src="src/tuner.js"></script>
   </body>
 </html>

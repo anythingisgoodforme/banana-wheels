@@ -6,6 +6,7 @@
   "scripts": {
     "start": "http-server ./public -p 8000 -o",
     "serve": "http-server ./public -p 8000",
+    "bassline:demo": "node scripts/bassline-rookie-api.js",
     "dev": "live-server public --port=8000",
     "lint": "eslint \"src/**/*.js\" \"public/**/*.js\"",
     "lint:fix": "eslint \"src/**/*.js\" \"public/**/*.js\" --fix",

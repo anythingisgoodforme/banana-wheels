@@ -9,6 +9,24 @@ Banana Wheels is a small browser game prototype built with plain JavaScript and 
 - Main runtime file: `public/game.js`
 - Main page: `public/index.html`
 
+## Bassline Rookie
+
+This repo also contains `public/bassline-rookie`, a beginner bass practice app with lessons, microphone pitch detection, and a hosted API demo.
+
+Run the hosted API demo locally:
+
+```bash
+npm run bassline:demo
+```
+
+Then open:
+
+```text
+http://localhost:8010/bassline-rookie/hosting-demo.html
+```
+
+Hosting instructions live in `docs/BASSLINE_ROOKIE_HOSTING.md`.
+
 ## Quick Start
 
 1. Install dependencies:
@@ -38,6 +56,7 @@ The playable game lives in `public/`, not `src/`.
 
 ```bash
 npm run dev          # Live reload dev server on port 8000
+npm run bassline:demo # Local Bassline Rookie hosted API demo on port 8010
 npm start            # Static server on port 8000 and open browser
 npm run serve        # Static server only
 npm run lint         # Lint src/ and public/ JavaScript

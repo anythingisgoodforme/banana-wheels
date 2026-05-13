@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bassline Rookie Hosted API Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="demo-shell">
+      <section class="demo-stage">
+        <p class="eyebrow">Bassline Rookie</p>
+        <h1>Hosted Note API Demo</h1>
+        <p class="tuner-intro">
+          Try the three server-backed options locally. These buttons call Supabase-shaped endpoints
+          served from this computer.
+        </p>
+
+        <section class="demo-controls">
+          <label for="demoString">Target string</label>
+          <select id="demoString">
+            <option value="E">E1 - 41.20 Hz</option>
+            <option value="A" selected>A1 - 55.00 Hz</option>
+            <option value="D">D2 - 73.42 Hz</option>
+            <option value="G">G2 - 98.00 Hz</option>
+          </select>
+        </section>
+
+        <section class="live-detector" aria-label="Live microphone detector">
+          <div class="live-detector-header">
+            <div>
+              <span>Live microphone</span>
+              <h2>Play one bass note</h2>
+            </div>
+            <button
+              id="demoMicButton"
+              class="mic-button live-mic-button"
+              type="button"
+              aria-pressed="false"
+            >
+              <span class="mic-symbol" aria-hidden="true"></span>
+              <span id="demoMicLabel">Mic off</span>
+            </button>
+          </div>
+          <div class="live-readout">
+            <div class="live-note">
+              <span>Detected note</span>
+              <strong id="liveNote">--</strong>
+            </div>
+            <div class="live-stat">
+              <span>Frequency</span>
+              <strong id="liveFrequency">-- Hz</strong>
+            </div>
+            <div class="live-stat">
+              <span>Cents</span>
+              <strong id="liveCents">--</strong>
+            </div>
+          </div>
+          <div class="tuner-meter live-meter" aria-label="Live target meter">
+            <span>Flat</span>
+            <div class="tuner-meter-track">
+              <i id="liveNeedle"></i>
+            </div>
+            <span>Sharp</span>
+          </div>
+          <p id="liveStatus" class="tuner-readout">
+            Turn the mic on, allow access, and play one clear open string.
+          </p>
+        </section>
+
+        <section class="demo-grid">
+          <article class="demo-card">
+            <span>Version 1</span>
+            <h2>Frequency API</h2>
+            <p>Send a detected frequency to the hosted API.</p>
+            <button id="runFrequencyDemo" class="primary-action" type="button">
+              Run frequency demo
+            </button>
+          </article>
+
+          <article class="demo-card">
+            <span>Version 2</span>
+            <h2>Audio Analysis API</h2>
+            <p>Send a short generated audio sample for server pitch detection.</p>
+            <button id="runAudioDemo" class="primary-action" type="button">Run audio demo</button>
+          </article>
+
+          <article class="demo-card">
+            <span>Version 3</span>
+            <h2>Practice Session API</h2>
+            <p>Record a practice attempt and fetch local demo stats.</p>
+            <button id="runPracticeDemo" class="primary-action" type="button">
+              Run practice demo
+            </button>
+          </article>
+        </section>
+
+        <section class="demo-output">
+          <div>
+            <span>API result</span>
+            <strong id="demoSummary">Choose an option above.</strong>
+          </div>
+          <pre id="demoJson">{}</pre>
+        </section>
+
+        <nav class="demo-links">
+          <a href="index.html">Lessons</a>
+          <a href="tuner.html">Tuner</a>
+        </nav>
+      </section>
+    </main>
+
+    <script src="src/core/microphone.js"></script>
+    <script src="src/core/noteDetection.js"></script>
+    <script src="src/core/noteApi.js"></script>
+    <script src="src/hostingDemo.js"></script>
+  </body>
+</html>
