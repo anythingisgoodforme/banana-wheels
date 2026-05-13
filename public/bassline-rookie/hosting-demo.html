@@ -31,6 +31,10 @@
             <div>
               <span>Live microphone</span>
               <h2>Play one bass note</h2>
+              <label class="sensitive-toggle">
+                <input id="sensitiveMicToggle" type="checkbox" />
+                <span>Sensitive mic test mode</span>
+              </label>
             </div>
             <button
               id="demoMicButton"
@@ -56,12 +60,36 @@
               <strong id="liveCents">--</strong>
             </div>
           </div>
+          <div class="mic-level" aria-label="Raw microphone level">
+            <div class="mic-level-label">
+              <span>Raw mic level</span>
+              <strong id="micLevelText">0%</strong>
+            </div>
+            <div class="mic-level-track">
+              <b id="micThresholdMarker"></b>
+              <i id="micLevelBar"></i>
+            </div>
+          </div>
           <div class="tuner-meter live-meter" aria-label="Live target meter">
             <span>Flat</span>
             <div class="tuner-meter-track">
               <i id="liveNeedle"></i>
             </div>
             <span>Sharp</span>
+          </div>
+          <div class="live-test-actions">
+            <button id="simulateLiveButton" class="primary-action" type="button">
+              Simulate target note
+            </button>
+            <button id="simulateFlatButton" class="secondary-action" type="button">
+              Simulate flat
+            </button>
+            <button id="simulateSharpButton" class="secondary-action" type="button">
+              Simulate sharp
+            </button>
+            <button id="playTargetToneButton" class="secondary-action" type="button">
+              Play target tone
+            </button>
           </div>
           <p id="liveStatus" class="tuner-readout">
             Turn the mic on, allow access, and play one clear open string.

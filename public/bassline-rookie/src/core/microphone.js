@@ -11,11 +11,15 @@
   const EMIT_INTERVAL_MS = 160;
 
   class MicrophonePitch {
-    constructor({ onPitch }) {
+    constructor({ onPitch, onLevel = null, inputGain = 1, minRms = MIN_RMS }) {
       this.onPitch = onPitch;
+      this.onLevel = onLevel;
+      this.inputGain = inputGain;
+      this.minRms = minRms;
       this.ctx = null;
       this.stream = null;
       this.source = null;
+      this.gain = null;
       this.analyser = null;
       this.buffer = null;
       this.frameId = null;
@@ -39,11 +43,14 @@
         },
       });
       this.source = this.ctx.createMediaStreamSource(this.stream);
+      this.gain = this.ctx.createGain();
+      this.gain.gain.setValueAtTime(this.inputGain, this.ctx.currentTime);
       this.analyser = this.ctx.createAnalyser();
       this.analyser.fftSize = 32768;
       this.analyser.smoothingTimeConstant = 0;
       this.buffer = new Float32Array(this.analyser.fftSize);
-      this.source.connect(this.analyser);
+      this.source.connect(this.gain);
+      this.gain.connect(this.analyser);
       this.listen();
     }
 
@@ -57,6 +64,7 @@
       this.stream = null;
       this.ctx = null;
       this.source = null;
+      this.gain = null;
       this.analyser = null;
       this.tracker.reset();
     }
@@ -64,7 +72,8 @@
     listen() {
       if (!this.analyser || !this.ctx) return;
       this.analyser.getFloatTimeDomainData(this.buffer);
-      const frequency = detectPitch(this.buffer, this.ctx.sampleRate);
+      this.onLevel?.(measureRms(this.buffer));
+      const frequency = detectPitch(this.buffer, this.ctx.sampleRate, { minRms: this.minRms });
       const now = performance.now();
       const stableFrequency = this.tracker.update(frequency, now);
 
@@ -80,6 +89,14 @@
 
       this.frameId = requestAnimationFrame(() => this.listen());
     }
+  }
+
+  function measureRms(buffer) {
+    let sum = 0;
+    for (let index = 0; index < buffer.length; index += 1) {
+      sum += buffer[index] * buffer[index];
+    }
+    return Math.sqrt(sum / buffer.length);
   }
 
   class StablePitchTracker {
@@ -115,7 +132,8 @@
     }
   }
 
-  function detectPitch(buffer, sampleRate) {
+  function detectPitch(buffer, sampleRate, options = {}) {
+    const minRms = options.minRms ?? MIN_RMS;
     const prepared = prepareBuffer(buffer);
     if (prepared.length < sampleRate / BASS_MIN_FREQUENCY) return null;
 
@@ -124,7 +142,7 @@
       rms += prepared[index] * prepared[index];
     }
     rms = Math.sqrt(rms / prepared.length);
-    if (rms < MIN_RMS) return null;
+    if (rms < minRms) return null;
 
     const minLag = Math.floor(sampleRate / BASS_MAX_FREQUENCY);
     const maxLag = Math.min(Math.floor(sampleRate / BASS_MIN_FREQUENCY), prepared.length - 2);
@@ -133,8 +151,9 @@
 
     const bestPeak = peaks.reduce((best, peak) => (peak.clarity > best.clarity ? peak : best));
     const selectedPeak =
-      peaks.find((peak) => peak.clarity >= MIN_CLARITY && peak.clarity >= bestPeak.clarity * 0.88) ||
-      bestPeak;
+      peaks.find(
+        (peak) => peak.clarity >= MIN_CLARITY && peak.clarity >= bestPeak.clarity * 0.88
+      ) || bestPeak;
 
     if (selectedPeak.clarity < MIN_CLARITY) return null;
     return Number((sampleRate / selectedPeak.lag).toFixed(2));
@@ -227,7 +246,7 @@
     return 1200 * Math.log2(frequency / referenceFrequency);
   }
 
-  const api = { MicrophonePitch, StablePitchTracker, detectPitch };
+  const api = { MicrophonePitch, StablePitchTracker, detectPitch, measureRms };
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   }

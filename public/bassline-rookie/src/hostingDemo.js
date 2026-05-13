@@ -16,9 +16,17 @@
     practice: document.querySelector('#runPracticeDemo'),
     mic: document.querySelector('#demoMicButton'),
     micLabel: document.querySelector('#demoMicLabel'),
+    sensitiveMic: document.querySelector('#sensitiveMicToggle'),
+    simulateLive: document.querySelector('#simulateLiveButton'),
+    simulateFlat: document.querySelector('#simulateFlatButton'),
+    simulateSharp: document.querySelector('#simulateSharpButton'),
+    playTargetTone: document.querySelector('#playTargetToneButton'),
     liveNote: document.querySelector('#liveNote'),
     liveFrequency: document.querySelector('#liveFrequency'),
     liveCents: document.querySelector('#liveCents'),
+    micLevelText: document.querySelector('#micLevelText'),
+    micLevelBar: document.querySelector('#micLevelBar'),
+    micThresholdMarker: document.querySelector('#micThresholdMarker'),
     liveNeedle: document.querySelector('#liveNeedle'),
     liveStatus: document.querySelector('#liveStatus'),
     summary: document.querySelector('#demoSummary'),
@@ -32,6 +40,11 @@
   elements.audio.addEventListener('click', runAudioDemo);
   elements.practice.addEventListener('click', runPracticeDemo);
   elements.mic.addEventListener('click', toggleMic);
+  elements.sensitiveMic.addEventListener('change', restartMicIfListening);
+  elements.simulateLive.addEventListener('click', simulateLiveDetection);
+  elements.simulateFlat.addEventListener('click', () => simulateOffsetDetection(-25));
+  elements.simulateSharp.addEventListener('click', () => simulateOffsetDetection(25));
+  elements.playTargetTone.addEventListener('click', playTargetTone);
   window.addEventListener('beforeunload', stopMic);
 
   async function toggleMic() {
@@ -41,13 +54,22 @@
     }
 
     try {
-      mic = new MicrophonePitch({ onPitch: handleLivePitch });
+      const sensitive = elements.sensitiveMic.checked;
+      elements.micThresholdMarker.style.left = sensitive ? '3%' : '8%';
+      mic = new MicrophonePitch({
+        onPitch: handleLivePitch,
+        onLevel: renderMicLevel,
+        inputGain: sensitive ? 4 : 1,
+        minRms: sensitive ? 0.002 : 0.006,
+      });
       await mic.start();
       micListening = true;
       elements.mic.dataset.listening = 'true';
       elements.mic.setAttribute('aria-pressed', 'true');
       elements.micLabel.textContent = 'Mic on';
-      elements.liveStatus.textContent = 'Listening. Play one bass note close to the device.';
+      elements.liveStatus.textContent = sensitive
+        ? 'Listening in sensitive mode. This is easier to trigger, but may be noisier.'
+        : 'Listening. Play one bass note close to the device.';
       elements.liveStatus.dataset.tone = 'neutral';
     } catch (error) {
       elements.liveStatus.textContent = error.message;
@@ -62,6 +84,12 @@
     elements.mic.dataset.listening = 'false';
     elements.mic.setAttribute('aria-pressed', 'false');
     elements.micLabel.textContent = 'Mic off';
+  }
+
+  async function restartMicIfListening() {
+    if (!micListening) return;
+    stopMic();
+    await toggleMic();
   }
 
   async function handleLivePitch(frequency) {
@@ -122,6 +150,51 @@
     render(`Saved attempt. Local demo accuracy is ${result.profile.accuracy}%.`, result);
   }
 
+  async function simulateLiveDetection() {
+    return simulateOffsetDetection(0);
+  }
+
+  async function simulateOffsetDetection(cents) {
+    const target = selectedTarget();
+    const result = await api.detectNote({
+      frequency: Number((target.frequency * Math.pow(2, cents / 1200)).toFixed(2)),
+      target,
+      mode: 'lesson',
+    });
+    renderLiveResult(result);
+    render(result.message, result);
+  }
+
+  function playTargetTone() {
+    const target = selectedTarget();
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+      elements.liveStatus.textContent = 'This browser cannot play test tones.';
+      return;
+    }
+
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const oscillator = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    oscillator.type = 'sawtooth';
+    oscillator.frequency.setValueAtTime(target.frequency, now);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(520, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.14, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 1.15);
+    setTimeout(() => ctx.close().catch(() => {}), 1300);
+  }
+
   function selectedTarget() {
     return strings[elements.string.value];
   }
@@ -175,6 +248,13 @@
     elements.liveStatus.dataset.tone = result.matchesTarget
       ? 'good'
       : result.direction || 'neutral';
+  }
+
+  function renderMicLevel(rms) {
+    const percent = Math.max(0, Math.min(100, Math.round((rms / 0.08) * 100)));
+    elements.micLevelText.textContent = `${percent}%`;
+    elements.micLevelBar.style.width = `${percent}%`;
+    elements.micLevelBar.dataset.hot = percent > 12 ? 'true' : 'false';
   }
 
   function formatCents(cents) {

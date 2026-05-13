@@ -1165,6 +1165,21 @@ h2 {
   font-size: clamp(1.4rem, 2.8vw, 2rem);
 }
 
+.sensitive-toggle {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.sensitive-toggle input {
+  width: 18px;
+  height: 18px;
+}
+
 .live-mic-button {
   width: 100%;
 }
@@ -1198,6 +1213,72 @@ h2 {
 
 .live-meter {
   margin-top: 2px;
+}
+
+.mic-level {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.mic-level-label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mic-level-label span {
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.mic-level-label strong {
+  font-size: 1rem;
+}
+
+.mic-level-track {
+  position: relative;
+  height: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-strong);
+}
+
+.mic-level-track b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8%;
+  z-index: 1;
+  width: 2px;
+  background: var(--bad);
+}
+
+.mic-level-track i {
+  position: relative;
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gold);
+  transition: width 80ms linear;
+}
+
+.mic-level-track i[data-hot='true'] {
+  background: var(--accent);
+}
+
+.live-test-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .demo-grid {
@@ -1306,7 +1387,8 @@ h2 {
 
   .stats-strip,
   .label-chips,
-  .choice-grid {
+  .choice-grid,
+  .live-test-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
