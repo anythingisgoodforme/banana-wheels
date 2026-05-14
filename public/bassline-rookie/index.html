@@ -80,7 +80,21 @@
               <span class="mic-symbol" aria-hidden="true"></span>
               <span id="micLabel">Mic off</span>
             </button>
+            <label class="sensitive-toggle">
+              <input id="sensitiveMicToggle" type="checkbox" />
+              <span>Sensitive mic mode</span>
+            </label>
             <p id="micStatus" class="mic-status">Use the mic to hear a real bass note.</p>
+            <div class="mic-level" aria-label="Raw microphone level">
+              <div class="mic-level-label">
+                <span>Raw mic level</span>
+                <strong id="micLevelText">0%</strong>
+              </div>
+              <div class="mic-level-track">
+                <b id="micThresholdMarker"></b>
+                <i id="micLevelBar"></i>
+              </div>
+            </div>
             <div id="labelChips" class="label-chips"></div>
             <div id="actionArea" class="action-area"></div>
             <p id="feedback" class="feedback" data-tone="neutral"></p>

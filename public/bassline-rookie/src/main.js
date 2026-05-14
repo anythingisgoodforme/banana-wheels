@@ -31,6 +31,10 @@
     micButton: document.querySelector('#micButton'),
     micLabel: document.querySelector('#micLabel'),
     micStatus: document.querySelector('#micStatus'),
+    sensitiveMic: document.querySelector('#sensitiveMicToggle'),
+    micLevelText: document.querySelector('#micLevelText'),
+    micLevelBar: document.querySelector('#micLevelBar'),
+    micThresholdMarker: document.querySelector('#micThresholdMarker'),
     fretboard: document.querySelector('#fretboard'),
     labelChips: document.querySelector('#labelChips'),
     actionArea: document.querySelector('#actionArea'),
@@ -78,6 +82,7 @@
     elements.questionSearch.addEventListener('input', searchQuestion);
     elements.searchResult.addEventListener('click', handleSearchResultAction);
     elements.micButton.addEventListener('click', toggleMicrophone);
+    elements.sensitiveMic.addEventListener('change', restartMicIfListening);
     window.addEventListener('beforeunload', () => {
       clearPulse();
       clearSongPlayback();
@@ -652,10 +657,16 @@
       setFeedback(elements.feedback, 'Choose the string name that matches that sound.', 'neutral');
     });
 
+    if (app.micListening) {
+      elements.micStatus.textContent = 'Guitar mode — play any open string and the app will identify it.';
+    }
+
     if (!elements.feedback.textContent) {
       setFeedback(
         elements.feedback,
-        'Press Play String, listen, then choose E, A, D, or G.',
+        app.micListening
+          ? 'Play any open string on your bass — or press Play String and choose the letter.'
+          : 'Press Play String, listen, then choose E, A, D, or G.',
         'neutral'
       );
     }
@@ -837,11 +848,21 @@
     }
     updateLessonHelp(lesson);
 
+    const guitarHint =
+      app.micListening && app.guidedTarget.stringId
+        ? `<p class="mic-guitar-hint">Play this note on your guitar</p>`
+        : '';
+    const buttonLabel =
+      app.micListening && app.guidedTarget.stringId
+        ? `<p class="choice-grid-label">or press a button:</p>`
+        : '';
     elements.actionArea.innerHTML = `
       <div class="target-card">
         <span>Target</span>
         <strong>${app.guidedTarget.label}</strong>
+        ${guitarHint}
       </div>
+      ${buttonLabel}
       <div class="choice-grid" id="guidedChoices"></div>
     `;
 
@@ -866,10 +887,10 @@
     });
 
     if (app.guidedTarget.stringId) {
-      elements.micStatus.textContent = app.micListening
-        ? 'Mic is listening. Play the target note on your bass.'
-        : elements.micStatus.textContent;
-      if (!app.micListening) {
+      if (app.micListening) {
+        const targetNote = notes.noteNameForFret(app.guidedTarget.stringId, app.guidedTarget.fret);
+        elements.micStatus.textContent = `Guitar mode — play ${targetNote} on your bass.`;
+      } else {
         audio.playNote(
           notes.frequencyForFret(app.guidedTarget.stringId, app.guidedTarget.fret),
           0.24
@@ -1351,13 +1372,22 @@
     }
 
     try {
-      app.mic = new MicrophonePitch({ onPitch: handleMicPitch });
+      const sensitive = elements.sensitiveMic.checked;
+      elements.micThresholdMarker.style.left = sensitive ? '3%' : '8%';
+      app.mic = new MicrophonePitch({
+        onPitch: handleMicPitch,
+        onLevel: renderMicLevel,
+        inputGain: sensitive ? 4 : 1,
+        minRms: sensitive ? 0.002 : 0.006,
+      });
       await app.mic.start();
       app.micListening = true;
       elements.micButton.dataset.listening = 'true';
       elements.micButton.setAttribute('aria-pressed', 'true');
       elements.micLabel.textContent = 'Mic on';
-      elements.micStatus.textContent = 'Listening. Play one bass note close to the device.';
+      elements.micStatus.textContent = sensitive
+        ? 'Listening in sensitive mode. Play one bass note close to the device.'
+        : 'Listening. Play one bass note close to the device.';
     } catch (error) {
       app.micListening = false;
       elements.micStatus.textContent = error.message;
@@ -1372,6 +1402,20 @@
     elements.micButton.setAttribute('aria-pressed', 'false');
     elements.micLabel.textContent = 'Mic off';
     elements.micStatus.textContent = 'Use the mic to hear a real bass note.';
+    renderMicLevel(0);
+  }
+
+  async function restartMicIfListening() {
+    if (!app.micListening) return;
+    stopMicrophone();
+    await toggleMicrophone();
+  }
+
+  function renderMicLevel(rms) {
+    const percent = Math.max(0, Math.min(100, Math.round((rms / 0.08) * 100)));
+    elements.micLevelText.textContent = `${percent}%`;
+    elements.micLevelBar.style.width = `${percent}%`;
+    elements.micLevelBar.dataset.hot = percent > 12 ? 'true' : 'false';
   }
 
   function handleMicPitch(frequency) {

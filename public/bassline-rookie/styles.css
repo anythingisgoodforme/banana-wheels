@@ -884,6 +884,21 @@ h2 {
   font-size: 1.15rem;
 }
 
+.mic-guitar-hint {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.choice-grid-label {
+  margin: 8px 0 2px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .feedback {
   min-height: 74px;
   margin: 0;
