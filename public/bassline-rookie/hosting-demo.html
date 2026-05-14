@@ -96,6 +96,31 @@
           </p>
         </section>
 
+        <section class="note-highway" aria-label="Note timeline visualizer">
+          <div class="note-highway-header">
+            <div>
+              <span>Note timeline</span>
+              <h2>Hit the notes at the line</h2>
+            </div>
+            <div class="note-highway-actions">
+              <button id="startTimelineButton" class="primary-action" type="button">
+                Start timeline
+              </button>
+              <button id="resetTimelineButton" class="secondary-action" type="button">Reset</button>
+            </div>
+          </div>
+          <div class="note-highway-track" id="noteHighwayTrack">
+            <div class="hit-line" aria-hidden="true"></div>
+            <div id="targetNotesLayer" class="target-notes-layer"></div>
+            <div id="detectedNotesLayer" class="detected-notes-layer"></div>
+          </div>
+          <div class="timeline-stats" aria-label="Timeline score">
+            <span><strong id="timelineHits">0</strong> hits</span>
+            <span><strong id="timelineMisses">0</strong> misses</span>
+            <span><strong id="timelineTarget">--</strong> target</span>
+          </div>
+        </section>
+
         <section class="demo-grid">
           <article class="demo-card">
             <span>Version 1</span>

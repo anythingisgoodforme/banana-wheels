@@ -13,13 +13,14 @@
   const { renderLessonMap } = root.BasslineLessonMap;
   const { renderPulse } = root.BasslineRhythmTrainer;
   const { QUARTER_PULSE } = root.BasslineRhythms;
-  const UNLOCK_ALL_LESSONS_FOR_PREVIEW = false;
   const ONLY_LAYOUT_LESSON = false;
+  const DEMO_MODE_KEY = 'basslineRookieDemoMode';
 
   const elements = {
     questionSearchForm: document.querySelector('#questionSearchForm'),
     questionSearch: document.querySelector('#questionSearch'),
     searchResult: document.querySelector('#searchResult'),
+    demoModeToggle: document.querySelector('#demoModeToggle'),
     lessonMap: document.querySelector('#lessonMap'),
     lessonTitle: document.querySelector('#lessonTitle'),
     lessonGoal: document.querySelector('#lessonGoal'),
@@ -74,19 +75,45 @@
     riffAnswer: [],
     riffPattern: [],
     riffChoices: [],
+    demoMode: loadDemoMode(),
   };
 
   function init() {
+    elements.demoModeToggle.checked = app.demoMode;
     selectLesson(firstPlayableLessonId());
     elements.questionSearchForm.addEventListener('submit', searchQuestion);
     elements.questionSearch.addEventListener('input', searchQuestion);
     elements.searchResult.addEventListener('click', handleSearchResultAction);
+    elements.demoModeToggle.addEventListener('change', toggleDemoMode);
     elements.micButton.addEventListener('click', toggleMicrophone);
     elements.sensitiveMic.addEventListener('change', restartMicIfListening);
     window.addEventListener('beforeunload', () => {
       clearPulse();
       clearSongPlayback();
     });
+  }
+
+  function loadDemoMode() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('demo') === '1') {
+      window.localStorage?.setItem(DEMO_MODE_KEY, 'true');
+      return true;
+    }
+
+    return window.localStorage?.getItem(DEMO_MODE_KEY) === 'true';
+  }
+
+  function toggleDemoMode() {
+    app.demoMode = elements.demoModeToggle.checked;
+    window.localStorage?.setItem(DEMO_MODE_KEY, app.demoMode ? 'true' : 'false');
+
+    const activeLesson = getLesson(app.activeLessonId);
+    if (!activeLesson || !isLessonAvailable(activeLesson)) {
+      selectLesson(firstPlayableLessonId());
+      return;
+    }
+
+    render();
   }
 
   function searchQuestion(event) {
@@ -284,11 +311,7 @@
 
   function selectLesson(lessonId) {
     const lesson = getLesson(lessonId);
-    if (
-      !lesson ||
-      !isLessonAvailable(lesson) ||
-      lesson.type === 'locked'
-    ) {
+    if (!lesson || !isLessonAvailable(lesson) || lesson.type === 'locked') {
       return;
     }
 
@@ -658,7 +681,8 @@
     });
 
     if (app.micListening) {
-      elements.micStatus.textContent = 'Guitar mode — play any open string and the app will identify it.';
+      elements.micStatus.textContent =
+        'Guitar mode — play any open string and the app will identify it.';
     }
 
     if (!elements.feedback.textContent) {
@@ -990,7 +1014,11 @@
     document.querySelector('#checkRiff').addEventListener('click', () => checkRiffAnswer(lesson));
     document.querySelector('#clearRiff').addEventListener('click', () => {
       app.riffAnswer = [];
-      setFeedback(elements.feedback, 'Riff cleared. Build the mixed pattern from the start.', 'neutral');
+      setFeedback(
+        elements.feedback,
+        'Riff cleared. Build the mixed pattern from the start.',
+        'neutral'
+      );
       renderRiffBuilderLesson(lesson);
     });
 
@@ -1002,7 +1030,11 @@
   function addRiffAnswer(choice) {
     const lesson = getLesson(app.activeLessonId);
     if (app.riffAnswer.length >= lesson.targets.length) {
-      setFeedback(elements.feedback, 'All four slots are full. Press Check riff or Clear.', 'neutral');
+      setFeedback(
+        elements.feedback,
+        'All four slots are full. Press Check riff or Clear.',
+        'neutral'
+      );
       return;
     }
 
@@ -1130,12 +1162,20 @@
       .addEventListener('click', () => checkBasslineAnswer(lesson));
     document.querySelector('#clearBassline').addEventListener('click', () => {
       app.riffAnswer = [];
-      setFeedback(elements.feedback, 'Bassline cleared. Rebuild the full phrase from beat 1.', 'neutral');
+      setFeedback(
+        elements.feedback,
+        'Bassline cleared. Rebuild the full phrase from beat 1.',
+        'neutral'
+      );
       renderBasslineBuilderLesson(lesson);
     });
 
     if (!elements.feedback.textContent) {
-      setFeedback(elements.feedback, 'Fill each beat slot to build the complete bassline.', 'neutral');
+      setFeedback(
+        elements.feedback,
+        'Fill each beat slot to build the complete bassline.',
+        'neutral'
+      );
     }
   }
 
@@ -1290,7 +1330,11 @@
       app.songCountIn -= 1;
       if (app.songCountIn <= 0) {
         app.songPhase = 'playing';
-        setFeedback(elements.feedback, 'Bass is in. Press the target fret on the bounce.', 'neutral');
+        setFeedback(
+          elements.feedback,
+          'Bass is in. Press the target fret on the bounce.',
+          'neutral'
+        );
       } else {
         setFeedback(elements.feedback, `Count in: ${app.songCountIn}`, 'neutral');
       }
@@ -1318,7 +1362,11 @@
       if (app.songStep >= lesson.targets.length) {
         app.songPhase = 'done';
         clearSongPlayback(false);
-        setFeedback(elements.feedback, 'Song complete. You hit every target in the phrase.', 'good');
+        setFeedback(
+          elements.feedback,
+          'Song complete. You hit every target in the phrase.',
+          'good'
+        );
       } else {
         const next = lesson.targets[app.songStep];
         setFeedback(
@@ -1489,7 +1537,11 @@
   function selectFretFromBoard(stringId, fret) {
     app.selectedFret = fret;
     playFretNote(stringId, fret);
-    setFeedback(elements.feedback, `Selected fret ${fret}. Now choose the finger number.`, 'neutral');
+    setFeedback(
+      elements.feedback,
+      `Selected fret ${fret}. Now choose the finger number.`,
+      'neutral'
+    );
     renderFretLesson();
   }
 
@@ -1565,7 +1617,7 @@
       return lesson.id === 'meet-the-bass';
     }
 
-    return UNLOCK_ALL_LESSONS_FOR_PREVIEW || lessonEngine.isLessonUnlocked(lesson, app.progress);
+    return app.demoMode || lessonEngine.isLessonUnlocked(lesson, app.progress);
   }
 
   function persistLessonIfComplete() {

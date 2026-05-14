@@ -8,6 +8,10 @@
     D: { stringId: 'D', fret: 0, note: 'D', frequency: 73.42 },
     G: { stringId: 'G', fret: 0, note: 'G', frequency: 98.0 },
   };
+  const timelinePattern = ['E', 'A', 'D', 'G', 'D', 'A', 'E', 'A'];
+  const timelineDurationMs = 9600;
+  const timelineLeadMs = 1800;
+  const hitWindowMs = 650;
 
   const elements = {
     string: document.querySelector('#demoString'),
@@ -29,12 +33,20 @@
     micThresholdMarker: document.querySelector('#micThresholdMarker'),
     liveNeedle: document.querySelector('#liveNeedle'),
     liveStatus: document.querySelector('#liveStatus'),
+    startTimeline: document.querySelector('#startTimelineButton'),
+    resetTimeline: document.querySelector('#resetTimelineButton'),
+    targetNotesLayer: document.querySelector('#targetNotesLayer'),
+    detectedNotesLayer: document.querySelector('#detectedNotesLayer'),
+    timelineHits: document.querySelector('#timelineHits'),
+    timelineMisses: document.querySelector('#timelineMisses'),
+    timelineTarget: document.querySelector('#timelineTarget'),
     summary: document.querySelector('#demoSummary'),
     json: document.querySelector('#demoJson'),
   };
 
   let mic = null;
   let micListening = false;
+  let timeline = createTimelineState();
 
   elements.frequency.addEventListener('click', runFrequencyDemo);
   elements.audio.addEventListener('click', runAudioDemo);
@@ -45,7 +57,10 @@
   elements.simulateFlat.addEventListener('click', () => simulateOffsetDetection(-25));
   elements.simulateSharp.addEventListener('click', () => simulateOffsetDetection(25));
   elements.playTargetTone.addEventListener('click', playTargetTone);
+  elements.startTimeline.addEventListener('click', startTimeline);
+  elements.resetTimeline.addEventListener('click', resetTimeline);
   window.addEventListener('beforeunload', stopMic);
+  renderTimeline();
 
   async function toggleMic() {
     if (micListening) {
@@ -98,10 +113,12 @@
     try {
       const result = await api.detectNote({ frequency, target, mode: 'lesson' });
       renderLiveResult(result);
+      scoreTimelineNote(result);
       render(result.message, result);
     } catch (_error) {
       const result = noteDetection.analyzeFrequencyRequest({ frequency, target, mode: 'lesson' });
       renderLiveResult(result);
+      scoreTimelineNote(result);
       render(result.message, result);
     }
   }
@@ -162,6 +179,7 @@
       mode: 'lesson',
     });
     renderLiveResult(result);
+    scoreTimelineNote(result);
     render(result.message, result);
   }
 
@@ -236,6 +254,126 @@
   function render(summary, payload) {
     elements.summary.textContent = summary;
     elements.json.textContent = JSON.stringify(payload, null, 2);
+  }
+
+  function createTimelineState() {
+    return {
+      running: false,
+      startedAt: 0,
+      frameId: null,
+      hits: 0,
+      misses: 0,
+      notes: timelinePattern.map((id, index) => ({
+        id,
+        note: strings[id],
+        dueAt: timelineLeadMs + index * 900,
+        status: 'pending',
+      })),
+      detections: [],
+    };
+  }
+
+  function startTimeline() {
+    timeline = createTimelineState();
+    timeline.running = true;
+    timeline.startedAt = performance.now();
+    elements.startTimeline.textContent = 'Restart timeline';
+    renderTimeline();
+    tickTimeline();
+  }
+
+  function resetTimeline() {
+    if (timeline.frameId) cancelAnimationFrame(timeline.frameId);
+    timeline = createTimelineState();
+    elements.startTimeline.textContent = 'Start timeline';
+    renderTimeline();
+  }
+
+  function tickTimeline() {
+    if (!timeline.running) return;
+    const elapsed = performance.now() - timeline.startedAt;
+
+    timeline.notes.forEach((target) => {
+      if (target.status === 'pending' && elapsed - target.dueAt > hitWindowMs) {
+        target.status = 'miss';
+        timeline.misses += 1;
+      }
+    });
+
+    if (elapsed > timelineDurationMs) {
+      timeline.running = false;
+      elements.startTimeline.textContent = 'Start timeline';
+    }
+
+    renderTimeline(elapsed);
+    if (timeline.running) {
+      timeline.frameId = requestAnimationFrame(tickTimeline);
+    }
+  }
+
+  function scoreTimelineNote(result) {
+    const now = timeline.running ? performance.now() - timeline.startedAt : timelineLeadMs;
+    const target = timeline.notes.find(
+      (note) =>
+        note.status === 'pending' &&
+        note.note.note === result.detected.note &&
+        Math.abs(note.dueAt - now) <= hitWindowMs
+    );
+    const hit = Boolean(target);
+
+    if (target) {
+      target.status = 'hit';
+      timeline.hits += 1;
+    } else if (timeline.running) {
+      timeline.misses += 1;
+    }
+
+    timeline.detections.push({
+      note: result.detected.note,
+      label: result.detected.label,
+      at: now,
+      hit,
+    });
+    timeline.detections = timeline.detections.slice(-12);
+    renderTimeline(now);
+  }
+
+  function renderTimeline(elapsed = timeline.running ? performance.now() - timeline.startedAt : 0) {
+    const trackWidthPercent = 100;
+    const activeTarget = timeline.notes.find(
+      (note) => note.status === 'pending' && note.dueAt >= elapsed - hitWindowMs
+    );
+    elements.timelineHits.textContent = String(timeline.hits);
+    elements.timelineMisses.textContent = String(timeline.misses);
+    elements.timelineTarget.textContent = activeTarget ? activeTarget.note.note : '--';
+
+    elements.targetNotesLayer.innerHTML = timeline.notes
+      .map((target) => {
+        const left =
+          trackWidthPercent - ((target.dueAt - elapsed) / timelineLeadMs) * trackWidthPercent;
+        return `
+          <span
+            class="timeline-note"
+            data-status="${target.status}"
+            style="left: ${left}%"
+          >${target.note.note}</span>
+        `;
+      })
+      .join('');
+
+    elements.detectedNotesLayer.innerHTML = timeline.detections
+      .map((detection) => {
+        const age = Math.max(0, elapsed - detection.at);
+        const left = Math.max(4, Math.min(96, 50 - age / 45));
+        return `
+          <span
+            class="detected-note"
+            data-hit="${detection.hit ? 'true' : 'false'}"
+            style="left: ${left}%"
+          >${detection.note}</span>
+        `;
+      })
+      .join('');
   }
 
   function renderLiveResult(result) {
