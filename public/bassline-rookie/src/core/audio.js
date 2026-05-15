@@ -108,6 +108,39 @@
       this.playBellTone(accent ? 523.25 : 392, now + 0.004, 0.11, accent ? 0.028 : 0.02);
     }
 
+    songBacking({ accent = false, harmony = null } = {}) {
+      this.ensure();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+      this.playNoiseHit(now, accent ? 0.07 : 0.045, accent ? 0.07 : 0.045);
+      this.playBellTone(accent ? 783.99 : 587.33, now + 0.01, 0.09, accent ? 0.026 : 0.018);
+
+      if (!harmony) return;
+      this.playHarmonyTone(harmony.frequency * 2, now + 0.035, harmony.duration || 0.34, 0.035);
+      this.playHarmonyTone(harmony.frequency * 3, now + 0.035, harmony.duration || 0.34, 0.018);
+    }
+
+    playHarmonyTone(frequency, startTime, duration, volume) {
+      const oscillator = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1400, startTime);
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      oscillator.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration + 0.02);
+    }
+
     click(success = true) {
       if (success) {
         this.success();

@@ -263,37 +263,165 @@
       return;
     }
 
-    if (!results.length) {
-      elements.searchResult.innerHTML = `
-        <span>No match yet</span>
-        <strong>Try another bass guitar phrase</strong>
-        <p>Search for tuning, plucking, muting, tab, root notes, scales, metronome, groove, buzzing notes, strings, lessons, riffs, or bassline.</p>
-      `;
-      return;
-    }
+    const answer = buildBassSearchAnswer(query, results);
 
     elements.searchResult.innerHTML = `
-      <span>${results.length} result${results.length === 1 ? '' : 's'}</span>
-      <strong>Best bass guitar matches</strong>
+      <section class="search-answer-card" aria-label="Bass guitar answer">
+        <span>Quick answer</span>
+        <strong>${answer.title}</strong>
+        <p>${answer.shortAnswer}</p>
+        <button class="search-result-action" type="button" data-search-answer>Read full answer</button>
+      </section>
+      <span>${results.length ? `${results.length} related result${results.length === 1 ? '' : 's'}` : 'Try next'}</span>
+      <strong>${results.length ? 'Related bass guitar matches' : 'Good next searches'}</strong>
       <div class="search-results-list">
-        ${results.map(renderSearchResult).join('')}
+        ${
+          results.length
+            ? results.map(renderSearchResult).join('')
+            : ['tuning', 'plucking', 'muting', 'groove']
+                .map((term) => renderSearchSuggestion(term))
+                .join('')
+        }
       </div>
     `;
   }
 
   function renderSearchIntro() {
     elements.searchResult.innerHTML = `
-      <span>Bass Search</span>
+      <span>Search</span>
       <strong>Search the whole beginner bass guide</strong>
       <p>Look up technique, fretboard ideas, practice questions, rhythm terms, gear basics, or lessons.</p>
+      <div class="search-hit-actions">
+        <button class="search-result-action" type="button" data-search-suggestion="tuning">Tuning</button>
+        <button class="search-result-action" type="button" data-search-suggestion="rhythm">Rhythm</button>
+        <button class="search-result-action" type="button" data-search-suggestion="bassline">Bassline</button>
+      </div>
     `;
   }
 
   function handleSearchResultAction(event) {
-    const lessonButton = event.target.closest('[data-search-lesson]');
-    if (!lessonButton) return;
+    if (event.target.closest('[data-search-answer]')) {
+      renderFocusedSearchAnswer(elements.questionSearch.value);
+      return;
+    }
 
-    selectLesson(lessonButton.dataset.searchLesson);
+    const lessonButton = event.target.closest('[data-search-lesson]');
+    if (lessonButton) {
+      renderFocusedSearchLesson(lessonButton.dataset.searchLesson);
+      return;
+    }
+
+    const guideButton = event.target.closest('[data-search-guide]');
+    if (guideButton) {
+      renderFocusedSearchGuide(guideButton.dataset.searchGuide);
+      return;
+    }
+
+    const suggestionButton = event.target.closest('[data-search-suggestion]');
+    if (suggestionButton) {
+      elements.questionSearch.value = suggestionButton.dataset.searchSuggestion;
+      searchQuestion({ preventDefault() {} });
+      return;
+    }
+
+    if (event.target.closest('[data-search-back]')) {
+      searchQuestion({ preventDefault() {} });
+    }
+  }
+
+  function renderFocusedSearchGuide(term) {
+    const topic = glossary.TOPICS.find((item) => item.term === term);
+    if (!topic) return;
+
+    const toolAction = searchToolActionForTopic(topic);
+    elements.searchResult.innerHTML = `
+      <section class="search-focus-card" aria-label="${topic.term} guide">
+        <div class="search-focus-progress">
+          <span>Guide result</span>
+          <strong>${topic.term}</strong>
+        </div>
+        <p>${topic.explanation}</p>
+        <div class="search-focus-actions">
+          ${
+            toolAction
+              ? `<a class="primary-action search-focus-link" href="${toolAction.href}">${toolAction.label}</a>`
+              : ''
+          }
+          <button class="secondary-action" type="button" data-search-suggestion="${topic.term}">
+            Search related
+          </button>
+          <button class="secondary-action" type="button" data-search-back>Back to results</button>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderFocusedSearchAnswer(query) {
+    const results = searchBassGuide(query);
+    const answer = buildBassSearchAnswer(query, results);
+
+    elements.searchResult.innerHTML = `
+      <section class="search-focus-card" aria-label="${answer.title} answer">
+        <div class="search-focus-progress">
+          <span>Bass answer</span>
+          <strong>${answer.title}</strong>
+        </div>
+        <p>${answer.fullAnswer}</p>
+        <div class="search-focus-notes">
+          ${answer.steps
+            .map(
+              (step, index) => `
+                <span>
+                  <small>Step ${index + 1}</small>
+                  ${step}
+                </span>
+              `
+            )
+            .join('')}
+        </div>
+        <div class="search-focus-actions">
+          <button class="secondary-action" type="button" data-search-suggestion="${answer.relatedSearch}">
+            Search related
+          </button>
+          <button class="secondary-action" type="button" data-search-back>Back to results</button>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderFocusedSearchLesson(lessonId) {
+    const lesson = getLesson(lessonId);
+    if (!lesson) return;
+
+    elements.searchResult.innerHTML = `
+      <section class="search-focus-card" aria-label="${lesson.title} search detail">
+        <div class="search-focus-progress">
+          <span>Lesson idea</span>
+          <strong>${lesson.title}</strong>
+        </div>
+        <p>${lesson.explanation}</p>
+        <div class="search-focus-notes">
+          <span>
+            <small>Goal</small>
+            ${lesson.goal}
+          </span>
+          <span>
+            <small>Example</small>
+            ${lesson.example}
+          </span>
+          <span>
+            <small>Practice</small>
+            ${lesson.prompt}
+          </span>
+        </div>
+        <div class="search-focus-actions">
+          <button class="secondary-action" type="button" data-search-suggestion="${lesson.shortTitle || lesson.title}">
+            Search related
+          </button>
+          <button class="secondary-action" type="button" data-search-back>Back to results</button>
+        </div>
+      </section>
+    `;
   }
 
   function searchBassGuide(query) {
@@ -306,6 +434,7 @@
       type: 'Guide',
       title: topic.term,
       body: topic.explanation,
+      guideTerm: topic.term,
       toolAction: searchToolActionForTopic(topic),
       score: scoreSearchDocument(searchableQuery, terms, [
         topic.term,
@@ -334,15 +463,26 @@
       .sort((left, right) => right.score - left.score || left.title.localeCompare(right.title))
       .slice(0, 6);
 
-    if (rankedResults.length) return rankedResults;
-
     const fallback = glossary.searchGlossary(query);
+    if (fallback && !rankedResults.some((result) => result.guideTerm === fallback.term)) {
+      rankedResults.unshift({
+        type: 'Guide',
+        title: fallback.term,
+        body: fallback.explanation,
+        guideTerm: fallback.term,
+        score: rankedResults[0]?.score ? rankedResults[0].score + 1 : 1,
+      });
+    }
+
+    if (rankedResults.length) return rankedResults.slice(0, 6);
+
     return fallback
       ? [
           {
             type: 'Guide',
             title: fallback.term,
             body: fallback.explanation,
+            guideTerm: fallback.term,
             score: 1,
           },
         ]
@@ -351,7 +491,10 @@
 
   function renderSearchResult(result) {
     const lessonAction = result.lessonId
-      ? `<button class="search-result-action" type="button" data-search-lesson="${result.lessonId}">Open lesson</button>`
+      ? `<button class="search-result-action" type="button" data-search-lesson="${result.lessonId}">Learn more</button>`
+      : '';
+    const guideAction = result.guideTerm
+      ? `<button class="search-result-action" type="button" data-search-guide="${result.guideTerm}">Learn more</button>`
       : '';
     const toolAction = result.toolAction
       ? `<a class="search-result-action" href="${result.toolAction.href}">${result.toolAction.label}</a>`
@@ -364,10 +507,26 @@
           <div class="search-hit-actions">
             ${toolAction}
             ${lessonAction}
+            ${guideAction}
           </div>
         </div>
         <h3>${result.title}</h3>
         <p>${result.body}</p>
+      </article>
+    `;
+  }
+
+  function renderSearchSuggestion(term) {
+    return `
+      <article class="search-hit">
+        <div class="search-hit-meta">
+          <span>Suggestion</span>
+          <div class="search-hit-actions">
+            <button class="search-result-action" type="button" data-search-suggestion="${term}">Search</button>
+          </div>
+        </div>
+        <h3>${term}</h3>
+        <p>Press Search to get a beginner bass guitar answer about ${term}.</p>
       </article>
     `;
   }
@@ -378,6 +537,64 @@
     }
 
     return null;
+  }
+
+  function buildBassSearchAnswer(query, results) {
+    const cleanQuery = escapeHtml(String(query || '').trim());
+    const guideResult = results.find((result) => result.guideTerm);
+    const lessonResult = results.find((result) => result.lessonId);
+
+    if (guideResult) {
+      return {
+        title: guideResult.title,
+        shortAnswer: firstSentences(guideResult.body, 2),
+        fullAnswer: guideResult.body,
+        relatedSearch: guideResult.title,
+        steps: [
+          `Say the idea out loud: ${guideResult.title}.`,
+          'Try one slow example on the bass before making it faster.',
+          'Listen for clean sound and steady timing, not speed.',
+        ],
+      };
+    }
+
+    if (lessonResult) {
+      const lesson = getLesson(lessonResult.lessonId);
+      return {
+        title: lesson.title,
+        shortAnswer: `${lesson.explanation} ${lesson.example}`,
+        fullAnswer: `${lesson.explanation} ${lesson.example} ${lesson.prompt}`,
+        relatedSearch: lesson.shortTitle || lesson.title,
+        steps: [lesson.goal, lesson.example, lesson.prompt],
+      };
+    }
+
+    return {
+      title: cleanQuery ? `About ${cleanQuery}` : 'Bass guitar answer',
+      shortAnswer:
+        'For bass guitar, connect the question to one of the basics: the note, the timing, or the technique. Start slowly, make the note clean, then repeat it with a steady beat.',
+      fullAnswer: `For "${cleanQuery || 'this'}", think like a bass player: what note should happen, when should it happen, and how cleanly can you play it? Most beginner bass questions become easier when you slow down, name the string or fret, count the beat, and listen for unwanted string noise.`,
+      relatedSearch: 'bass guitar basics',
+      steps: [
+        'Find the string, fret, or rhythm the question is really about.',
+        'Try one slow example and count 1, 2, 3, 4 while you play.',
+        'If it sounds messy, check tuning, finger placement, plucking, and muting.',
+      ],
+    };
+  }
+
+  function firstSentences(value, count) {
+    const sentences = String(value || '').match(/[^.!?]+[.!?]+/g) || [String(value || '')];
+    return sentences.slice(0, count).join(' ').trim();
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function scoreSearchDocument(normalizedQuery, words, fields) {
@@ -1371,6 +1588,11 @@
 
     const activeTarget = app.guidedTarget;
     const songComplete = app.songPhase === 'done';
+    const activeBarIndex = songComplete
+      ? Math.max(0, Math.ceil(lesson.targets.length / 4) - 1)
+      : Math.floor(app.songStep / 4);
+    const songTitle = lesson.song?.title || lesson.title;
+    const songFeel = lesson.song?.feel || 'Beginner groove';
     const phaseCopy =
       app.songPhase === 'ready'
         ? 'Press Start song. The ball gives a four-beat count-in before the bass begins.'
@@ -1381,6 +1603,24 @@
             : `Play ${activeTarget.answer} on ${activeTarget.stringId} string, fret ${activeTarget.fret}.`;
 
     elements.actionArea.innerHTML = `
+      <div class="song-chart" aria-label="Song chart">
+        <div class="song-title-block">
+          <span>${songFeel}</span>
+          <strong>${songTitle}</strong>
+        </div>
+        <div class="song-bars">
+          ${(lesson.song?.sections || [])
+            .map(
+              (section, index) => `
+                <span data-active="${index === activeBarIndex && !songComplete ? 'true' : 'false'}" data-complete="${index < activeBarIndex || songComplete ? 'true' : 'false'}">
+                  <small>${section.label}</small>
+                  ${section.beats}
+                </span>
+              `
+            )
+            .join('')}
+        </div>
+      </div>
       <div class="song-stage">
         <div class="song-ball-track" aria-label="Rhythm ball">
           <span class="song-ball" data-tick="${app.songBounceTick % 4}"></span>
@@ -1401,6 +1641,7 @@
             (target, index) => `
               <span data-active="${index === app.songStep && !songComplete ? 'true' : 'false'}" data-complete="${index < app.songStep || songComplete ? 'true' : 'false'}">
                 ${target.answer}<small>${target.stringId}${target.fret}</small>
+                <small>${target.label.replace(' beat ', '.')}</small>
               </span>
             `
           )
@@ -1461,9 +1702,9 @@
   function advanceSongBeat(lesson) {
     bounceSongBall();
     app.songBeatAt = performance.now();
-    audio.beat(app.songPhase === 'count-in' || app.songStep % 4 === 0);
 
     if (app.songPhase === 'count-in') {
+      audio.beat(true);
       app.songCountIn -= 1;
       if (app.songCountIn <= 0) {
         app.songPhase = 'playing';
@@ -1475,6 +1716,13 @@
       } else {
         setFeedback(elements.feedback, `Count in: ${app.songCountIn}`, 'neutral');
       }
+    }
+
+    if (app.songPhase === 'playing') {
+      audio.songBacking({
+        accent: app.songStep % 4 === 0,
+        harmony: songHarmonyForTarget(lesson.targets[app.songStep]),
+      });
     }
 
     renderSongPerformanceLesson(lesson);
@@ -1528,6 +1776,12 @@
 
   function bounceSongBall() {
     app.songBounceTick += 1;
+  }
+
+  function songHarmonyForTarget(target) {
+    if (!target) return null;
+    const frequency = notes.frequencyForFret(target.stringId, target.fret);
+    return frequency ? { frequency, duration: 0.32 } : null;
   }
 
   function resetSongRun() {

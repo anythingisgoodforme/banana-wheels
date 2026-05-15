@@ -540,6 +540,21 @@ body[data-theme='dark'] .lesson-status {
   margin-top: 4px;
 }
 
+.search-answer-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.search-answer-card .search-result-action {
+  justify-self: start;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
 .search-hit {
   display: grid;
   gap: 8px;
@@ -594,6 +609,75 @@ body[data-theme='dark'] .lesson-status {
 .search-result-action:focus-visible {
   color: white;
   background: var(--accent);
+}
+
+.search-focus-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.search-focus-progress {
+  display: grid;
+  gap: 6px;
+}
+
+.search-focus-progress span {
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.search-focus-progress strong {
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1;
+}
+
+.search-focus-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.search-focus-notes {
+  display: grid;
+  gap: 8px;
+}
+
+.search-focus-notes span {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.search-focus-notes small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.search-focus-actions .primary-action,
+.search-focus-actions .secondary-action {
+  width: auto;
+  min-width: 140px;
+  padding: 0 14px;
+}
+
+.search-focus-link {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
 }
 
 .lesson-header {
@@ -1029,6 +1113,68 @@ body[data-theme='dark'] .lesson-status {
   color: white;
 }
 
+.song-chart {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.song-title-block {
+  display: grid;
+  gap: 3px;
+}
+
+.song-title-block span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.song-title-block strong {
+  color: var(--ink);
+  font-size: 1.35rem;
+}
+
+.song-bars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.song-bars span {
+  display: grid;
+  gap: 5px;
+  min-height: 66px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.song-bars small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.song-bars span[data-active='true'] {
+  border-color: var(--accent);
+  background: #e5f2f2;
+  color: var(--accent-dark);
+}
+
+.song-bars span[data-complete='true'] {
+  border-color: var(--good);
+  background: #edf8ef;
+  color: var(--good);
+}
+
 .song-stage {
   display: grid;
   gap: 12px;
@@ -1142,6 +1288,12 @@ body[data-theme='dark'] .lesson-status {
 
 .song-notes small {
   font-size: 0.72rem;
+}
+
+.song-notes small + small {
+  color: var(--muted);
+  font-size: 0.62rem;
+  text-transform: uppercase;
 }
 
 .song-notes span[data-active='true'] {
@@ -1857,6 +2009,10 @@ body[data-theme='dark'] .lesson-status {
   }
 
   .bassline-beats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .song-bars {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

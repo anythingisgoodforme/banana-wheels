@@ -19,6 +19,13 @@ describe('Bassline Rookie glossary search', () => {
 
   test('answers broader bass guitar topics', () => {
     expect(searchGlossary('how do i tune my bass')).toMatchObject({ term: 'Tuning' });
+    expect(searchGlossary('what is a pick')).toMatchObject({ term: 'Pick' });
+    expect(searchGlossary('what are pickups')).toMatchObject({ term: 'Pickups' });
+    expect(searchGlossary('what is action')).toMatchObject({ term: 'Action' });
+    expect(searchGlossary('what is intonation')).toMatchObject({ term: 'Intonation' });
+    expect(searchGlossary('how do i slap')).toMatchObject({ term: 'Slap bass' });
+    expect(searchGlossary('what is a hammer on')).toMatchObject({ term: 'Hammer-ons' });
+    expect(searchGlossary('what are octaves')).toMatchObject({ term: 'Octaves' });
     expect(searchGlossary('what is bass tab')).toMatchObject({ term: 'Bass tab' });
     expect(searchGlossary('how do i mute strings')).toMatchObject({ term: 'Muting' });
     expect(searchGlossary('what is bpm')).toMatchObject({ term: 'Metronome' });

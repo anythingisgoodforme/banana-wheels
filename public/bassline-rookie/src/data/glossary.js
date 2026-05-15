@@ -68,7 +68,17 @@
     },
     {
       term: 'Finger numbers',
-      keywords: ['finger numbers', 'finger 1', 'finger 2', 'finger 3', 'finger 4', 'pointer', 'middle', 'ring', 'pinky'],
+      keywords: [
+        'finger numbers',
+        'finger 1',
+        'finger 2',
+        'finger 3',
+        'finger 4',
+        'pointer',
+        'middle',
+        'ring',
+        'pinky',
+      ],
       explanation:
         'Finger numbers tell you which left-hand finger to use. Finger 1 is pointer, finger 2 is middle, finger 3 is ring, and finger 4 is pinky. Using finger numbers helps you avoid jumping around too much. Start slowly and keep your fingers relaxed.',
     },
@@ -98,9 +108,22 @@
     },
     {
       term: 'Plucking',
-      keywords: ['pluck', 'plucking', 'right hand', 'playing hand', 'index finger', 'middle finger'],
+      keywords: [
+        'pluck',
+        'plucking',
+        'right hand',
+        'playing hand',
+        'index finger',
+        'middle finger',
+      ],
       explanation:
         'Plucking is how you make the string sound with your playing hand. Many bass players use index and middle fingers, taking turns. Pull the string across, not up away from the bass. Try to make each note the same volume so your bassline sounds steady.',
+    },
+    {
+      term: 'Pick',
+      keywords: ['pick', 'picks', 'plectrum', 'bass pick', 'play with a pick'],
+      explanation:
+        'A pick is a small flat piece of plastic or similar material that you hold in your playing hand to strike the bass strings. Bass players can use fingers or a pick. A pick often sounds brighter and sharper, while fingers can sound rounder and softer. Neither way is wrong. Hold the pick lightly, strike across the string, and try to keep each note the same volume.',
     },
     {
       term: 'Muting',
@@ -137,6 +160,66 @@
       keywords: ['tone', 'sound', 'amp', 'amplifier', 'volume', 'eq'],
       explanation:
         'Tone is the sound quality of your bass. Your fingers, bass knobs, and amp settings all change tone. For beginner practice, use a clear sound: not too loud, not too much bass, and not too much distortion. A clear tone makes it easier to hear mistakes.',
+    },
+    {
+      term: 'Pickups',
+      keywords: ['pickup', 'pickups', 'bass pickups', 'j pickup', 'p pickup'],
+      explanation:
+        'Pickups are the parts of an electric bass that sense the string vibration and send the sound to the amp. Different pickups can make the bass sound warmer, brighter, thicker, or clearer. If your bass has pickup knobs, try small changes and listen to how the sound changes.',
+    },
+    {
+      term: 'Action',
+      keywords: ['action', 'string height', 'high strings', 'low strings', 'setup'],
+      explanation:
+        'Action means how high the strings sit above the frets. High action can feel hard to press. Very low action can make the bass buzz. A good setup makes the strings comfortable while still sounding clean. If the bass feels painful or buzzes everywhere, ask a teacher or repair shop to check the setup.',
+    },
+    {
+      term: 'Intonation',
+      keywords: ['intonation', 'out of tune up the neck', '12th fret', 'tune fretted notes'],
+      explanation:
+        'Intonation means the bass stays in tune as you play higher frets. A bass can have open strings in tune but still sound wrong up the neck if the intonation is off. Beginners do not need to adjust it every day, but if fretted notes sound strange even after tuning, the bass may need a setup.',
+    },
+    {
+      term: 'Slap bass',
+      keywords: ['slap', 'slapping', 'slap bass', 'thumb slap', 'pop'],
+      explanation:
+        'Slap bass is a technique where you hit the string with your thumb for a bright percussive sound. Many players also pop a string by pulling it slightly and letting it snap back. Start gently and slowly, because good slap still needs clean timing and muting.',
+    },
+    {
+      term: 'Slides',
+      keywords: ['slide', 'slides', 'sliding', 'glide'],
+      explanation:
+        'A slide means you play a note, keep your finger pressing the string, and move to another fret. The sound glides between the two notes. Slide slowly at first and keep steady pressure so the note does not disappear halfway.',
+    },
+    {
+      term: 'Hammer-ons',
+      keywords: ['hammer on', 'hammer-ons', 'hammeron', 'hammered note'],
+      explanation:
+        'A hammer-on means you pluck one note, then press another finger onto a higher fret to make the next note without plucking again. It should sound smooth and connected. Start with small moves, like fret 1 to fret 3 on the same string.',
+    },
+    {
+      term: 'Pull-offs',
+      keywords: ['pull off', 'pull-offs', 'pulloff', 'pulling off'],
+      explanation:
+        'A pull-off is the opposite of a hammer-on. You play a fretted note, then pull that finger away so a lower note rings. Pull slightly across the string, not straight up, so the next note is loud enough and clean.',
+    },
+    {
+      term: 'Octaves',
+      keywords: ['octave', 'octaves', 'same note higher', 'same note lower'],
+      explanation:
+        'An octave is the same note name higher or lower. For example, two different E notes can both be E, but one sounds higher. Bass players use octaves to make lines more exciting while still staying connected to the same root note.',
+    },
+    {
+      term: 'Chords',
+      keywords: ['chord', 'chords', 'bass chords', 'two notes', 'harmony'],
+      explanation:
+        'A chord is more than one note played together. Bass usually plays one note at a time, but bass players still need to understand chords because the bassline supports them. Start by finding the root note of each chord before trying extra notes.',
+    },
+    {
+      term: 'Amp',
+      keywords: ['amp', 'amplifier', 'speaker', 'plug in', 'bass amp'],
+      explanation:
+        'An amp makes an electric bass loud enough to hear clearly. Start with low volume, a clean sound, and simple EQ settings. If the sound is muddy, lower the bass knob a little or raise the mids. If it is too sharp, lower the treble.',
     },
     {
       term: 'Holding the bass',
