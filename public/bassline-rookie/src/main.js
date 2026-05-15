@@ -15,12 +15,73 @@
   const { QUARTER_PULSE } = root.BasslineRhythms;
   const ONLY_LAYOUT_LESSON = false;
   const DEMO_MODE_KEY = 'basslineRookieDemoMode';
+  const INTRO_DISMISSED_KEY = 'basslineRookieIntroDismissed';
+  const THEME_KEY = 'basslineRookieTheme';
+  const INTRO_TOPICS = {
+    strings: {
+      title: 'Hear the strings',
+      body: 'This part is about learning the four open bass strings: E, A, D, and G. The app helps you recognize each string by name and connect the sound to the right string.',
+      points: [
+        'Learn the string names in order',
+        'Practice matching string names to the bass',
+        'Use the mic later to check real notes',
+      ],
+    },
+    frets: {
+      title: 'Find the frets',
+      body: 'This part is about finding notes by moving along the fretboard. Frets are the metal lines that change the pitch when you press a string down.',
+      points: [
+        'Learn what fret numbers mean',
+        'See how one string can make many notes',
+        'Build confidence moving from fret to fret',
+      ],
+    },
+    fingers: {
+      title: 'Place your fingers',
+      body: 'This part is about using relaxed, accurate finger placement. The goal is to press close to the fret, avoid buzzing, and use fingers that make the next move easier.',
+      points: [
+        'Use simple finger numbers',
+        'Press near the fret instead of far behind it',
+        'Practice clean notes without pressing too hard',
+      ],
+    },
+    rhythm: {
+      title: 'Lock in rhythm',
+      body: 'This part is about playing notes at the right time. Bass is often the bridge between drums and harmony, so steady timing matters as much as choosing the right note.',
+      points: [
+        'Count beats slowly',
+        'Practice simple pulse patterns',
+        'Learn when to leave space between notes',
+      ],
+    },
+    bassline: {
+      title: 'Build a bassline',
+      body: 'This part is about turning notes and rhythm into a small musical idea. You start with simple choices, then combine them into short basslines and riffs.',
+      points: [
+        'Choose notes that fit together',
+        'Put them into a repeatable pattern',
+        'Use rhythm to make the line feel musical',
+      ],
+    },
+  };
 
   const elements = {
     questionSearchForm: document.querySelector('#questionSearchForm'),
     questionSearch: document.querySelector('#questionSearch'),
     searchResult: document.querySelector('#searchResult'),
+    themeToggleButton: document.querySelector('#themeToggleButton'),
     demoModeToggle: document.querySelector('#demoModeToggle'),
+    showIntroButton: document.querySelector('#showIntroButton'),
+    gettingStartedPanel: document.querySelector('#gettingStartedPanel'),
+    gettingStartedCopy: document.querySelector('.getting-started-copy'),
+    gettingStartedSteps: document.querySelector('.getting-started-steps'),
+    understandIntroButton: document.querySelector('#understandIntroButton'),
+    introTopicButtons: document.querySelectorAll('[data-intro-topic]'),
+    introTopicPage: document.querySelector('#introTopicPage'),
+    introTopicTitle: document.querySelector('#introTopicTitle'),
+    introTopicBody: document.querySelector('#introTopicBody'),
+    introTopicList: document.querySelector('#introTopicList'),
+    introBackButton: document.querySelector('#introBackButton'),
     lessonMap: document.querySelector('#lessonMap'),
     lessonTitle: document.querySelector('#lessonTitle'),
     lessonGoal: document.querySelector('#lessonGoal'),
@@ -36,6 +97,7 @@
     micLevelText: document.querySelector('#micLevelText'),
     micLevelBar: document.querySelector('#micLevelBar'),
     micThresholdMarker: document.querySelector('#micThresholdMarker'),
+    confettiLayer: document.querySelector('#confettiLayer'),
     fretboard: document.querySelector('#fretboard'),
     labelChips: document.querySelector('#labelChips'),
     actionArea: document.querySelector('#actionArea'),
@@ -48,6 +110,8 @@
   };
 
   const audio = new BassAudio();
+  applySavedTheme();
+
   const app = {
     progress: storage.loadProgress(),
     activeLessonId: 'meet-the-bass',
@@ -80,17 +144,43 @@
 
   function init() {
     elements.demoModeToggle.checked = app.demoMode;
+    renderThemeButton();
     selectLesson(firstPlayableLessonId());
     elements.questionSearchForm.addEventListener('submit', searchQuestion);
     elements.questionSearch.addEventListener('input', searchQuestion);
     elements.searchResult.addEventListener('click', handleSearchResultAction);
+    elements.themeToggleButton.addEventListener('click', toggleTheme);
     elements.demoModeToggle.addEventListener('change', toggleDemoMode);
+    elements.understandIntroButton.addEventListener('click', dismissIntro);
+    elements.showIntroButton.addEventListener('click', showIntro);
+    elements.introTopicButtons.forEach((button) => {
+      button.addEventListener('click', handleIntroTopic);
+    });
+    elements.introBackButton.addEventListener('click', showIntroHome);
     elements.micButton.addEventListener('click', toggleMicrophone);
     elements.sensitiveMic.addEventListener('change', restartMicIfListening);
     window.addEventListener('beforeunload', () => {
       clearPulse();
       clearSongPlayback();
     });
+    renderIntroState();
+  }
+
+  function applySavedTheme() {
+    const savedTheme = window.localStorage?.getItem(THEME_KEY) || 'light';
+    document.body.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light';
+  }
+
+  function toggleTheme() {
+    const nextTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.body.dataset.theme = nextTheme;
+    window.localStorage?.setItem(THEME_KEY, nextTheme);
+    renderThemeButton();
+  }
+
+  function renderThemeButton() {
+    elements.themeToggleButton.textContent =
+      document.body.dataset.theme === 'dark' ? 'Light mode' : 'Dark mode';
   }
 
   function loadDemoMode() {
@@ -114,6 +204,53 @@
     }
 
     render();
+  }
+
+  function dismissIntro() {
+    window.localStorage?.setItem(INTRO_DISMISSED_KEY, 'true');
+    renderIntroState();
+    elements.lessonTitle.focus({ preventScroll: true });
+  }
+
+  function showIntro() {
+    window.localStorage?.setItem(INTRO_DISMISSED_KEY, 'false');
+    showIntroHome();
+    renderIntroState();
+  }
+
+  function handleIntroTopic(event) {
+    const topic = INTRO_TOPICS[event.currentTarget.dataset.introTopic];
+    if (!topic) return;
+
+    elements.gettingStartedPanel.dataset.topicOpen = 'true';
+    elements.gettingStartedCopy.hidden = true;
+    elements.gettingStartedSteps.hidden = true;
+    elements.introTopicPage.hidden = false;
+    elements.introTopicTitle.textContent = topic.title;
+    elements.introTopicBody.textContent = topic.body;
+    elements.introTopicList.replaceChildren(
+      ...topic.points.map((point) => {
+        const item = document.createElement('p');
+        item.textContent = point;
+        return item;
+      })
+    );
+    elements.introTopicTitle.focus({ preventScroll: true });
+  }
+
+  function showIntroHome() {
+    elements.gettingStartedPanel.dataset.topicOpen = 'false';
+    elements.gettingStartedCopy.hidden = false;
+    elements.gettingStartedSteps.hidden = false;
+    elements.introTopicPage.hidden = true;
+  }
+
+  function renderIntroState() {
+    const dismissed = window.localStorage?.getItem(INTRO_DISMISSED_KEY) === 'true';
+    elements.gettingStartedPanel.hidden = dismissed;
+    elements.gettingStartedPanel.setAttribute('aria-modal', dismissed ? 'false' : 'true');
+    elements.showIntroButton.hidden = !dismissed;
+    document.body.dataset.introOpen = dismissed ? 'false' : 'true';
   }
 
   function searchQuestion(event) {
@@ -1623,8 +1760,8 @@
   function persistLessonIfComplete() {
     const state = app.lessonState;
     const existing = app.sessionBaseline || {};
-    const completedAt =
-      state.completed && !existing.completed ? new Date().toISOString() : existing.completedAt;
+    const newlyCompleted = state.completed && !existing.completed;
+    const completedAt = newlyCompleted ? new Date().toISOString() : existing.completedAt;
 
     storage.updateLessonStats(app.progress, state.lessonId, {
       attempts: (existing.attempts || 0) + state.attempts,
@@ -1633,6 +1770,29 @@
       completedAt: completedAt || null,
     });
     storage.saveProgress(app.progress);
+
+    if (newlyCompleted) {
+      burstConfetti();
+    }
+  }
+
+  function burstConfetti() {
+    const colors = ['#2f7f84', '#d89b32', '#b14a3a', '#f7f1e4', '#74c889'];
+    elements.confettiLayer.innerHTML = '';
+
+    for (let index = 0; index < 34; index += 1) {
+      const piece = document.createElement('span');
+      piece.style.left = `${8 + Math.random() * 84}%`;
+      piece.style.background = colors[index % colors.length];
+      piece.style.animationDelay = `${Math.random() * 140}ms`;
+      piece.style.setProperty('--drift', `${Math.random() * 180 - 90}px`);
+      piece.style.setProperty('--spin', `${Math.random() * 540 + 240}deg`);
+      elements.confettiLayer.appendChild(piece);
+    }
+
+    window.setTimeout(() => {
+      elements.confettiLayer.innerHTML = '';
+    }, 1700);
   }
 
   function startPulse() {

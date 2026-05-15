@@ -14,16 +14,92 @@
           <h1>Beginner Bass Coach</h1>
         </div>
         <section class="demo-mode-panel" aria-label="Demo mode">
+          <button id="themeToggleButton" class="theme-toggle-button" type="button">
+            Dark mode
+          </button>
           <label class="demo-mode-toggle">
             <input id="demoModeToggle" type="checkbox" />
             <span>Demo mode</span>
           </label>
           <p>Unlock every lesson for testing on this device.</p>
+          <button id="showIntroButton" class="show-intro-button" type="button" hidden>
+            Show start guide
+          </button>
         </section>
         <nav id="lessonMap" class="lesson-map"></nav>
       </aside>
 
       <section class="practice-stage" aria-live="polite">
+        <section
+          id="gettingStartedPanel"
+          class="getting-started-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label="How to use Bassline Rookie"
+        >
+          <div class="getting-started-copy">
+            <p class="eyebrow">Start Here</p>
+            <h2>Learn bass one small step at a time</h2>
+            <p>
+              Bassline Rookie is a beginner bass coach for people who are starting from the basics.
+              It teaches what the bass strings are called, where notes live on the fretboard, how to
+              place your fingers, and how to turn those notes into simple grooves.
+            </p>
+            <p>
+              Start with the first unlocked lesson. Read the coach card, press Start test, then use
+              the fretboard, answer buttons, rhythm tools, or microphone to complete the exercise.
+              Your progress saves on this device.
+            </p>
+            <div class="getting-started-topics" aria-label="Explore Bassline Rookie topics">
+              <button type="button" data-intro-topic="strings">Hear the strings</button>
+              <button type="button" data-intro-topic="frets">Find the frets</button>
+              <button type="button" data-intro-topic="fingers">Place your fingers</button>
+              <button type="button" data-intro-topic="rhythm">Lock in rhythm</button>
+              <button type="button" data-intro-topic="bassline">Build a bassline</button>
+            </div>
+            <button
+              id="understandIntroButton"
+              class="primary-action understand-button"
+              type="button"
+            >
+              I understand
+            </button>
+          </div>
+          <div class="getting-started-steps">
+            <article>
+              <span>1</span>
+              <strong>Choose a lesson</strong>
+              <p>
+                Use the lesson list on the left. Locked lessons open after you finish earlier ones.
+              </p>
+            </article>
+            <article>
+              <span>2</span>
+              <strong>Read, then test</strong>
+              <p>Each lesson explains the skill first, then checks that you can use it.</p>
+            </article>
+            <article>
+              <span>3</span>
+              <strong>Answer on screen</strong>
+              <p>Tap strings, frets, rhythm choices, or riff notes to build the habit slowly.</p>
+            </article>
+            <article>
+              <span>4</span>
+              <strong>Use the mic</strong>
+              <p>Turn the mic on when a lesson should listen for a real bass note.</p>
+            </article>
+          </div>
+          <section id="introTopicPage" class="intro-topic-page" hidden>
+            <button id="introBackButton" class="intro-back-button" type="button">
+              Back to start
+            </button>
+            <p class="eyebrow">Quick Guide</p>
+            <h2 id="introTopicTitle" tabindex="-1"></h2>
+            <p id="introTopicBody"></p>
+            <div id="introTopicList" class="intro-topic-list"></div>
+          </section>
+        </section>
+
         <section class="search-tab" aria-label="Bass question search">
           <form id="questionSearchForm" class="search-form">
             <label for="questionSearch">Bass Search</label>
@@ -50,7 +126,7 @@
         <header class="lesson-header">
           <div>
             <p class="eyebrow">Current Lesson</p>
-            <h2 id="lessonTitle"></h2>
+            <h2 id="lessonTitle" tabindex="-1"></h2>
             <p id="lessonGoal" class="lesson-goal"></p>
           </div>
           <div class="stats-strip" aria-label="Practice stats">
@@ -112,6 +188,7 @@
         </section>
       </section>
     </main>
+    <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
     <script src="src/data/notes.js"></script>
     <script src="src/data/lessons.js"></script>
