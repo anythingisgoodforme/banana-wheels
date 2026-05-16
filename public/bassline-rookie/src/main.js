@@ -17,6 +17,8 @@
   const DEMO_MODE_KEY = 'basslineRookieDemoMode';
   const INTRO_DISMISSED_KEY = 'basslineRookieIntroDismissed';
   const THEME_KEY = 'basslineRookieTheme';
+  const SEARCH_HISTORY_KEY = 'basslineRookieSearchHistory';
+  const MAX_SEARCH_HISTORY = 6;
   const INTRO_TOPICS = {
     strings: {
       title: 'Hear the strings',
@@ -68,6 +70,7 @@
   const elements = {
     questionSearchForm: document.querySelector('#questionSearchForm'),
     questionSearch: document.querySelector('#questionSearch'),
+    searchHistory: document.querySelector('#searchHistory'),
     searchResult: document.querySelector('#searchResult'),
     themeToggleButton: document.querySelector('#themeToggleButton'),
     demoModeToggle: document.querySelector('#demoModeToggle'),
@@ -140,14 +143,17 @@
     riffPattern: [],
     riffChoices: [],
     demoMode: loadDemoMode(),
+    searchHistory: loadSearchHistory(),
   };
 
   function init() {
     elements.demoModeToggle.checked = app.demoMode;
     renderThemeButton();
     selectLesson(firstPlayableLessonId());
+    renderSearchHistory();
     elements.questionSearchForm.addEventListener('submit', searchQuestion);
     elements.questionSearch.addEventListener('input', searchQuestion);
+    elements.searchHistory.addEventListener('click', handleSearchHistoryAction);
     elements.searchResult.addEventListener('click', handleSearchResultAction);
     elements.themeToggleButton.addEventListener('click', toggleTheme);
     elements.demoModeToggle.addEventListener('change', toggleDemoMode);
@@ -263,6 +269,10 @@
       return;
     }
 
+    if (event.type === 'submit' || event.saveHistory) {
+      saveSearchQuery(query);
+    }
+
     const answer = buildBassSearchAnswer(query, results);
 
     elements.searchResult.innerHTML = `
@@ -320,13 +330,85 @@
     const suggestionButton = event.target.closest('[data-search-suggestion]');
     if (suggestionButton) {
       elements.questionSearch.value = suggestionButton.dataset.searchSuggestion;
-      searchQuestion({ preventDefault() {} });
+      searchQuestion({ preventDefault() {}, saveHistory: true });
       return;
     }
 
     if (event.target.closest('[data-search-back]')) {
       searchQuestion({ preventDefault() {} });
     }
+  }
+
+  function handleSearchHistoryAction(event) {
+    const historyButton = event.target.closest('[data-search-history]');
+    if (historyButton) {
+      elements.questionSearch.value = historyButton.dataset.searchHistory;
+      searchQuestion({ preventDefault() {} });
+      return;
+    }
+
+    if (event.target.closest('[data-clear-search-history]')) {
+      app.searchHistory = [];
+      window.localStorage?.removeItem(SEARCH_HISTORY_KEY);
+      renderSearchHistory();
+    }
+  }
+
+  function saveSearchQuery(query) {
+    const cleanQuery = String(query || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!cleanQuery) return;
+
+    const lowerQuery = cleanQuery.toLowerCase();
+    app.searchHistory = [
+      cleanQuery,
+      ...app.searchHistory.filter((item) => item.toLowerCase() !== lowerQuery),
+    ].slice(0, MAX_SEARCH_HISTORY);
+
+    try {
+      window.localStorage?.setItem(SEARCH_HISTORY_KEY, JSON.stringify(app.searchHistory));
+    } catch (_error) {
+      // Search history is optional; ignore storage errors.
+    }
+
+    renderSearchHistory();
+  }
+
+  function loadSearchHistory() {
+    try {
+      const parsed = JSON.parse(window.localStorage?.getItem(SEARCH_HISTORY_KEY) || '[]');
+      return Array.isArray(parsed)
+        ? parsed
+            .filter((item) => typeof item === 'string' && item.trim())
+            .slice(0, MAX_SEARCH_HISTORY)
+        : [];
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  function renderSearchHistory() {
+    if (!app.searchHistory.length) {
+      elements.searchHistory.innerHTML = '';
+      elements.searchHistory.hidden = true;
+      return;
+    }
+
+    elements.searchHistory.hidden = false;
+    elements.searchHistory.innerHTML = `
+      <span>History</span>
+      <div class="search-history-actions">
+        ${app.searchHistory
+          .map(
+            (query) => `
+              <button type="button" data-search-history="${escapeHtml(query)}">${escapeHtml(query)}</button>
+            `
+          )
+          .join('')}
+        <button type="button" data-clear-search-history>Clear</button>
+      </div>
+    `;
   }
 
   function renderFocusedSearchGuide(term) {
