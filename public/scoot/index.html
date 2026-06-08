@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCOOT — The Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg: #0d0d0d;
+    --panel: #1a1a1a;
+    --accent: #ff3d00;
+    --accent2: #ffcc00;
+    --text: #f0ede8;
+    --muted: #666;
+    --sky-out: #87ceeb;
+    --sky-in: #2a1f3d;
+    --ground-out: #5a8a3c;
+    --ground-in: #3a2a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Barlow Condensed', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    width: 100vw; height: 100vh;
+    user-select: none;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ===== START SCREEN ===== */
+  #start-screen {
+    background: linear-gradient(160deg, #0d0d0d 0%, #1a0a00 60%, #2a1000 100%);
+    align-items: center; justify-content: center;
+  }
+
+  .logo-wrap { text-align: center; margin-bottom: 48px; }
+  .logo-wrap h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 15vw, 140px);
+    color: var(--text);
+    letter-spacing: 8px;
+    line-height: 0.9;
+    text-shadow: 4px 4px 0 var(--accent), 8px 8px 0 #5a1500;
+  }
+  .logo-wrap .sub {
+    font-size: 18px;
+    letter-spacing: 6px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .menu-btn {
+    display: block;
+    width: 260px;
+    padding: 16px 0;
+    margin: 10px auto;
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .menu-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    transform: scale(1.04);
+  }
+  .menu-btn.primary { background: var(--accent); }
+  .menu-btn.primary:hover { background: #ff6030; }
+
+  .trick-scroll {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    overflow: hidden;
+    opacity: 0.35;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--accent2);
+    white-space: nowrap;
+  }
+  .trick-scroll-inner {
+    display: inline-block;
+    animation: scroll-tricks 18s linear infinite;
+  }
+  @keyframes scroll-tricks {
+    from { transform: translateX(100vw); }
+    to { transform: translateX(-100%); }
+  }
+
+  /* ===== SETTINGS SCREEN ===== */
+  #settings-screen, #about-screen, #shop-screen {
+    background: #111;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid #333;
+    border-top: 3px solid var(--accent);
+    padding: 36px 44px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .panel h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 24px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 12px;
+  }
+  .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .toggle {
+    width: 56px; height: 28px;
+    background: #333;
+    border-radius: 14px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px; left: 3px;
+    transition: left 0.2s;
+  }
+  .toggle.on::after { left: 31px; }
+
+  .back-btn {
+    margin-top: 28px;
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: #222;
+    border: 1px solid #444;
+    color: var(--muted);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ===== ABOUT SCREEN ===== */
+  .about-text { font-size: 16px; line-height: 1.8; color: #bbb; }
+  .about-text strong { color: var(--accent2); }
+
+  /* ===== SHOP SCREEN ===== */
+  .shop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .shop-item {
+    background: #222;
+    border: 1px solid #333;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .shop-item:hover { border-color: var(--accent); background: #2a1500; }
+  .shop-item.owned { border-color: var(--accent2); opacity: 0.6; cursor: default; }
+  .shop-item .item-icon { font-size: 32px; margin-bottom: 6px; }
+  .shop-item .item-name { font-weight: 700; font-size: 15px; letter-spacing: 1px; }
+  .shop-item .item-price {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent2);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .shop-item.owned .item-price { color: #666; }
+  .coins-display {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent2);
+    font-size: 18px;
+    margin-bottom: 16px;
+    text-align: right;
+  }
+
+  /* ===== GAME SCREEN ===== */
+  #game-screen { overflow: hidden; }
+
+  /* SKY / ENVIRONMENT */
+  #game-canvas-wrap {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .sky {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 60%;
+    transition: background 1.5s;
+  }
+  .sky.outdoor {
+    background: linear-gradient(180deg, #4fc3f7 0%, #b3e5fc 100%);
+  }
+  .sky.indoor {
+    background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 100%);
+  }
+  .sky.night {
+    background: linear-gradient(180deg, #050a18 0%, #0d1b2a 100%);
+  }
+
+  .ground {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 44%;
+    transition: background 1.5s;
+    overflow: hidden;
+  }
+  .ground.outdoor {
+    background: linear-gradient(180deg, #6ab04c 0%, #4a7a2c 60%, #5a6a3c 100%);
+  }
+  .ground.indoor {
+    background: linear-gradient(180deg, #3a3030 0%, #2a2020 100%);
+  }
+
+  .ground::before {
+    content: '';
+    position: absolute;
+    inset: 8% -100% 0 -100%;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 30px, transparent 30px, transparent 110px);
+    animation: ground-flow 3.2s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes ground-flow {
+    from { transform: translateX(0); }
+    to { transform: translateX(-200px); }
+  }
+
+  /* Runner lane */
+  #course-lane {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+  }
+
+  .course-item {
+    position: absolute;
+    left: 0;
+    bottom: 44%;
+    will-change: transform;
+  }
+
+  .course-item.ramp {
+    width: 0;
+    height: 0;
+    border-left: 70px solid transparent;
+    border-right: 70px solid transparent;
+    border-bottom: 44px solid #646464;
+    filter: drop-shadow(0 -1px 6px #0004);
+  }
+
+  .course-item.box {
+    width: 74px;
+    height: 34px;
+    background: #8b5e3c;
+    border: 2px solid #6a4020;
+    border-bottom: 5px solid #5a3010;
+    border-radius: 3px;
+  }
+
+  .course-item.rail {
+    width: 170px;
+    height: 6px;
+    background: linear-gradient(90deg, #aaa, #eee, #aaa);
+    border-radius: 3px;
+    bottom: calc(44% + 22px);
+    box-shadow: 0 2px 8px #0004;
+  }
+
+  .course-item.rail::before,
+  .course-item.rail::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 22px;
+    background: #999;
+    bottom: -22px;
+  }
+  .course-item.rail::before { left: 8px; }
+  .course-item.rail::after { right: 8px; }
+
+  /* Ramp */
+  .ramp {
+    position: absolute;
+    bottom: 44%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 100px solid transparent;
+    border-right: 100px solid transparent;
+    border-bottom: 60px solid #555;
+    filter: drop-shadow(0 -2px 8px #0004);
+  }
+  .ramp-top {
+    position: absolute;
+    bottom: calc(44% + 56px);
+    left: calc(50% - 30px);
+    width: 60px; height: 8px;
+    background: #777;
+    border-radius: 4px;
+  }
+
+  /* Boxes */
+  .box {
+    position: absolute;
+    width: 60px; height: 28px;
+    background: #8b5e3c;
+    border: 2px solid #6a4020;
+    border-bottom: 4px solid #5a3010;
+    bottom: 44%;
+    border-radius: 2px;
+  }
+
+  /* Grind rail */
+  .rail {
+    position: absolute;
+    height: 6px;
+    background: linear-gradient(90deg, #aaa, #eee, #aaa);
+    border-radius: 3px;
+    bottom: calc(44% + 20px);
+    box-shadow: 0 2px 8px #0004;
+  }
+  .rail-leg {
+    position: absolute;
+    width: 6px; height: 20px;
+    background: #999;
+    bottom: 44%;
+  }
+
+  /* Trees / Plants */
+  .tree {
+    position: absolute;
+    bottom: 44%;
+  }
+  .tree .trunk {
+    margin: 0 auto;
+    width: 14px;
+    background: #6b4226;
+    border-radius: 2px;
+  }
+  .tree .leaves {
+    width: 0; height: 0;
+    border-left: solid transparent;
+    border-right: solid transparent;
+    border-bottom: solid #3a8a2c;
+    margin: 0 auto;
+  }
+  .tree .leaves2 {
+    width: 0; height: 0;
+    border-left: solid transparent;
+    border-right: solid transparent;
+    border-bottom: solid #4aaa3c;
+    margin: 0 auto;
+    margin-top: -10px;
+  }
+
+  /* Bird */
+  .bird {
+    position: absolute;
+    font-size: 18px;
+    animation: fly 12s linear infinite;
+    opacity: 0.85;
+  }
+  @keyframes fly {
+    from { transform: translateX(-60px); }
+    to { transform: translateX(calc(100vw + 60px)); }
+  }
+
+  /* Cloud */
+  .cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50px;
+    animation: drift linear infinite;
+  }
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50%;
+  }
+  @keyframes drift {
+    from { transform: translateX(-200px); }
+    to { transform: translateX(calc(100vw + 200px)); }
+  }
+
+  /* Indoor lights */
+  .light-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: repeating-linear-gradient(90deg, #ffee88 0px, #ffee88 30px, transparent 30px, transparent 90px);
+    filter: blur(1px);
+    opacity: 0.7;
+  }
+  .light-glow {
+    position: absolute;
+    top: 0;
+    width: 30px; height: 80px;
+    background: radial-gradient(ellipse at top, rgba(255,238,136,0.3) 0%, transparent 80%);
+  }
+
+  /* Wind effect on trees */
+  @keyframes wind-strong {
+    0%,100% { transform: rotate(0deg) translateY(0); }
+    25% { transform: rotate(-8deg) translateY(-2px); }
+    75% { transform: rotate(6deg) translateY(1px); }
+  }
+  @keyframes wind-weak {
+    0%,100% { transform: rotate(0deg); }
+    50% { transform: rotate(-3deg); }
+  }
+  .wind-strong .tree { animation: wind-strong 0.8s ease-in-out infinite; }
+  .wind-weak .tree { animation: wind-weak 2s ease-in-out infinite; }
+
+  /* PLAYER / SCOOTER */
+  #player {
+    position: absolute;
+    bottom: 44%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 36px;
+    transition: bottom 0.05s, transform 0.1s;
+    z-index: 10;
+    filter: drop-shadow(0 4px 6px #0006);
+  }
+  #player.flipping { animation: do-flip 0.4s ease-out; }
+  #player.spinning { animation: do-spin 0.4s ease-out; }
+  #player.grinding { animation: grind-bob 0.3s ease-in-out infinite; }
+  #player.pushing { animation: push-loop 0.5s ease-in-out infinite; }
+  @keyframes do-flip { 0%{transform:translateX(-50%) rotate(0deg);} 100%{transform:translateX(-50%) rotate(360deg);} }
+  @keyframes do-spin { 0%{transform:translateX(-50%) rotateY(0deg);} 100%{transform:translateX(-50%) rotateY(360deg);} }
+  @keyframes grind-bob { 0%,100%{margin-bottom:2px;} 50%{margin-bottom:-2px;} }
+  @keyframes push-loop { 0%,100%{ transform:translateX(-50%) rotate(0deg);} 50%{ transform:translateX(-50%) rotate(-5deg);} }
+
+  /* HUD */
+  #hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .hud-left, .hud-right { display: flex; flex-direction: column; gap: 4px; }
+  .hud-stat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    background: rgba(0,0,0,0.45);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+  .hud-stat span { color: var(--accent2); font-weight: bold; }
+
+  .score-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    color: #fff;
+    text-shadow: 2px 2px 0 var(--accent);
+    line-height: 1;
+  }
+
+  /* Trick toast */
+  #trick-toast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(32px, 8vw, 64px);
+    color: var(--accent2);
+    text-shadow: 3px 3px 0 #8a5500, 0 0 30px #ffcc0066;
+    text-align: center;
+    pointer-events: none;
+    z-index: 30;
+    opacity: 0;
+    transition: opacity 0.1s;
+    letter-spacing: 4px;
+  }
+  #trick-toast.show {
+    opacity: 1;
+    animation: toast-pop 0.8s ease-out forwards;
+  }
+  @keyframes toast-pop {
+    0%  { opacity: 1; transform: translate(-50%, -50%) scale(0.6); }
+    30% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
+    70% { opacity: 1; transform: translate(-50%, -65%) scale(1); }
+    100%{ opacity: 0; transform: translate(-50%, -80%) scale(0.9); }
+  }
+
+  /* Controls bar */
+  #controls-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    z-index: 20;
+  }
+
+  .trick-btn {
+    padding: 8px 14px;
+    background: rgba(255,61,0,0.15);
+    border: 1px solid rgba(255,61,0,0.4);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.12s;
+    text-transform: uppercase;
+  }
+  .trick-btn:hover, .trick-btn:active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.06);
+  }
+  .trick-btn.jump-btn {
+    background: rgba(255,204,0,0.15);
+    border-color: rgba(255,204,0,0.5);
+  }
+  .trick-btn.jump-btn:hover { background: var(--accent2); color: #000; border-color: var(--accent2); }
+  .trick-btn.env-btn {
+    background: rgba(100,180,255,0.1);
+    border-color: rgba(100,180,255,0.3);
+    font-size: 12px;
+  }
+  .trick-btn.env-btn:hover { background: rgba(100,180,255,0.3); border-color: #64b4ff; }
+  .trick-btn.shop-btn {
+    background: rgba(80,200,120,0.1);
+    border-color: rgba(80,200,120,0.3);
+  }
+  .trick-btn.shop-btn:hover { background: rgba(80,200,120,0.4); }
+
+  /* Pause / menu */
+  #pause-btn {
+    position: absolute;
+    top: 12px; right: 18px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #444;
+    color: #aaa;
+    font-size: 20px;
+    width: 36px; height: 36px;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 25;
+    pointer-events: all;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #pause-btn:hover { color: #fff; border-color: #888; }
+
+  /* Combo meter */
+  #combo-bar-wrap {
+    position: absolute;
+    left: 18px; bottom: 90px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .combo-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 3px;
+  }
+  .combo-bar {
+    width: 120px; height: 6px;
+    background: #222;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .combo-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    transition: width 0.2s;
+  }
+
+  /* Indoor lamp */
+  .lamp {
+    position: absolute;
+    top: 0;
+    width: 4px;
+    background: #ccc;
+  }
+  .lamp::after {
+    content: '';
+    position: absolute;
+    bottom: -12px; left: -8px;
+    width: 20px; height: 12px;
+    background: #ffee88;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 0 20px 10px rgba(255,238,136,0.3);
+  }
+
+  /* Wind indicator */
+  #wind-indicator {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: #64b4ff;
+    background: rgba(0,0,0,0.4);
+    padding: 3px 10px;
+    border-radius: 12px;
+    z-index: 21;
+    display: none;
+  }
+
+  /* Teleport flash */
+  #teleport-flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    z-index: 50;
+    pointer-events: none;
+  }
+  .teleport-flash-anim { animation: tele-flash 0.4s ease-out forwards; }
+  @keyframes tele-flash {
+    0% { opacity: 0.8; }
+    100% { opacity: 0; }
+  }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .trick-btn { font-size: 12px; padding: 7px 10px; }
+    .score-display { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== START SCREEN ===== -->
+<div id="start-screen" class="screen active">
+  <div class="logo-wrap">
+    <h1>SCOOT</h1>
+    <div class="sub">The Game</div>
+  </div>
+  <button class="menu-btn primary" onclick="showScreen('game-screen'); startGame()">▶ PLAY</button>
+  <button class="menu-btn" onclick="showScreen('settings-screen')">SETTINGS</button>
+  <button class="menu-btn" onclick="showScreen('about-screen')">ABOUT THE GAME</button>
+  <div class="trick-scroll">
+    <span class="trick-scroll-inner">
+      🛴 TAIL WHIP &nbsp;·&nbsp; FRONT FLIP &nbsp;·&nbsp; BACK FLIP &nbsp;·&nbsp; 180 &nbsp;·&nbsp; 360 &nbsp;·&nbsp; BAR SPIN &nbsp;·&nbsp; BRI &nbsp;·&nbsp; SLAP THE FINGER &nbsp;·&nbsp; NO-HANDING &nbsp;·&nbsp; GRIND &nbsp;·&nbsp; DROP IN &nbsp;·&nbsp; FLY OUT &nbsp;&nbsp;&nbsp;&nbsp;
+    </span>
+  </div>
+</div>
+
+<!-- ===== SETTINGS SCREEN ===== -->
+<div id="settings-screen" class="screen">
+  <div class="panel">
+    <h2>SETTINGS</h2>
+    <div class="setting-row">
+      Show FPS <div class="toggle on" id="fps-toggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="setting-row">
+      Show Timer <div class="toggle on" id="timer-toggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="setting-row">
+      Wind Effects <div class="toggle on" id="wind-toggle" onclick="this.classList.toggle('on'); toggleWind()"></div>
+    </div>
+    <div class="setting-row">
+      Birds <div class="toggle on" id="bird-toggle" onclick="this.classList.toggle('on'); toggleBirds()"></div>
+    </div>
+    <div class="setting-row">
+      Sound (coming soon) <div class="toggle" style="opacity:0.3;pointer-events:none"></div>
+    </div>
+    <button class="back-btn" onclick="showScreen('start-screen')">← BACK</button>
+  </div>
+</div>
+
+<!-- ===== ABOUT SCREEN ===== -->
+<div id="about-screen" class="screen">
+  <div class="panel">
+    <h2>ABOUT THE GAME</h2>
+    <div class="about-text">
+      <p><strong>SCOOT</strong> is a scooter trick game where you can pull off sick tricks, grind rails, and explore indoor and outdoor parks.</p>
+      <br>
+      <p>🛴 <strong>Tricks:</strong> Tail whip, front flip, back flip, 180, 360 and more spins, bar spin, bri, slap the finger, and no-handing.</p>
+      <br>
+      <p>🏟️ <strong>Locations:</strong> Ride outdoors with trees, plants, birds, and wind — or head inside to the indoor park with grind rails, boxes, drop-ins, and sick lighting.</p>
+      <br>
+      <p>🛒 <strong>Shop:</strong> Earn coins doing tricks and spend them on new scooters and grip tape in the shop.</p>
+      <br>
+      <p style="color:#555;font-size:13px;">Designed by a future pro scooter rider 🔥</p>
+    </div>
+    <button class="back-btn" onclick="showScreen('start-screen')">← BACK</button>
+  </div>
+</div>
+
+<!-- ===== SHOP SCREEN ===== -->
+<div id="shop-screen" class="screen">
+  <div class="panel">
+    <h2>SHOP</h2>
+    <div class="coins-display">💰 COINS: <span id="shop-coins">0</span></div>
+    <div class="shop-grid" id="shop-grid"></div>
+    <button class="back-btn" onclick="showScreen('game-screen')">← BACK TO GAME</button>
+  </div>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div id="game-screen" class="screen">
+  <div id="game-canvas-wrap">
+    <div class="sky outdoor" id="sky"></div>
+    <div class="ground outdoor" id="ground"></div>
+    <div id="course-lane"></div>
+    <!-- Environment objects injected by JS -->
+  </div>
+
+  <div id="teleport-flash"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-left">
+      <div class="score-display" id="score-display">0</div>
+      <div class="hud-stat">COMBO ×<span id="combo-count">1</span></div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-stat" id="fps-hud">FPS: <span id="fps-val">60</span></div>
+      <div class="hud-stat" id="timer-hud">TIME: <span id="timer-val">0:00</span></div>
+      <div class="hud-stat">COINS: <span id="coins-val">0</span></div>
+    </div>
+  </div>
+
+  <div id="wind-indicator">💨 WIND: <span id="wind-strength">calm</span></div>
+
+  <div id="combo-bar-wrap">
+    <div class="combo-label">COMBO METER</div>
+    <div class="combo-bar"><div class="combo-fill" id="combo-fill" style="width:0%"></div></div>
+  </div>
+
+  <div id="trick-toast">TAIL WHIP!</div>
+
+  <div id="player">🛴</div>
+
+  <!-- Controls -->
+  <div id="controls-bar">
+    <button class="trick-btn jump-btn" onclick="doJump()">⬆ JUMP</button>
+    <button class="trick-btn" onclick="doTrick('TAIL WHIP')">TAIL WHIP</button>
+    <button class="trick-btn" onclick="doTrick('BACK FLIP')">BACK FLIP</button>
+    <button class="trick-btn" onclick="doTrick('FRONT FLIP')">FRONT FLIP</button>
+    <button class="trick-btn" onclick="doTrick('180')">180°</button>
+    <button class="trick-btn" onclick="doTrick('360')">360°</button>
+    <button class="trick-btn" onclick="doTrick('BAR SPIN')">BAR SPIN</button>
+    <button class="trick-btn" onclick="doTrick('BRI')">BRI</button>
+    <button class="trick-btn" onclick="doTrick('NO-HANDING')">NO-HANDING</button>
+    <button class="trick-btn" onclick="doTrick('SLAP THE FINGER')">SLAP THE FINGER</button>
+    <button class="trick-btn" onclick="doGrind()">GRIND</button>
+    <button class="trick-btn env-btn" onclick="teleport()">⚡ TELEPORT</button>
+    <button class="trick-btn env-btn" onclick="toggleEnv()">🏟 SWITCH ENV</button>
+    <button class="trick-btn shop-btn" onclick="openShop()">🛒 SHOP</button>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let score = 0;
+let coins = 0;
+let combo = 1;
+let comboTimer = null;
+let inAir = false;
+let isIndoor = false;
+let windStrength = 'calm'; // calm, weak, strong
+let windInterval = null;
+let timerStart = null;
+let timerInterval = null;
+let frameCount = 0;
+let fps = 60;
+let fpsInterval = null;
+let lastTrick = '';
+let playerScooter = '🛴';
+let windEnabled = true;
+let birdsEnabled = true;
+let gameLoopId = null;
+let lastFrameTime = 0;
+let spawnCooldown = 0;
+let courseItems = [];
+let activeFeature = null;
+let gameRunning = false;
+
+const PLAYER_TRACK_X = 0.5;
+const COURSE_TYPES = ['ramp', 'box', 'rail'];
+
+const TRICKS = {
+  'TAIL WHIP':      { points: 200, anim: 'flipping' },
+  'BACK FLIP':      { points: 350, anim: 'flipping' },
+  'FRONT FLIP':     { points: 350, anim: 'flipping' },
+  '180':            { points: 150, anim: 'spinning' },
+  '360':            { points: 280, anim: 'spinning' },
+  'BAR SPIN':       { points: 220, anim: 'spinning' },
+  'BRI':            { points: 400, anim: 'flipping' },
+  'NO-HANDING':     { points: 300, anim: 'flipping' },
+  'SLAP THE FINGER':{ points: 500, anim: 'flipping' },
+  'GRIND':          { points: 180, anim: 'grinding' },
+};
+
+const SHOP_ITEMS = [
+  { id: 'scooter_red',    name: 'RED SCOOTER',    icon: '🔴', price: 500,  emoji: '🛴', type: 'scooter' },
+  { id: 'scooter_fire',   name: 'FIRE SCOOTER',   icon: '🔥', price: 1200, emoji: '🛵', type: 'scooter' },
+  { id: 'scooter_rocket',  name: 'ROCKET SCOOTER', icon: '🚀', price: 2500, emoji: '🛸', type: 'scooter' },
+  { id: 'grip_black',     name: 'BLACK GRIP TAPE', icon: '🖤', price: 200,  type: 'grip' },
+  { id: 'grip_neon',      name: 'NEON GRIP TAPE',  icon: '💚', price: 350,  type: 'grip' },
+  { id: 'grip_gold',      name: 'GOLD GRIP TAPE',  icon: '✨', price: 800,  type: 'grip' },
+];
+let ownedItems = new Set();
+
+// ===== SCREEN NAV =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  gameRunning = id === 'game-screen';
+  if (gameRunning && !gameLoopId) {
+    startRunLoop();
+  }
+}
+
+// ===== GAME INIT =====
+function startGame() {
+  clearInterval(timerInterval);
+  clearInterval(fpsInterval);
+  clearInterval(windInterval);
+  clearTimeout(comboTimer);
+  score = 0; coins = 0; combo = 1;
+  inAir = false;
+  lastTrick = '';
+  activeFeature = null;
+  timerStart = Date.now();
+  const player = document.getElementById('player');
+  if (player) {
+    player.textContent = playerScooter;
+    player.classList.add('pushing');
+  }
+  buildEnvironment();
+  updateHUD();
+  startFPS();
+  startTimer();
+  startWind();
+  startRunLoop();
+}
+
+function updateHUD() {
+  document.getElementById('score-display').textContent = score.toLocaleString();
+  document.getElementById('combo-count').textContent = combo;
+  document.getElementById('coins-val').textContent = coins;
+}
+
+function startFPS() {
+  let last = performance.now();
+  fpsInterval = setInterval(() => {
+    const now = performance.now();
+    fps = Math.round(1000 / (now - last + 0.01));
+    last = now;
+    const el = document.getElementById('fps-val');
+    if (el) el.textContent = Math.min(fps, 60);
+  }, 500);
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    const el = document.getElementById('timer-val');
+    if (el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+// ===== ENVIRONMENT BUILDER =====
+function buildEnvironment() {
+  const wrap = document.getElementById('game-canvas-wrap');
+  // Clear old env objects
+  wrap.querySelectorAll('.env-obj').forEach(e => e.remove());
+
+  if (isIndoor) {
+    buildIndoor(wrap);
+  } else {
+    buildOutdoor(wrap);
+  }
+  setEnvClasses();
+}
+
+function setEnvClasses() {
+  const sky = document.getElementById('sky');
+  const ground = document.getElementById('ground');
+  sky.className = 'sky ' + (isIndoor ? 'indoor' : 'outdoor');
+  ground.className = 'ground ' + (isIndoor ? 'indoor' : 'outdoor');
+}
+
+function buildOutdoor(wrap) {
+  // Trees
+  const positions = [8, 20, 75, 88];
+  positions.forEach(x => {
+    const tree = document.createElement('div');
+    tree.className = 'tree env-obj';
+    tree.style.cssText = `left:${x}%; bottom:44%;`;
+    const sz = 30 + Math.random() * 30;
+    tree.innerHTML = `
+      <div class="leaves" style="border-left:${sz*0.6}px solid transparent;border-right:${sz*0.6}px solid transparent;border-bottom:${sz}px solid #3a9a2c;"></div>
+      <div class="leaves2" style="border-left:${sz*0.5}px solid transparent;border-right:${sz*0.5}px solid transparent;border-bottom:${sz*0.8}px solid #4aaa3c;margin-top:-${sz*0.25}px;"></div>
+      <div class="trunk" style="height:${sz*0.5}px;"></div>
+    `;
+    wrap.appendChild(tree);
+  });
+
+  // Plants
+  ['15%','65%','82%'].forEach(x => {
+    const p = document.createElement('div');
+    p.className = 'env-obj';
+    p.style.cssText = `position:absolute;left:${x};bottom:44%;font-size:22px;`;
+    p.textContent = '🌿';
+    wrap.appendChild(p);
+  });
+
+  // Clouds
+  for (let i = 0; i < 3; i++) {
+    const cloud = document.createElement('div');
+    cloud.className = 'cloud env-obj';
+    const w = 80 + Math.random() * 80;
+    const top = 5 + Math.random() * 25;
+    const dur = 20 + Math.random() * 20;
+    cloud.style.cssText = `top:${top}%;width:${w}px;height:28px;animation-duration:${dur}s;animation-delay:-${Math.random()*dur}s;`;
+    cloud.style.before = `width:${w*0.5}px;height:${w*0.5}px;top:-${w*0.25}px;left:${w*0.2}px;`;
+    wrap.appendChild(cloud);
+  }
+
+  // Bird
+  if (birdsEnabled) addBird(wrap);
+}
+
+function buildIndoor(wrap) {
+  // Lighting bars
+  const lb = document.createElement('div');
+  lb.className = 'light-bar env-obj';
+  wrap.appendChild(lb);
+  // Lamps
+  [20, 45, 70].forEach(x => {
+    const lamp = document.createElement('div');
+    lamp.className = 'lamp env-obj';
+    lamp.style.cssText = `left:${x}%;height:${8 + Math.random()*6}%;`;
+    wrap.appendChild(lamp);
+    const glow = document.createElement('div');
+    glow.className = 'light-glow env-obj';
+    glow.style.cssText = `left:calc(${x}% - 15px);top:${8 + parseFloat(lamp.style.height)}%;width:30px;`;
+    wrap.appendChild(glow);
+  });
+  // Graffiti / details
+  const tag = document.createElement('div');
+  tag.className = 'env-obj';
+  tag.style.cssText = 'position:absolute;left:78%;bottom:45%;font-size:14px;color:#ff3d00aa;transform:rotate(-10deg);font-family:"Share Tech Mono",monospace;';
+  tag.textContent = 'SCOOT';
+  wrap.appendChild(tag);
+}
+
+function addRamp(wrap) {
+  const r = document.createElement('div');
+  r.className = 'ramp env-obj';
+  wrap.appendChild(r);
+  const rt = document.createElement('div');
+  rt.className = 'ramp-top env-obj';
+  wrap.appendChild(rt);
+}
+
+function addBox(wrap, leftPct, width = 60) {
+  const box = document.createElement('div');
+  box.className = 'box env-obj';
+  box.style.cssText = `left:${leftPct}%;width:${width}px;`;
+  wrap.appendChild(box);
+}
+
+function addRail(wrap, leftPct, width) {
+  const rail = document.createElement('div');
+  rail.className = 'rail env-obj';
+  rail.style.cssText = `left:${leftPct}%;width:${width}px;`;
+  wrap.appendChild(rail);
+  const l1 = document.createElement('div');
+  l1.className = 'rail-leg env-obj';
+  l1.style.cssText = `left:${leftPct}%;`;
+  wrap.appendChild(l1);
+  const l2 = document.createElement('div');
+  l2.className = 'rail-leg env-obj';
+  l2.style.cssText = `left:calc(${leftPct}% + ${width - 6}px);`;
+  wrap.appendChild(l2);
+}
+
+function addBird(wrap) {
+  wrap.querySelectorAll('.bird').forEach(b => b.remove());
+  if (!birdsEnabled) return;
+  const bird = document.createElement('div');
+  bird.className = 'bird env-obj';
+  bird.textContent = '🐦';
+  bird.style.cssText = `top:${10 + Math.random()*20}%;animation-duration:${10+Math.random()*8}s;animation-delay:-${Math.random()*10}s;`;
+  wrap.appendChild(bird);
+}
+
+// ===== RUNNER LOOP =====
+function startRunLoop() {
+  const lane = document.getElementById('course-lane');
+  if (!lane) return;
+  lane.innerHTML = '';
+  courseItems = [];
+  spawnCooldown = 0.3;
+  activeFeature = null;
+  gameRunning = true;
+  for (let i = 0; i < 3; i++) {
+    spawnCourseItem(lane, i * 260);
+  }
+  if (gameLoopId) cancelAnimationFrame(gameLoopId);
+  lastFrameTime = performance.now();
+  gameLoopId = requestAnimationFrame(runLoop);
+}
+
+function runLoop(now) {
+  if (!gameRunning) {
+    gameLoopId = null;
+    return;
+  }
+  const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
+  lastFrameTime = now;
+  updateCourse(dt);
+  gameLoopId = requestAnimationFrame(runLoop);
+}
+
+function getScrollSpeed() {
+  let speed = isIndoor ? 300 : 260;
+  if (!isIndoor && windStrength === 'weak') speed += 25;
+  if (!isIndoor && windStrength === 'strong') speed += 60;
+  return speed;
+}
+
+function spawnCourseItem(lane, extraOffset = 0) {
+  const kind = COURSE_TYPES[Math.floor(Math.random() * COURSE_TYPES.length)];
+  const el = document.createElement('div');
+  el.className = `course-item env-obj ${kind}`;
+
+  let width = 140;
+  if (kind === 'box') {
+    width = 62 + Math.random() * 44;
+    el.style.width = `${width}px`;
+  } else if (kind === 'rail') {
+    width = 140 + Math.random() * 90;
+    el.style.width = `${width}px`;
+  }
+
+  lane.appendChild(el);
+  const x = window.innerWidth + 120 + extraOffset;
+  el.style.transform = `translateX(${x}px)`;
+  courseItems.push({ el, kind, x, width });
+}
+
+function updateCourse(dt) {
+  const lane = document.getElementById('course-lane');
+  if (!lane) return;
+
+  spawnCooldown -= dt;
+  if (spawnCooldown <= 0) {
+    spawnCourseItem(lane);
+    spawnCooldown = 1.0 + Math.random() * 1.4;
+  }
+
+  const speed = getScrollSpeed();
+  const playerX = window.innerWidth * PLAYER_TRACK_X;
+  activeFeature = null;
+
+  for (let i = courseItems.length - 1; i >= 0; i--) {
+    const item = courseItems[i];
+    item.x -= speed * dt;
+    item.el.style.transform = `translateX(${item.x}px)`;
+
+    const center = item.x + item.width / 2;
+    if (Math.abs(center - playerX) < Math.max(85, item.width * 0.45)) {
+      activeFeature = item;
+    }
+
+    if (item.x + item.width < -140) {
+      item.el.remove();
+      courseItems.splice(i, 1);
+    }
+  }
+}
+
+function getFeatureMultiplier(kind) {
+  if (kind === 'ramp') return 1.35;
+  if (kind === 'box') return 1.2;
+  if (kind === 'rail') return 1.45;
+  return 1;
+}
+
+function applyCombo(trickName) {
+  const isChain = Boolean(comboTimer && lastTrick && lastTrick !== trickName);
+  combo = isChain ? combo + 1 : 1;
+  lastTrick = trickName;
+
+  clearTimeout(comboTimer);
+  const fillEl = document.getElementById('combo-fill');
+  if (fillEl) fillEl.style.width = Math.min(combo * 14, 100) + '%';
+
+  comboTimer = setTimeout(() => {
+    combo = 1;
+    lastTrick = '';
+    if (fillEl) fillEl.style.width = '0%';
+    updateHUD();
+  }, 2500);
+
+  return isChain;
+}
+
+// ===== TRICKS =====
+function doTrick(name) {
+  if (!inAir) {
+    doJump();
+    setTimeout(() => _executeTrick(name), 100);
+  } else {
+    _executeTrick(name);
+  }
+}
+
+function _executeTrick(name) {
+  if (!inAir) return;
+  const trick = TRICKS[name];
+  const isChain = applyCombo(name);
+  const featureMult = activeFeature ? getFeatureMultiplier(activeFeature.kind) : 1;
+  const pts = Math.round(trick.points * combo * featureMult);
+  score += pts;
+  coins += Math.floor(pts / 100);
+  updateHUD();
+
+  const featureTag = activeFeature ? ` + ${activeFeature.kind.toUpperCase()}` : '';
+  showToast(`${name}${isChain ? ` CHAIN ×${combo}` : ''}${featureTag}`);
+  animPlayer(trick.anim);
+}
+
+function doJump() {
+  if (inAir) return;
+  inAir = true;
+  const player = document.getElementById('player');
+  player.classList.remove('pushing');
+  player.style.bottom = '60%';
+  player.style.transition = 'bottom 0.34s cubic-bezier(0.2,1,0.4,1)';
+  setTimeout(() => {
+    player.style.bottom = '44%';
+    player.style.transition = 'bottom 0.3s cubic-bezier(0.8,0,1,1)';
+    setTimeout(() => {
+      inAir = false;
+      player.classList.add('pushing');
+    }, 330);
+  }, 420);
+}
+
+function doGrind() {
+  if (inAir) return;
+  if (!activeFeature || (activeFeature.kind !== 'rail' && activeFeature.kind !== 'box')) {
+    showToast('LINE UP ON RAIL OR BOX');
+    return;
+  }
+  const isChain = applyCombo('GRIND');
+  const player = document.getElementById('player');
+  player.classList.add('grinding');
+  const pts = Math.round(TRICKS['GRIND'].points * combo * getFeatureMultiplier(activeFeature.kind));
+  score += pts;
+  coins += Math.floor(pts / 100);
+  updateHUD();
+  showToast(`GRIND${isChain ? ` CHAIN ×${combo}` : ''}!`);
+  setTimeout(() => player.classList.remove('grinding'), 1000);
+}
+
+function animPlayer(animClass) {
+  const player = document.getElementById('player');
+  player.classList.remove('flipping','spinning','grinding','pushing');
+  void player.offsetWidth; // reflow
+  player.classList.add(animClass);
+  setTimeout(() => {
+    player.classList.remove(animClass);
+    if (!inAir) player.classList.add('pushing');
+  }, 420);
+}
+
+function showToast(text) {
+  const toast = document.getElementById('trick-toast');
+  toast.textContent = text;
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 900);
+}
+
+// ===== TELEPORT =====
+function teleport() {
+  const flash = document.getElementById('teleport-flash');
+  flash.classList.remove('teleport-flash-anim');
+  void flash.offsetWidth;
+  flash.classList.add('teleport-flash-anim');
+  setTimeout(() => {
+    isIndoor = !isIndoor;
+    buildEnvironment();
+    startRunLoop();
+    showToast(isIndoor ? 'INDOOR PARK!' : 'OUTSIDE!');
+  }, 200);
+}
+
+// ===== TOGGLE ENV =====
+function toggleEnv() {
+  teleport();
+}
+
+// ===== WIND =====
+function startWind() {
+  clearInterval(windInterval);
+  if (!windEnabled) return;
+  setWind();
+  windInterval = setInterval(setWind, 6000);
+}
+
+function setWind() {
+  if (!windEnabled || isIndoor) {
+    windStrength = 'none';
+    document.getElementById('wind-indicator').style.display = 'none';
+    document.getElementById('game-canvas-wrap').classList.remove('wind-strong','wind-weak');
+    return;
+  }
+  const r = Math.random();
+  const wrap = document.getElementById('game-canvas-wrap');
+  wrap.classList.remove('wind-strong','wind-weak');
+  if (r < 0.4) {
+    windStrength = 'calm';
+    document.getElementById('wind-indicator').style.display = 'none';
+  } else if (r < 0.75) {
+    windStrength = 'weak';
+    wrap.classList.add('wind-weak');
+    showWindIndicator('WEAK 🍃');
+  } else {
+    windStrength = 'strong';
+    wrap.classList.add('wind-strong');
+    showWindIndicator('STRONG 💨💨');
+  }
+}
+
+function showWindIndicator(text) {
+  const el = document.getElementById('wind-indicator');
+  document.getElementById('wind-strength').textContent = text;
+  el.style.display = 'block';
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function toggleWind() {
+  windEnabled = document.getElementById('wind-toggle').classList.contains('on');
+  startWind();
+}
+
+function toggleBirds() {
+  birdsEnabled = document.getElementById('bird-toggle').classList.contains('on');
+  if (!isIndoor) {
+    const wrap = document.getElementById('game-canvas-wrap');
+    wrap.querySelectorAll('.bird').forEach(b => b.remove());
+    if (birdsEnabled) addBird(wrap);
+  }
+}
+
+// ===== SHOP =====
+function openShop() {
+  document.getElementById('shop-coins').textContent = coins;
+  renderShop();
+  showScreen('shop-screen');
+}
+
+function renderShop() {
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = '';
+  SHOP_ITEMS.forEach(item => {
+    const el = document.createElement('div');
+    const owned = ownedItems.has(item.id);
+    el.className = 'shop-item' + (owned ? ' owned' : '');
+    el.innerHTML = `<div class="item-icon">${item.icon}</div><div class="item-name">${item.name}</div><div class="item-price">${owned ? '✓ OWNED' : '💰 ' + item.price}</div>`;
+    if (!owned) {
+      el.onclick = () => buyItem(item);
+    }
+    grid.appendChild(el);
+  });
+}
+
+function buyItem(item) {
+  if (coins < item.price) {
+    const toast = document.getElementById('trick-toast');
+    toast.textContent = 'NOT ENOUGH COINS!';
+    toast.classList.remove('show');
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    return;
+  }
+  coins -= item.price;
+  ownedItems.add(item.id);
+  if (item.type === 'scooter' && item.emoji) {
+    playerScooter = item.emoji;
+    const player = document.getElementById('player');
+    if (player) player.textContent = playerScooter;
+  }
+  document.getElementById('shop-coins').textContent = coins;
+  document.getElementById('coins-val').textContent = coins;
+  renderShop();
+}
+
+// ===== KEYBOARD SUPPORT =====
+document.addEventListener('keydown', e => {
+  const key = e.key.toLowerCase();
+  if (key === ' ' || key === 'arrowup') { e.preventDefault(); doJump(); }
+  if (key === 't') doTrick('TAIL WHIP');
+  if (key === 'f') doTrick('FRONT FLIP');
+  if (key === 'b') doTrick('BACK FLIP');
+  if (key === '1') doTrick('180');
+  if (key === '3') doTrick('360');
+  if (key === 's') doTrick('BAR SPIN');
+  if (key === 'n') doTrick('NO-HANDING');
+  if (key === 'g') doGrind();
+  if (key === 'p') teleport();
+  if (key === 'q') { openShop(); }
+});
+</script>
+</body>
+</html>
