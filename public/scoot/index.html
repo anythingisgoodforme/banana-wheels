@@ -560,6 +560,19 @@
     transition: all 0.12s;
     text-transform: uppercase;
   }
+  .trick-btn .keycap {
+    margin-left: 6px;
+    padding: 1px 5px;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.28);
+    font-size: 11px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 0;
+    opacity: 0.95;
+    vertical-align: 1px;
+  }
   .trick-btn:hover, .trick-btn:active {
     background: var(--accent);
     border-color: var(--accent);
@@ -676,6 +689,7 @@
   /* Responsive */
   @media (max-width: 500px) {
     .trick-btn { font-size: 12px; padding: 7px 10px; }
+    .trick-btn .keycap { font-size: 10px; padding: 1px 4px; margin-left: 4px; }
     .score-display { font-size: 32px; }
   }
 </style>
@@ -787,20 +801,20 @@
 
   <!-- Controls -->
   <div id="controls-bar">
-    <button class="trick-btn jump-btn" onclick="doJump()">⬆ JUMP</button>
-    <button class="trick-btn" onclick="doTrick('TAIL WHIP')">TAIL WHIP</button>
-    <button class="trick-btn" onclick="doTrick('BACK FLIP')">BACK FLIP</button>
-    <button class="trick-btn" onclick="doTrick('FRONT FLIP')">FRONT FLIP</button>
-    <button class="trick-btn" onclick="doTrick('180')">180°</button>
-    <button class="trick-btn" onclick="doTrick('360')">360°</button>
-    <button class="trick-btn" onclick="doTrick('BAR SPIN')">BAR SPIN</button>
-    <button class="trick-btn" onclick="doTrick('BRI')">BRI</button>
-    <button class="trick-btn" onclick="doTrick('NO-HANDING')">NO-HANDING</button>
-    <button class="trick-btn" onclick="doTrick('SLAP THE FINGER')">SLAP THE FINGER</button>
-    <button class="trick-btn" onclick="doGrind()">GRIND</button>
-    <button class="trick-btn env-btn" onclick="teleport()">⚡ TELEPORT</button>
-    <button class="trick-btn env-btn" onclick="toggleEnv()">🏟 SWITCH ENV</button>
-    <button class="trick-btn shop-btn" onclick="openShop()">🛒 SHOP</button>
+    <button class="trick-btn jump-btn" onclick="doJump()">⬆ JUMP <span class="keycap">SPACE</span></button>
+    <button class="trick-btn" onclick="doTrick('TAIL WHIP')">TAIL WHIP <span class="keycap">T</span></button>
+    <button class="trick-btn" onclick="doTrick('BACK FLIP')">BACK FLIP <span class="keycap">B</span></button>
+    <button class="trick-btn" onclick="doTrick('FRONT FLIP')">FRONT FLIP <span class="keycap">F</span></button>
+    <button class="trick-btn" onclick="doTrick('180')">180° <span class="keycap">1</span></button>
+    <button class="trick-btn" onclick="doTrick('360')">360° <span class="keycap">3</span></button>
+    <button class="trick-btn" onclick="doTrick('BAR SPIN')">BAR SPIN <span class="keycap">S</span></button>
+    <button class="trick-btn" onclick="doTrick('BRI')">BRI <span class="keycap">I</span></button>
+    <button class="trick-btn" onclick="doTrick('NO-HANDING')">NO-HANDING <span class="keycap">N</span></button>
+    <button class="trick-btn" onclick="doTrick('SLAP THE FINGER')">SLAP THE FINGER <span class="keycap">L</span></button>
+    <button class="trick-btn" onclick="doGrind()">GRIND <span class="keycap">G</span></button>
+    <button class="trick-btn env-btn" onclick="teleport()">⚡ TELEPORT <span class="keycap">P</span></button>
+    <button class="trick-btn env-btn" onclick="toggleEnv()">🏟 SWITCH ENV <span class="keycap">E</span></button>
+    <button class="trick-btn shop-btn" onclick="openShop()">🛒 SHOP <span class="keycap">Q</span></button>
   </div>
 </div>
 
@@ -1361,9 +1375,12 @@ document.addEventListener('keydown', e => {
   if (key === '1') doTrick('180');
   if (key === '3') doTrick('360');
   if (key === 's') doTrick('BAR SPIN');
+  if (key === 'i') doTrick('BRI');
   if (key === 'n') doTrick('NO-HANDING');
+  if (key === 'l') doTrick('SLAP THE FINGER');
   if (key === 'g') doGrind();
   if (key === 'p') teleport();
+  if (key === 'e') toggleEnv();
   if (key === 'q') { openShop(); }
 });
 </script>
