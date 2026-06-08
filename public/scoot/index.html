@@ -466,10 +466,12 @@
     filter: drop-shadow(0 4px 6px #0006);
   }
   #player.flipping { animation: do-flip 0.4s ease-out; }
+  #player.front-flipping { animation: do-front-flip 0.4s ease-out; }
   #player.spinning { animation: do-spin 0.4s ease-out; }
   #player.grinding { animation: grind-bob 0.3s ease-in-out infinite; }
   #player.pushing { animation: push-loop 0.5s ease-in-out infinite; }
   @keyframes do-flip { 0%{transform:translateX(-50%) scaleX(-1) rotate(0deg);} 100%{transform:translateX(-50%) scaleX(-1) rotate(360deg);} }
+  @keyframes do-front-flip { 0%{transform:translateX(-50%) scaleX(-1) rotate(0deg);} 100%{transform:translateX(-50%) scaleX(-1) rotate(-360deg);} }
   @keyframes do-spin { 0%{transform:translateX(-50%) scaleX(-1) rotateY(0deg);} 100%{transform:translateX(-50%) scaleX(-1) rotateY(360deg);} }
   @keyframes grind-bob { 0%,100%{margin-bottom:2px;} 50%{margin-bottom:-2px;} }
   @keyframes push-loop { 0%,100%{ transform:translateX(-50%) scaleX(-1) rotate(0deg);} 50%{ transform:translateX(-50%) scaleX(-1) rotate(-5deg);} }
@@ -850,7 +852,7 @@ const COURSE_TYPES = ['ramp', 'box', 'rail'];
 const TRICKS = {
   'TAIL WHIP':      { points: 200, anim: 'flipping' },
   'BACK FLIP':      { points: 350, anim: 'flipping' },
-  'FRONT FLIP':     { points: 350, anim: 'flipping' },
+  'FRONT FLIP':     { points: 350, anim: 'front-flipping' },
   '180':            { points: 150, anim: 'spinning' },
   '360':            { points: 280, anim: 'spinning' },
   'BAR SPIN':       { points: 220, anim: 'spinning' },
@@ -1231,7 +1233,7 @@ function doGrind() {
 
 function animPlayer(animClass) {
   const player = document.getElementById('player');
-  player.classList.remove('flipping','spinning','grinding','pushing');
+  player.classList.remove('flipping','front-flipping','spinning','grinding','pushing');
   void player.offsetWidth; // reflow
   player.classList.add(animClass);
   setTimeout(() => {
