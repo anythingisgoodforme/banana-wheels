@@ -64,6 +64,50 @@ main {
   margin-bottom: 16px;
 }
 
+.library-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.library-card {
+  display: block;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  color: var(--light-text);
+  text-decoration: none;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.library-card span {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--primary-color);
+}
+
+.library-card small {
+  display: block;
+  margin-top: 4px;
+  color: var(--accent-color);
+  opacity: 0.95;
+}
+
+.library-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(246, 215, 79, 0.8);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.library-card.active {
+  border-color: var(--primary-color);
+  box-shadow: inset 0 0 0 1px rgba(246, 215, 79, 0.38);
+}
+
 .game-section {
   display: grid;
   grid-template-columns: minmax(0, 1.9fr) minmax(280px, 0.8fr);
@@ -252,6 +296,10 @@ button:active {
 }
 
 @media (max-width: 1040px) {
+  .library-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .game-section {
     grid-template-columns: 1fr;
   }
@@ -285,6 +333,11 @@ button:active {
 
   .game-panel {
     padding: 10px;
+  }
+
+  .library-strip {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .controls,
