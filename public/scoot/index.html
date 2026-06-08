@@ -459,7 +459,7 @@
     position: absolute;
     bottom: 44%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) scaleX(-1);
     font-size: 36px;
     transition: bottom 0.05s, transform 0.1s;
     z-index: 10;
@@ -469,10 +469,10 @@
   #player.spinning { animation: do-spin 0.4s ease-out; }
   #player.grinding { animation: grind-bob 0.3s ease-in-out infinite; }
   #player.pushing { animation: push-loop 0.5s ease-in-out infinite; }
-  @keyframes do-flip { 0%{transform:translateX(-50%) rotate(0deg);} 100%{transform:translateX(-50%) rotate(360deg);} }
-  @keyframes do-spin { 0%{transform:translateX(-50%) rotateY(0deg);} 100%{transform:translateX(-50%) rotateY(360deg);} }
+  @keyframes do-flip { 0%{transform:translateX(-50%) scaleX(-1) rotate(0deg);} 100%{transform:translateX(-50%) scaleX(-1) rotate(360deg);} }
+  @keyframes do-spin { 0%{transform:translateX(-50%) scaleX(-1) rotateY(0deg);} 100%{transform:translateX(-50%) scaleX(-1) rotateY(360deg);} }
   @keyframes grind-bob { 0%,100%{margin-bottom:2px;} 50%{margin-bottom:-2px;} }
-  @keyframes push-loop { 0%,100%{ transform:translateX(-50%) rotate(0deg);} 50%{ transform:translateX(-50%) rotate(-5deg);} }
+  @keyframes push-loop { 0%,100%{ transform:translateX(-50%) scaleX(-1) rotate(0deg);} 50%{ transform:translateX(-50%) scaleX(-1) rotate(-5deg);} }
 
   /* HUD */
   #hud {
