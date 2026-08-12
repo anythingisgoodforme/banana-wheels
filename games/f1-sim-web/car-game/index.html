@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a5f9f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Car Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+</head>
+<body>
+    <div class="container">
+        <div class="game-info">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="level">Level: <span id="level">1</span></div>
+            <div class="high-score">High Score: <span id="highScore">0</span></div>
+            <div class="cars-shot">Cars Shot: <span id="carCount">0</span></div>
+            <div class="money-container">
+                <div class="money-label">Money</div>
+                <div class="money-bar">
+                    <span class="money-fill" id="moneyFill" style="width: 0%"></span>
+                    <span class="money-amount" id="moneyAmount">0</span>
+                </div>
+            </div>
+            <div class="energy-container">
+                <div class="energy-label">Energy</div>
+                <div class="energy-bar" id="energyBar">
+                    <div class="energy-fill" id="energyFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="game-area">
+            <div class="game-wrapper">
+                <canvas id="gameCanvas" width="400" height="600"></canvas>
+                <div id="touchOverlay" class="touch-overlay"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <p>Use arrow keys or A/D to move | Space to shoot | Up/W for hyper mode</p>
+        </div>
+
+        <div class="mobile-buttons">
+            <button id="brakeBtn" class="mobile-btn">Brake</button>
+            <button id="shootBtn" class="mobile-btn">Shoot</button>
+            <button id="hyperBtn" class="mobile-btn">Hyper</button>
+            <button id="bigGunBtn" class="mobile-btn">Big Gun</button>
+        </div>
+        
+        <div class="game-over" id="gameOver" style="display: none;">
+            <div class="game-over-content">
+                <h1>Game Over!</h1>
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p>Level Reached: <span id="levelReached">1</span></p>
+                <p>Cars Shot: <span id="carsShotFinal">0</span></p>
+                <button id="reviveBtn" class="restart-button" style="display:none;">Revive (10$)</button>
+                <button id="restartBtn" class="restart-button">Restart Game</button>
+            </div>
+        </div>
+
+        <div class="game-over" id="finishOverlay" style="display: none;">
+            <div class="game-over-content">
+                <h1>FINISH!</h1>
+                <p>You crossed the line.</p>
+                <button id="finishRestart" class="restart-button">Do it again</button>
+            </div>
+        </div>
+
+        <div class="powerup-info" id="powerupInfo" style="display: none;">
+            <span id="powerupType"></span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

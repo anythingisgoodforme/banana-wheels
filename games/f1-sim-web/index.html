@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>F1 POV Racer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <canvas id="gameCanvas" width="1200" height="700" aria-label="F1 POV racing game"></canvas>
+    <section class="hud" aria-live="polite">
+      <div class="hud-speed"><span id="speedValue">0</span> km/h</div>
+      <div class="hud-progress">Track: <span id="progressValue">0</span>%</div>
+      <div class="hud-help">Arrows: drive | Space: reset | Esc: pause</div>
+    </section>
+    <div id="pauseOverlay" class="overlay hidden">Paused</div>
+  </main>
+  <script type="module" src="./game.js"></script>
+</body>
+</html>
