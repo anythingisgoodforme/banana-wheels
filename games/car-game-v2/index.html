@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Car Game V2</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="game-shell">
+    <canvas id="gameCanvas" width="960" height="640" aria-label="Car Game V2 playable canvas"></canvas>
+
+    <section id="aiWarning" class="ai-warning" aria-hidden="true">
+      <strong>CAUTION AI STEERING</strong>
+    </section>
+
+    <section class="hud" aria-live="polite">
+      <div class="stat">
+        <span class="stat-label">Score</span>
+        <strong id="scoreValue">0</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Combo</span>
+        <strong id="comboValue">x1</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Best</span>
+        <strong id="bestValue">0</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Bananas</span>
+        <strong id="bananaValue">0</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Money</span>
+        <strong id="moneyValue">$0</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Driver</span>
+        <strong id="driverValue">You</strong>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Practice</span>
+        <strong id="practiceValue">0%</strong>
+      </div>
+      <div class="meter" aria-label="Boost meter">
+        <span id="boostFill"></span>
+      </div>
+    </section>
+
+    <section class="garage" aria-label="Money upgrades">
+      <button id="turboUpgradeButton" type="button">
+        <span>Turbo</span>
+        <strong id="turboUpgradeValue">$200</strong>
+      </button>
+      <button id="magnetUpgradeButton" type="button">
+        <span>Magnet</span>
+        <strong id="magnetUpgradeValue">$240</strong>
+      </button>
+    </section>
+
+    <section id="messagePanel" class="message-panel">
+      <h1>Banana Drive</h1>
+      <p>Load bananas into your pickup truck bed, dodge the cars, and press Space when you want the AI to drive.</p>
+      <button id="startButton" type="button">Start Race</button>
+    </section>
+
+    <section class="touch-controls" aria-label="Touch controls">
+      <button id="leftButton" type="button" aria-label="Steer left">Left</button>
+      <button id="brakeButton" type="button" aria-label="Brake">Brake</button>
+      <button id="boostButton" type="button" aria-label="Boost">Boost</button>
+      <button id="aiButton" type="button" aria-label="Toggle AI driver">AI Drive</button>
+      <button id="rightButton" type="button" aria-label="Steer right">Right</button>
+    </section>
+  </main>
+
+  <script src="src/input.js"></script>
+  <script src="src/game.js"></script>
+</body>
+</html>

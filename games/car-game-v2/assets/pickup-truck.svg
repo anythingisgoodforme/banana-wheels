@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="256" viewBox="0 0 160 256" role="img" aria-label="Amarok-inspired blue pickup truck with open bed">
+  <defs>
+    <linearGradient id="paint" x1="30" x2="130" y1="20" y2="238" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#42c6ff"/>
+      <stop offset="0.45" stop-color="#176fca"/>
+      <stop offset="1" stop-color="#082f68"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="48" x2="112" y1="16" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60d6ff"/>
+      <stop offset="1" stop-color="#0f5dae"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="45" x2="115" y1="60" y2="126" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e8fbff"/>
+      <stop offset="0.45" stop-color="#8bd8ff"/>
+      <stop offset="1" stop-color="#2f7faf"/>
+    </linearGradient>
+    <linearGradient id="bed" x1="42" x2="118" y1="138" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#73818c"/>
+      <stop offset="1" stop-color="#202a33"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#07101a" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="80" cy="229" rx="58" ry="18" fill="rgba(0,0,0,0.28)"/>
+
+  <g filter="url(#softShadow)">
+    <rect x="10" y="54" width="22" height="58" rx="8" fill="#101820"/>
+    <rect x="128" y="54" width="22" height="58" rx="8" fill="#101820"/>
+    <rect x="10" y="158" width="22" height="60" rx="8" fill="#101820"/>
+    <rect x="128" y="158" width="22" height="60" rx="8" fill="#101820"/>
+    <rect x="14" y="65" width="13" height="35" rx="5" fill="#27313b"/>
+    <rect x="133" y="65" width="13" height="35" rx="5" fill="#27313b"/>
+    <rect x="14" y="170" width="13" height="36" rx="5" fill="#27313b"/>
+    <rect x="133" y="170" width="13" height="36" rx="5" fill="#27313b"/>
+
+    <path d="M29 58c0-30 22-48 51-48s51 18 51 48v150c0 20-16 36-36 36H65c-20 0-36-16-36-36V58Z" fill="url(#paint)"/>
+    <path d="M39 55c5-24 20-37 41-37s36 13 41 37l-9 31H48L39 55Z" fill="url(#hood)"/>
+    <path d="M44 58h72l-5 18H49l-5-18Z" fill="rgba(255,255,255,0.14)"/>
+
+    <path d="M43 83c8-17 20-25 37-25s29 8 37 25l-14 38H57L43 83Z" fill="url(#glass)"/>
+    <path d="M58 90h44l-7 20H65l-7-20Z" fill="rgba(8,47,104,0.32)"/>
+    <path d="M50 84h60" stroke="rgba(255,255,255,0.55)" stroke-width="4" stroke-linecap="round"/>
+
+    <path d="M32 118h96v86c0 19-15 34-34 34H66c-19 0-34-15-34-34v-86Z" fill="#0a3268"/>
+    <path d="M43 132h74c7 0 13 6 13 13v66c0 10-8 18-18 18H48c-10 0-18-8-18-18v-66c0-7 6-13 13-13Z" fill="#08254e"/>
+    <rect x="43" y="140" width="74" height="78" rx="7" fill="url(#bed)"/>
+    <path d="M52 149h56v8H52v-8Zm0 19h56v7H52v-7Zm0 18h56v7H52v-7Zm0 18h56v7H52v-7Z" fill="rgba(255,255,255,0.12)"/>
+
+    <path d="M37 119h86" stroke="#94ddff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M38 121l13 13M122 121l-13 13" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+
+    <path d="M41 33h78" stroke="rgba(6,31,68,0.45)" stroke-width="5" stroke-linecap="round"/>
+    <path d="M45 38h70" stroke="rgba(255,255,255,0.18)" stroke-width="2" stroke-linecap="round"/>
+
+    <rect x="42" y="20" width="76" height="18" rx="6" fill="#0b2440"/>
+    <rect x="51" y="24" width="58" height="4" rx="2" fill="#dce6ee"/>
+    <rect x="52" y="31" width="56" height="3" rx="1.5" fill="#9ba9b5"/>
+    <circle cx="80" cy="29" r="6" fill="#dce6ee"/>
+    <path d="M77 27h6M80 24v10" stroke="#0b2440" stroke-width="2" stroke-linecap="round"/>
+
+    <path d="M35 20h19c6 0 10 5 9 11l-1 5H39c-5 0-9-4-9-9 0-4 2-7 5-7Z" fill="#fff1a6"/>
+    <path d="M125 20h-19c-6 0-10 5-9 11l1 5h23c5 0 9-4 9-9 0-4-2-7-5-7Z" fill="#fff1a6"/>
+    <path d="M36 37h88" stroke="#0b2440" stroke-width="4" stroke-linecap="round"/>
+
+    <path d="M30 74l-11-9v30l11-5Z" fill="#0c274a"/>
+    <path d="M130 74l11-9v30l-11-5Z" fill="#0c274a"/>
+
+    <rect x="44" y="232" width="24" height="10" rx="4" fill="#ff4f5e"/>
+    <rect x="92" y="232" width="24" height="10" rx="4" fill="#ff4f5e"/>
+    <rect x="53" y="224" width="54" height="5" rx="2.5" fill="rgba(255,255,255,0.28)"/>
+  </g>
+</svg>

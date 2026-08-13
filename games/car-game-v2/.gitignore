@@ -1,0 +1,17 @@
+node_modules/
+.venv/
+venv/
+dist/
+build/
+coverage/
+.cache/
+.parcel-cache/
+.vite/
+playwright-report/
+test-results/
+screenshots/
+trainer/out/
+*.log
+*.tmp
+*.bak
+.DS_Store

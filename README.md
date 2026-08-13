@@ -1,8 +1,30 @@
 # Banana Wheels
 
-Banana Wheels is a small browser game prototype built with plain JavaScript and the Canvas API. The current version is a first-person banana car run: steer left and right, dodge angry monkeys and gorillas, then press `Space` at the correct moment to trigger the mini-banana spring.
+Banana Wheels is a small browser game collection built with plain JavaScript, static HTML/CSS, and the Canvas API. The repo includes multiple playable prototypes and a beginner bass practice app.
 
-## Current Game
+## Game Library
+
+Start the local static server with `npm run dev` or `npm run serve`, then open these live URLs:
+
+| Game                          | Live URL                                 | Source                                                             |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| Banana Wheels GT              | `http://localhost:8000/`                 | `public/index.html`, `public/game.js`                              |
+| Banana Wheels V2: Jungle Rush | `http://localhost:8000/v2/`              | `public/v2/index.html`, `public/v2/src/`                           |
+| SCOOT                         | `http://localhost:8000/scoot/`           | `public/scoot/index.html`                                          |
+| Bassline Rookie               | `http://localhost:8000/bassline-rookie/` | `public/bassline-rookie/index.html`, `public/bassline-rookie/src/` |
+
+Supporting Bassline Rookie pages:
+
+| Page            | Live URL                                                  | Notes                            |
+| --------------- | --------------------------------------------------------- | -------------------------------- |
+| Tuner           | `http://localhost:8000/bassline-rookie/tuner.html`        | Browser microphone tuning flow   |
+| Hosted API demo | `http://localhost:8010/bassline-rookie/hosting-demo.html` | Requires `npm run bassline:demo` |
+
+If `public/` is deployed as the website root, the production paths match the local paths: `/`, `/v2/`, `/scoot/`, and `/bassline-rookie/`.
+
+## Banana Wheels GT
+
+The original Banana Wheels GT prototype is a first-person banana car run: steer left and right, dodge angry monkeys and gorillas, then press `Space` at the correct moment to trigger the mini-banana spring.
 
 - Perspective: first-person cockpit view
 - Controls: `A/D` or arrow keys to steer, `Space` to start and to trigger the spring, `R` to reset
@@ -11,7 +33,7 @@ Banana Wheels is a small browser game prototype built with plain JavaScript and 
 
 ## Bassline Rookie
 
-This repo also contains `public/bassline-rookie`, a beginner bass practice app with lessons, microphone pitch detection, and a hosted API demo.
+`public/bassline-rookie` is a beginner bass practice app with lessons, microphone pitch detection, a tuner, and a hosted API demo.
 
 Run the hosted API demo locally:
 
