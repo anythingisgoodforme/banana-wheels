@@ -266,6 +266,35 @@
   }
 
   /* Runner lane */
+  #terrain-wave {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 7;
+    pointer-events: none;
+  }
+
+  #terrain-fill {
+    fill: rgba(88, 140, 60, 0.9);
+  }
+
+  #terrain-crest {
+    fill: none;
+    stroke: rgba(188, 239, 132, 0.75);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  #terrain-wave.indoor #terrain-fill {
+    fill: rgba(75, 69, 63, 0.95);
+  }
+
+  #terrain-wave.indoor #terrain-crest {
+    stroke: rgba(188, 188, 196, 0.45);
+  }
+
   #course-lane {
     position: absolute;
     inset: 0;
@@ -287,6 +316,24 @@
     border-right: 70px solid transparent;
     border-bottom: 44px solid #646464;
     filter: drop-shadow(0 -1px 6px #0004);
+  }
+
+  .course-item.ramp-steep {
+    width: 0;
+    height: 0;
+    border-left: 58px solid transparent;
+    border-right: 58px solid transparent;
+    border-bottom: 62px solid #767676;
+    filter: drop-shadow(0 -1px 7px #0005);
+  }
+
+  .course-item.kicker {
+    width: 0;
+    height: 0;
+    border-left: 52px solid transparent;
+    border-right: 26px solid transparent;
+    border-bottom: 34px solid #8f8f8f;
+    filter: drop-shadow(0 -1px 6px #0005);
   }
 
   .course-item.box {
@@ -771,6 +818,10 @@
   <div id="game-canvas-wrap">
     <div class="sky outdoor" id="sky"></div>
     <div class="ground outdoor" id="ground"></div>
+    <svg id="terrain-wave" class="outdoor" aria-hidden="true" preserveAspectRatio="none">
+      <path id="terrain-fill"></path>
+      <path id="terrain-crest"></path>
+    </svg>
     <div id="course-lane"></div>
     <!-- Environment objects injected by JS -->
   </div>
@@ -845,9 +896,21 @@ let spawnCooldown = 0;
 let courseItems = [];
 let activeFeature = null;
 let gameRunning = false;
+let playerAirY = 0;
+let playerVelY = 0;
+let scrollSpeed = 260;
+let worldOffset = 0;
 
 const PLAYER_TRACK_X = 0.5;
-const COURSE_TYPES = ['ramp', 'box', 'rail'];
+const COURSE_TYPES = ['ramp', 'ramp', 'ramp-steep', 'kicker', 'box', 'rail'];
+const PLAYER_GRAVITY = 2300;
+const PLAYER_JUMP_VELOCITY = 860;
+const SPEED_MIN = 180;
+const SPEED_MAX = 520;
+const TERRAIN_SLOPE_FORCE = 900;
+const SPEED_DAMP = 1.8;
+const GROUND_TOP_RATIO = 0.56;
+const TERRAIN_BASE_HEIGHT = 22;
 
 const TRICKS = {
   'TAIL WHIP':      { points: 200, anim: 'flipping' },
@@ -890,6 +953,10 @@ function startGame() {
   clearTimeout(comboTimer);
   score = 0; coins = 0; combo = 1;
   inAir = false;
+  playerAirY = 0;
+  playerVelY = 0;
+  worldOffset = 0;
+  scrollSpeed = getBaseScrollSpeed();
   lastTrick = '';
   activeFeature = null;
   timerStart = Date.now();
@@ -897,6 +964,7 @@ function startGame() {
   if (player) {
     player.textContent = playerScooter;
     player.classList.add('pushing');
+    player.style.bottom = `calc(44% + ${getTerrainLift(0).toFixed(1)}px)`;
   }
   buildEnvironment();
   updateHUD();
@@ -950,8 +1018,10 @@ function buildEnvironment() {
 function setEnvClasses() {
   const sky = document.getElementById('sky');
   const ground = document.getElementById('ground');
+  const terrain = document.getElementById('terrain-wave');
   sky.className = 'sky ' + (isIndoor ? 'indoor' : 'outdoor');
   ground.className = 'ground ' + (isIndoor ? 'indoor' : 'outdoor');
+  if (terrain) terrain.className = isIndoor ? 'indoor' : 'outdoor';
 }
 
 function buildOutdoor(wrap) {
@@ -1067,6 +1137,8 @@ function startRunLoop() {
   lane.innerHTML = '';
   courseItems = [];
   spawnCooldown = 0.3;
+  worldOffset = 0;
+  scrollSpeed = getBaseScrollSpeed();
   activeFeature = null;
   gameRunning = true;
   for (let i = 0; i < 3; i++) {
@@ -1074,6 +1146,7 @@ function startRunLoop() {
   }
   if (gameLoopId) cancelAnimationFrame(gameLoopId);
   lastFrameTime = performance.now();
+  renderTerrainWave();
   gameLoopId = requestAnimationFrame(runLoop);
 }
 
@@ -1084,11 +1157,67 @@ function runLoop(now) {
   }
   const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
   lastFrameTime = now;
+  updateSpeedPhysics(dt);
+  worldOffset += scrollSpeed * dt;
   updateCourse(dt);
+  updatePlayerPhysics(dt);
+  renderTerrainWave();
   gameLoopId = requestAnimationFrame(runLoop);
 }
 
-function getScrollSpeed() {
+function getTerrainLift(worldX) {
+  let y =
+    18 * Math.sin(worldX / 210) +
+    9 * Math.sin(worldX / 110 + 1.2) +
+    4 * Math.sin(worldX / 420 - 0.6);
+
+  const crestBand = Math.sin(worldX / 360 + 0.55);
+  if (crestBand > 0.72) {
+    y = 14 + (y - 14) * 0.25;
+  } else if (crestBand < -0.75) {
+    y = -12 + (y + 12) * 0.3;
+  }
+
+  const shelfBand = Math.sin(worldX / 250 - 0.7);
+  if (Math.abs(shelfBand) < 0.12) {
+    y *= 0.38;
+  }
+
+  return Math.max(-16, Math.min(26, y));
+}
+
+function getTerrainSlope(worldX) {
+  const dx = 4;
+  return (getTerrainLift(worldX + dx) - getTerrainLift(worldX - dx)) / (2 * dx);
+}
+
+function renderTerrainWave() {
+  const wave = document.getElementById('terrain-wave');
+  const fill = document.getElementById('terrain-fill');
+  const crest = document.getElementById('terrain-crest');
+  const wrap = document.getElementById('game-canvas-wrap');
+  if (!wave || !fill || !crest || !wrap) return;
+
+  const width = wrap.clientWidth || window.innerWidth;
+  const height = wrap.clientHeight || window.innerHeight;
+  const groundTopY = height * GROUND_TOP_RATIO;
+
+  wave.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+  const step = 6;
+  let ridgePath = '';
+  for (let x = 0; x <= width; x += step) {
+    const standHeight = TERRAIN_BASE_HEIGHT + getTerrainLift(worldOffset + x);
+    const y = groundTopY - standHeight;
+    ridgePath += `${x === 0 ? 'M' : 'L'}${x} ${y.toFixed(2)} `;
+  }
+
+  const fillPath = `M0 ${height} ${ridgePath}L${width} ${height} Z`;
+  fill.setAttribute('d', fillPath);
+  crest.setAttribute('d', ridgePath.trim());
+}
+
+function getBaseScrollSpeed() {
   let speed = isIndoor ? 300 : 260;
   if (!isIndoor && windStrength === 'weak') speed += 25;
   if (!isIndoor && windStrength === 'strong') speed += 60;
@@ -1101,7 +1230,13 @@ function spawnCourseItem(lane, extraOffset = 0) {
   el.className = `course-item env-obj ${kind}`;
 
   let width = 140;
-  if (kind === 'box') {
+  if (kind === 'ramp') {
+    width = 140;
+  } else if (kind === 'ramp-steep') {
+    width = 116;
+  } else if (kind === 'kicker') {
+    width = 78;
+  } else if (kind === 'box') {
     width = 62 + Math.random() * 44;
     el.style.width = `${width}px`;
   } else if (kind === 'rail') {
@@ -1112,7 +1247,9 @@ function spawnCourseItem(lane, extraOffset = 0) {
   lane.appendChild(el);
   const x = window.innerWidth + 120 + extraOffset;
   el.style.transform = `translateX(${x}px)`;
-  courseItems.push({ el, kind, x, width });
+  const baseLift = kind === 'rail' ? 22 : 0;
+  const anchor = kind === 'kicker' ? 0.25 : kind === 'ramp-steep' ? 0.3 : kind === 'ramp' ? 0.35 : 0.5;
+  courseItems.push({ el, kind, x, width, used: false, baseLift, anchor });
 }
 
 function updateCourse(dt) {
@@ -1125,9 +1262,10 @@ function updateCourse(dt) {
     spawnCooldown = 1.0 + Math.random() * 1.4;
   }
 
-  const speed = getScrollSpeed();
+  const speed = scrollSpeed;
   const playerX = window.innerWidth * PLAYER_TRACK_X;
   activeFeature = null;
+  let bestDistance = Infinity;
 
   for (let i = courseItems.length - 1; i >= 0; i--) {
     const item = courseItems[i];
@@ -1135,7 +1273,13 @@ function updateCourse(dt) {
     item.el.style.transform = `translateX(${item.x}px)`;
 
     const center = item.x + item.width / 2;
-    if (Math.abs(center - playerX) < Math.max(85, item.width * 0.45)) {
+    const contactX = item.x + item.width * item.anchor;
+    const terrainLift = TERRAIN_BASE_HEIGHT + getTerrainLift(worldOffset + contactX);
+    item.terrainLift = terrainLift;
+    item.el.style.bottom = `calc(44% + ${(item.baseLift + terrainLift).toFixed(1)}px)`;
+    const distance = Math.abs(center - playerX);
+    if (distance < Math.max(85, item.width * 0.45) && distance < bestDistance) {
+      bestDistance = distance;
       activeFeature = item;
     }
 
@@ -1146,11 +1290,71 @@ function updateCourse(dt) {
   }
 }
 
+function updateSpeedPhysics(dt) {
+  const target = getBaseScrollSpeed();
+  const playerX = window.innerWidth * PLAYER_TRACK_X;
+  const slope = getTerrainSlope(worldOffset + playerX);
+  let accel = -slope * TERRAIN_SLOPE_FORCE;
+
+  // Ease speed toward environmental baseline while keeping terrain slope effects.
+  accel += (target - scrollSpeed) * SPEED_DAMP;
+  scrollSpeed += accel * dt;
+  scrollSpeed = Math.max(SPEED_MIN, Math.min(SPEED_MAX, scrollSpeed));
+}
+
 function getFeatureMultiplier(kind) {
   if (kind === 'ramp') return 1.35;
+  if (kind === 'ramp-steep') return 1.5;
+  if (kind === 'kicker') return 1.25;
   if (kind === 'box') return 1.2;
   if (kind === 'rail') return 1.45;
   return 1;
+}
+
+function getRampLaunchVelocity(kind) {
+  if (kind === 'ramp') return 780;
+  if (kind === 'ramp-steep') return 960;
+  if (kind === 'kicker') return 650;
+  return 0;
+}
+
+function updatePlayerPhysics(dt) {
+  const player = document.getElementById('player');
+  if (!player) return;
+  const playerX = window.innerWidth * PLAYER_TRACK_X;
+  const terrainLift = TERRAIN_BASE_HEIGHT + getTerrainLift(worldOffset + playerX);
+
+  if (!inAir && activeFeature && !activeFeature.used) {
+    const boost = getRampLaunchVelocity(activeFeature.kind);
+    if (boost > 0) {
+      activeFeature.used = true;
+      inAir = true;
+      player.classList.remove('pushing');
+      playerVelY = Math.max(playerVelY, boost);
+      showToast(activeFeature.kind === 'ramp-steep' ? 'MEGA LAUNCH!' : activeFeature.kind === 'kicker' ? 'KICKER POP!' : 'RAMP AIR!');
+    }
+  }
+
+  if (!inAir && playerAirY <= 0) {
+    player.style.bottom = `calc(44% + ${terrainLift.toFixed(1)}px)`;
+    return;
+  }
+
+  playerVelY -= PLAYER_GRAVITY * dt;
+  playerAirY += playerVelY * dt;
+
+  if (playerAirY <= 0) {
+    playerAirY = 0;
+    playerVelY = 0;
+    if (inAir) {
+      inAir = false;
+      player.classList.add('pushing');
+    }
+  } else {
+    inAir = true;
+  }
+
+  player.style.bottom = `calc(44% + ${(terrainLift + playerAirY).toFixed(1)}px)`;
 }
 
 function applyCombo(trickName) {
@@ -1199,19 +1403,10 @@ function _executeTrick(name) {
 
 function doJump() {
   if (inAir) return;
-  inAir = true;
   const player = document.getElementById('player');
   player.classList.remove('pushing');
-  player.style.bottom = '60%';
-  player.style.transition = 'bottom 0.34s cubic-bezier(0.2,1,0.4,1)';
-  setTimeout(() => {
-    player.style.bottom = '44%';
-    player.style.transition = 'bottom 0.3s cubic-bezier(0.8,0,1,1)';
-    setTimeout(() => {
-      inAir = false;
-      player.classList.add('pushing');
-    }, 330);
-  }, 420);
+  inAir = true;
+  playerVelY = PLAYER_JUMP_VELOCITY;
 }
 
 function doGrind() {
