@@ -1,4 +1,4 @@
-const { LESSONS } = require('../../public/bassline-rookie/src/data/lessons');
+const { LESSONS } = require('../src/data/lessons');
 const {
   createLessonState,
   isLessonUnlocked,
@@ -6,7 +6,7 @@ const {
   recordFretPlacement,
   recordLabelRound,
   recordPracticeAnswer,
-} = require('../../public/bassline-rookie/src/systems/lessonEngine');
+} = require('../src/systems/lessonEngine');
 
 describe('Bassline Rookie lesson engine', () => {
   const labelingLesson = LESSONS[0];

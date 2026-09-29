@@ -1,4 +1,4 @@
-const { searchGlossary } = require('../../public/bassline-rookie/src/data/glossary');
+const { searchGlossary } = require('../src/data/glossary');
 
 describe('Bassline Rookie glossary search', () => {
   test('answers natural questions about riffs', () => {

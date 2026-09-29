@@ -1,7 +1,4 @@
-const {
-  StablePitchTracker,
-  detectPitch,
-} = require('../../public/bassline-rookie/src/core/microphone');
+const { StablePitchTracker, detectPitch } = require('../src/core/microphone');
 
 function synthesizeBassNote(frequency, options = {}) {
   const sampleRate = options.sampleRate || 44100;

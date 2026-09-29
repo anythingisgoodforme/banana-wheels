@@ -11,10 +11,6 @@
 - [ ] Checked the built site's library link and game assets
 - [ ] Updated instructions or the game prompt if behavior, paths, or workflow changed
 
-## One thing to learn or try
-
-<!-- One concept or optional small edit, with its file and expected effect. -->
-
 ## Preview / release
 
 <!-- Local route or available preview. After merge, add the verified Pages URL and deployment result. Do not label a branch as live. -->

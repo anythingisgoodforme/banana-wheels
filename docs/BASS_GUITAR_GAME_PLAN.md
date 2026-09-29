@@ -291,7 +291,7 @@ public/bassline-rookie/
 Suggested tests:
 
 ```text
-tests/bassline-rookie/
+public/bassline-rookie/tests/
   notes.test.js
   timing.test.js
   lessonEngine.test.js

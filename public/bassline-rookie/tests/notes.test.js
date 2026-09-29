@@ -5,7 +5,7 @@ const {
   isCorrectString,
   noteFromFrequency,
   noteNameForFret,
-} = require('../../public/bassline-rookie/src/data/notes');
+} = require('../src/data/notes');
 
 describe('Bassline Rookie notes', () => {
   test('defines standard bass open strings from low to high', () => {

@@ -15,7 +15,10 @@ The library opens at `http://localhost:8000/`. GT is served at `/games/banana-wh
 
 - `games/banana-wheels-gt/`: Banana Wheels GT page, game logic, and styles.
 - `public/`: library page, V2, SCOOT, and Bassline Rookie.
-- `src/` and `tests/`: shared utilities and their tests.
+- `games/banana-wheels-gt/src/` and `games/banana-wheels-gt/tests/`: preserved learning modules and utility tests, separate from the playable GT runtime.
+- `public/bassline-rookie/src/` and `public/bassline-rookie/tests/`: Bassline modules and their tests.
+
+Put tests in the owning game’s `tests/` folder. Jest discovers them in `games/` and `public/`; the site build excludes test folders and JavaScript test/spec files. Coverage includes the GT learning modules and Bassline source, not generated `dist/`.
 
 ## Workflow
 
@@ -39,10 +42,10 @@ gh pr create --fill
 
 Use `feat:`, `fix:`, `docs:`, `refactor:`, or `test:` prefixes. Update the relevant docs when controls, routes, or setup steps change. If `package.json` scripts change, keep the docs aligned.
 
-A commit is a named save point. Pushing backs it up on GitHub. A pull request
-shows exactly what will change and gives checks and another person a chance to
-catch mistakes before the shared game changes. Make small PRs that are easy to
-play and review. Merge a reviewed PR into `main` to trigger Pages, then check
+Keep meaningful commits and pushes at working milestones. For larger features,
+assistants handle PRs as a review and history trail while the learner focuses on
+features and playtesting. Do not require PR lessons or learner review to make
+progress. Keep each PR focused and easy to verify. Merge a reviewed PR into `main` to trigger Pages, then check
 the deployment and live game. A pushed branch is not yet a published game.
 
 Start new games with [the game prompt](docs/NEW_GAME_PROMPT.md). Keep its paths

@@ -2,7 +2,7 @@ const {
   isPulseAnswerCorrect,
   isTimedPulseTarget,
   pulseTimingMessage,
-} = require('../../public/bassline-rookie/src/systems/rhythmAnswers');
+} = require('../src/systems/rhythmAnswers');
 
 describe('Bassline Rookie rhythm answers', () => {
   const beatFourTarget = {
