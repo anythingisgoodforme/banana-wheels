@@ -2,10 +2,10 @@
 
 ## Start the site
 
-Install Node.js and npm, then run these commands from the repository root:
+Follow [Mac setup](docs/MAC_SETUP.md) for Node 24 and npm, then run these commands from the repository root:
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -30,3 +30,7 @@ npm test
 ```
 
 Use `npm run build` to compose the static site in `dist/`. `npm start` builds and serves it; `npm run serve` does the same without opening a browser.
+
+## Make your own game
+
+Copy [the new-game prompt](docs/NEW_GAME_PROMPT.md) and replace the idea with one sentence.
