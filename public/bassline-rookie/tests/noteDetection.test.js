@@ -3,7 +3,7 @@ const {
   compareFrequencyToTarget,
   nearestBassStringForFrequency,
   noteFromFrequency,
-} = require('../../public/bassline-rookie/src/core/noteDetection');
+} = require('../src/core/noteDetection');
 
 function frequencyAtCents(target, cents) {
   return target * Math.pow(2, cents / 1200);

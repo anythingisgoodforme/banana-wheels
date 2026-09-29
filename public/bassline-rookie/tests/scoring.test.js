@@ -1,4 +1,4 @@
-const { boundedScore, percent } = require('../../public/bassline-rookie/src/systems/scoring');
+const { boundedScore, percent } = require('../src/systems/scoring');
 
 describe('Bassline Rookie scoring', () => {
   test('calculates raw percent accuracy', () => {

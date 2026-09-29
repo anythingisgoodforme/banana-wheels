@@ -49,4 +49,4 @@ The beginner bass practice app includes lessons, microphone pitch detection, a t
 | `npm run format:check` | Check formatting                             |
 | `npm test`             | Run Jest tests                               |
 
-Gameplay behavior is best verified in a browser; Jest currently covers shared utilities and Bassline Rookie modules. See [QUICKSTART.md](QUICKSTART.md) to get started and [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
+Gameplay behavior is best verified in a browser; Jest tests GT learning utilities in `games/banana-wheels-gt/tests/` and Bassline Rookie modules in `public/bassline-rookie/tests/`. The preserved GT sample modules (`enemy.js`, `player.js`, `utils.js`) live in `games/banana-wheels-gt/src/`; they are learning material and are not imported by GT’s `game.js`. Test folders and JavaScript test/spec files are excluded from the published build. See [QUICKSTART.md](QUICKSTART.md) to get started and [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.

@@ -59,7 +59,9 @@ Verify this map against the code each time; source files and workflows are autho
 | Automated checks                         | `npm run lint`, `npm run format:check`, `npm test -- --runInBand`, `npm run build` |
 | Deployment configuration                 | `.github/workflows/pages.yml`                                                      |
 
-The build copies `public/` and each immediate `games/` directory containing an `index.html` into `dist/`. Keep new game folders deployable: avoid nested `node_modules`, private files, or server-only code. Do not edit generated `dist/` files. Add a relative library link such as `games/rover/` in `public/index.html`; use relative game assets so they work under the GitHub Pages repository path.
+GT learning samples live in `games/banana-wheels-gt/src/`, with utility tests in `games/banana-wheels-gt/tests/`; the playable GT runtime remains `game.js`. Bassline owns `public/bassline-rookie/src/` and `public/bassline-rookie/tests/`. Keep new tests in their game’s `tests/` folder. Jest searches these folders within `games/` and `public/`, excluding generated output.
+
+The build excludes `tests/`, `__tests__/`, JavaScript test/spec files, and `node_modules/` from publication. The build copies `public/` and each immediate `games/` directory containing an `index.html` into `dist/`. Keep new game folders deployable: avoid nested `node_modules`, private files, or server-only code. Do not edit generated `dist/` files. Add a relative library link such as `games/rover/` in `public/index.html`; use relative game assets so they work under the GitHub Pages repository path.
 
 Before opening the PR, play the built version: start, move, score, fail/win, and restart twice. Check console errors, asset loading, readable instructions, and a narrow window; test touch controls if promised. Add focused automated tests for meaningful logic such as scoring or collision edge cases, not tests that merely repeat the implementation. Record what was actually tested and what remains unverified.
 

@@ -114,7 +114,7 @@ git push origin feature/your-feature
 
 Tests help catch bugs early and document how code should work.
 
-**Test File Location:** `tests/` directory with `.test.js` extension
+**Test File Location:** the owning game’s `tests/` directory with `.test.js` extension, such as `games/banana-wheels-gt/tests/` or `public/bassline-rookie/tests/`. These folders are excluded from the published site.
 
 **Example Test:**
 

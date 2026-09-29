@@ -1,8 +1,4 @@
-const {
-  beatDurationMs,
-  nearestBeatOffsetMs,
-  timingWindow,
-} = require('../../public/bassline-rookie/src/core/timing');
+const { beatDurationMs, nearestBeatOffsetMs, timingWindow } = require('../src/core/timing');
 
 describe('Bassline Rookie timing', () => {
   test('converts bpm to beat duration', () => {

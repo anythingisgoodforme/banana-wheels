@@ -452,8 +452,8 @@ Version 2 sends audio and should require stronger privacy copy before use. Do no
 
 Preserve current tests:
 
-- `tests/bassline-rookie/microphone.test.js`
-- `tests/bassline-rookie/notes.test.js`
+- `public/bassline-rookie/tests/microphone.test.js`
+- `public/bassline-rookie/tests/notes.test.js`
 
 Add tests for:
 

@@ -52,6 +52,12 @@ Avoid ceremonial teams and repeated full-repo reviews. Never invent experience.
   formatting checks and distinguish baseline failures from regressions.
 - Playtest affected controls, lose/restart, and browser console. For new routes,
   test the built site with the GitHub Pages `/banana-wheels/` prefix too.
+- Keep source and tests owned by their game: GT learning samples in
+  `games/banana-wheels-gt/src/` and `tests/`; Bassline source and tests in
+  `public/bassline-rookie/src/` and `tests/`. GT samples are not its runtime.
+  Jest discovers game-owned `tests/` folders in `games/` and `public/`.
+- `scripts/build-site.js` excludes `tests/`, `__tests__/`, test/spec JavaScript,
+  and `node_modules/` from publication. Keep that boundary when adding tests.
 - `scripts/build-site.js` composes `public/` and games with `index.html` into
   `dist/`. Add a library card in `public/index.html`; use relative asset links.
 - Keep `docs/NEW_GAME_PROMPT.md`, setup docs, and README accurate in the same

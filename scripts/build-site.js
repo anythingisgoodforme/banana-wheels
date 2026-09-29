@@ -5,9 +5,17 @@ const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'dist');
 const games = path.join(root, 'games');
 
+// Tests belong beside their game, but never in the published site.
+const copyOptions = {
+  recursive: true,
+  filter: (source) =>
+    !['tests', '__tests__', 'node_modules'].includes(path.basename(source)) &&
+    !/\.(test|spec)\.[cm]?js$/.test(source),
+};
+
 fs.rmSync(output, { recursive: true, force: true });
 fs.mkdirSync(output, { recursive: true });
-fs.cpSync(path.join(root, 'public'), output, { recursive: true });
+fs.cpSync(path.join(root, 'public'), output, copyOptions);
 fs.mkdirSync(path.join(output, 'games'), { recursive: true });
 
 for (const entry of fs.readdirSync(games, { withFileTypes: true })) {
@@ -16,7 +24,7 @@ for (const entry of fs.readdirSync(games, { withFileTypes: true })) {
   const gameSource = path.join(games, entry.name);
   if (!fs.existsSync(path.join(gameSource, 'index.html'))) continue;
 
-  fs.cpSync(gameSource, path.join(output, 'games', entry.name), { recursive: true });
+  fs.cpSync(gameSource, path.join(output, 'games', entry.name), copyOptions);
 }
 
 console.log('Built static site in dist/.');

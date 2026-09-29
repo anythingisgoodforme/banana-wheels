@@ -15,7 +15,10 @@ The library opens at `http://localhost:8000/`. GT is served at `/games/banana-wh
 
 - `games/banana-wheels-gt/`: Banana Wheels GT page, game logic, and styles.
 - `public/`: library page, V2, SCOOT, and Bassline Rookie.
-- `src/` and `tests/`: shared utilities and their tests.
+- `games/banana-wheels-gt/src/` and `games/banana-wheels-gt/tests/`: preserved learning modules and utility tests, separate from the playable GT runtime.
+- `public/bassline-rookie/src/` and `public/bassline-rookie/tests/`: Bassline modules and their tests.
+
+Put tests in the owning game’s `tests/` folder. Jest discovers them in `games/` and `public/`; the site build excludes test folders and JavaScript test/spec files. Coverage includes the GT learning modules and Bassline source, not generated `dist/`.
 
 ## Workflow
 

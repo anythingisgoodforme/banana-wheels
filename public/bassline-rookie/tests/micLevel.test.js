@@ -1,4 +1,4 @@
-const { measureRms } = require('../../public/bassline-rookie/src/core/microphone');
+const { measureRms } = require('../src/core/microphone');
 
 describe('Bassline Rookie raw mic level', () => {
   test('returns zero for silence', () => {
