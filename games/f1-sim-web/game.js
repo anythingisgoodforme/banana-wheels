@@ -1,14 +1,14 @@
-import { createInput } from "./input.js";
-import { createPlayer, resetPlayer } from "./player.js";
-import { updatePlayer, getTrackRelativeState } from "./physics.js";
-import { renderFrame } from "./renderer.js";
-import { createTrack } from "./track.js";
+import { createInput } from './input.js';
+import { createPlayer, resetPlayer } from './player.js';
+import { updatePlayer, getTrackRelativeState } from './physics.js';
+import { renderFrame } from './renderer.js';
+import { createTrack } from './track.js';
 
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const speedValue = document.getElementById("speedValue");
-const progressValue = document.getElementById("progressValue");
-const pauseOverlay = document.getElementById("pauseOverlay");
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const speedValue = document.getElementById('speedValue');
+const progressValue = document.getElementById('progressValue');
+const pauseOverlay = document.getElementById('pauseOverlay');
 
 const track = createTrack(18);
 const player = createPlayer(track);
@@ -31,7 +31,13 @@ function setupCanvas() {
   const maxHeight = 700;
   const viewportWidth = Math.max(320, Math.floor(window.innerWidth * 0.96));
   const viewportHeight = Math.max(240, Math.floor(window.innerHeight * 0.92));
-  const scale = Math.min(maxWidth / 1200, maxHeight / 700, viewportWidth / 1200, viewportHeight / 700, 1);
+  const scale = Math.min(
+    maxWidth / 1200,
+    maxHeight / 700,
+    viewportWidth / 1200,
+    viewportHeight / 700,
+    1
+  );
   const width = Math.max(320, Math.floor(1200 * scale));
   const height = Math.max(180, Math.floor(width / aspect));
 
@@ -57,8 +63,7 @@ function computeRoadState() {
   const headingA = Math.atan2(lookA.y, lookA.x);
   const headingB = Math.atan2(lookB.y, lookB.x);
   const headingNow = Math.atan2(current.y, current.x);
-  const turnLookahead =
-    (wrapAngle(headingA - headingNow) + wrapAngle(headingB - headingA)) * 0.5;
+  const turnLookahead = (wrapAngle(headingA - headingNow) + wrapAngle(headingB - headingA)) * 0.5;
   const safeLateral = Number.isFinite(trackState.lateralOffset) ? trackState.lateralOffset : 0;
   const safeTurn = Number.isFinite(turnLookahead) ? turnLookahead : 0;
 
@@ -71,7 +76,7 @@ function computeRoadState() {
 
 function setPaused(nextPaused) {
   paused = nextPaused;
-  pauseOverlay.classList.toggle("hidden", !paused);
+  pauseOverlay.classList.toggle('hidden', !paused);
 }
 
 function tick(now) {
@@ -103,8 +108,8 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-window.addEventListener("resize", setupCanvas);
-window.addEventListener("beforeunload", () => input.destroy());
+window.addEventListener('resize', setupCanvas);
+window.addEventListener('beforeunload', () => input.destroy());
 
 setupCanvas();
 requestAnimationFrame((t) => {

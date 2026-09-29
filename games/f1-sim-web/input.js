@@ -3,7 +3,7 @@ export function createInput() {
   let pausedToggle = false;
 
   const onKeyDown = (event) => {
-    if (event.code.startsWith("Arrow") || event.code === "Space" || event.code === "Escape") {
+    if (event.code.startsWith('Arrow') || event.code === 'Space' || event.code === 'Escape') {
       event.preventDefault();
     }
     keys.add(event.code);
@@ -13,30 +13,30 @@ export function createInput() {
     keys.delete(event.code);
   };
 
-  window.addEventListener("keydown", onKeyDown);
-  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
 
   return {
     get throttle() {
-      return keys.has("ArrowUp") ? 1 : 0;
+      return keys.has('ArrowUp') ? 1 : 0;
     },
     get brake() {
-      return keys.has("ArrowDown") ? 1 : 0;
+      return keys.has('ArrowDown') ? 1 : 0;
     },
     get steerTarget() {
-      const left = keys.has("ArrowLeft") ? -1 : 0;
-      const right = keys.has("ArrowRight") ? 1 : 0;
+      const left = keys.has('ArrowLeft') ? -1 : 0;
+      const right = keys.has('ArrowRight') ? 1 : 0;
       return left + right;
     },
     consumeReset() {
-      if (keys.has("Space")) {
-        keys.delete("Space");
+      if (keys.has('Space')) {
+        keys.delete('Space');
         return true;
       }
       return false;
     },
     consumePauseToggle() {
-      const pressed = keys.has("Escape");
+      const pressed = keys.has('Escape');
       if (pressed && !pausedToggle) {
         pausedToggle = true;
         return true;
@@ -47,8 +47,8 @@ export function createInput() {
       return false;
     },
     destroy() {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
     },
   };
 }

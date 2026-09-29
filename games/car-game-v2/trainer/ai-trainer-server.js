@@ -1,24 +1,24 @@
 #!/usr/bin/env node
-"use strict";
+'use strict';
 
-const fs = require("fs");
-const http = require("http");
-const os = require("os");
-const path = require("path");
-const { spawn } = require("child_process");
+const fs = require('fs');
+const http = require('http');
+const os = require('os');
+const path = require('path');
+const { spawn } = require('child_process');
 
 const PORT = Number(process.env.AI_TRAINER_PORT || 4191);
 const TRAIN_MS = Number(process.env.AI_TRAIN_MS || 2 * 60 * 60 * 1000);
-const AUTO_START = process.env.AI_AUTO_START === "1";
-const EMAIL_TO = process.env.AI_NOTIFY_EMAIL || "matteo.t.s.samuel@gmail.com";
-const OUT_DIR = path.join(__dirname, "out");
-const POLICY_FILE = path.join(OUT_DIR, "banana-ai-policy.json");
-const DRIVER_POLICY_FILE = path.join(OUT_DIR, "banana-ai-driver.json");
-const NOTICE_FILE = path.join(OUT_DIR, "training-finished-notice.txt");
-const PROGRESS_FILE = path.join(OUT_DIR, "training-progress.json");
-const ERROR_FILE = path.join(OUT_DIR, "training-error.txt");
+const AUTO_START = process.env.AI_AUTO_START === '1';
+const EMAIL_TO = process.env.AI_NOTIFY_EMAIL || 'matteo.t.s.samuel@gmail.com';
+const OUT_DIR = path.join(__dirname, 'out');
+const POLICY_FILE = path.join(OUT_DIR, 'banana-ai-policy.json');
+const DRIVER_POLICY_FILE = path.join(OUT_DIR, 'banana-ai-driver.json');
+const NOTICE_FILE = path.join(OUT_DIR, 'training-finished-notice.txt');
+const PROGRESS_FILE = path.join(OUT_DIR, 'training-progress.json');
+const ERROR_FILE = path.join(OUT_DIR, 'training-error.txt');
 
-const actions = ["left", "stay", "right"];
+const actions = ['left', 'stay', 'right'];
 const q = new Map();
 const state = {
   running: false,
@@ -30,7 +30,7 @@ const state = {
   epsilon: 0.28,
   timer: null,
   endTimer: null,
-  emailStatus: "not-sent",
+  emailStatus: 'not-sent',
   progressTimer: null,
   driverPolicy: {
     version: 1,
@@ -49,8 +49,8 @@ const state = {
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 function keyFor(sim) {
-  const obstacleLane = sim.obstacleLane === null ? "none" : sim.obstacleLane;
-  const bananaLane = sim.bananaLane === null ? "none" : sim.bananaLane;
+  const obstacleLane = sim.obstacleLane === null ? 'none' : sim.obstacleLane;
+  const bananaLane = sim.bananaLane === null ? 'none' : sim.bananaLane;
   return `${sim.lane}|${obstacleLane}|${bananaLane}|${sim.cargo}`;
 }
 
@@ -86,8 +86,8 @@ function trainEpisode() {
     const oldKey = keyFor(sim);
     const actionIndex = chooseAction(oldKey);
     const action = actions[actionIndex];
-    if (action === "left") sim.lane = Math.max(0, sim.lane - 1);
-    if (action === "right") sim.lane = Math.min(4, sim.lane + 1);
+    if (action === 'left') sim.lane = Math.max(0, sim.lane - 1);
+    if (action === 'right') sim.lane = Math.min(4, sim.lane + 1);
 
     let reward = 1;
     if (sim.lane === sim.obstacleLane) reward -= 180;
@@ -127,7 +127,7 @@ function startTraining() {
   state.finished = false;
   state.startedAt = new Date().toISOString();
   state.finishedAt = null;
-  state.emailStatus = "not-sent";
+  state.emailStatus = 'not-sent';
   state.timer = setInterval(tick, 25);
   state.progressTimer = setInterval(saveProgress, 5000);
   state.endTimer = setTimeout(finishTraining, TRAIN_MS);
@@ -146,9 +146,9 @@ function finishTraining() {
   savePolicy();
   saveDriverPolicy();
   saveProgress();
-  writeNotice("finished");
+  writeNotice('finished');
   sendFinishedEmail();
-  if (process.env.AI_EXIT_ON_FINISH === "1") {
+  if (process.env.AI_EXIT_ON_FINISH === '1') {
     setTimeout(() => process.exit(0), 1000);
   }
 }
@@ -216,30 +216,24 @@ function writeNotice(reason) {
 }
 
 function sendFinishedEmail() {
-  const subject = "Banana Drive AI training finished";
-  const body = "The AI has finished.";
-  const sendmail = spawn("sendmail", ["-t"]);
+  const subject = 'Banana Drive AI training finished';
+  const body = 'The AI has finished.';
+  const sendmail = spawn('sendmail', ['-t']);
   let failed = false;
 
-  sendmail.on("error", () => {
+  sendmail.on('error', () => {
     failed = true;
-    state.emailStatus = "sendmail-not-available";
-    writeNotice("finished, but email could not be sent");
+    state.emailStatus = 'sendmail-not-available';
+    writeNotice('finished, but email could not be sent');
   });
 
-  sendmail.on("close", (code) => {
+  sendmail.on('close', (code) => {
     if (failed) return;
-    state.emailStatus = code === 0 ? "sent-with-sendmail" : `sendmail-exit-${code}`;
-    writeNotice(code === 0 ? "finished and email sent" : "finished, but email failed");
+    state.emailStatus = code === 0 ? 'sent-with-sendmail' : `sendmail-exit-${code}`;
+    writeNotice(code === 0 ? 'finished and email sent' : 'finished, but email failed');
   });
 
-  sendmail.stdin.end([
-    `To: ${EMAIL_TO}`,
-    `Subject: ${subject}`,
-    "",
-    body,
-    "",
-  ].join(os.EOL));
+  sendmail.stdin.end([`To: ${EMAIL_TO}`, `Subject: ${subject}`, '', body, ''].join(os.EOL));
 }
 
 function publicStatus() {
@@ -261,39 +255,42 @@ function publicStatus() {
   };
 }
 
-process.on("uncaughtException", (error) => {
+process.on('uncaughtException', (error) => {
   fs.writeFileSync(ERROR_FILE, `${new Date().toISOString()}\n${error.stack || error.message}\n`);
   process.exit(1);
 });
 
-process.on("unhandledRejection", (error) => {
-  fs.writeFileSync(ERROR_FILE, `${new Date().toISOString()}\n${error && error.stack ? error.stack : error}\n`);
+process.on('unhandledRejection', (error) => {
+  fs.writeFileSync(
+    ERROR_FILE,
+    `${new Date().toISOString()}\n${error && error.stack ? error.stack : error}\n`
+  );
   process.exit(1);
 });
 
 const server = http.createServer((req, res) => {
-  if (req.url === "/start") {
+  if (req.url === '/start') {
     startTraining();
     return json(res, publicStatus());
   }
-  if (req.url === "/finish-now") {
+  if (req.url === '/finish-now') {
     finishTraining();
     return json(res, publicStatus());
   }
-  if (req.url === "/status" || req.url === "/") {
+  if (req.url === '/status' || req.url === '/') {
     return json(res, publicStatus());
   }
-  res.writeHead(404, { "Content-Type": "text/plain" });
-  res.end("Not found");
+  res.writeHead(404, { 'Content-Type': 'text/plain' });
+  res.end('Not found');
 });
 
 function json(res, value) {
-  res.writeHead(200, { "Content-Type": "application/json" });
+  res.writeHead(200, { 'Content-Type': 'application/json' });
   res.end(`${JSON.stringify(value, null, 2)}\n`);
 }
 
-server.listen(PORT, "127.0.0.1", () => {
+server.listen(PORT, '127.0.0.1', () => {
   console.log(`AI trainer server listening on http://127.0.0.1:${PORT}`);
-  console.log("Open /start to begin training.");
+  console.log('Open /start to begin training.');
   if (AUTO_START) startTraining();
 });

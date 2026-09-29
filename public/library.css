@@ -17,7 +17,7 @@ body {
   min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Avenir Next", Avenir, sans-serif;
+  font-family: 'Avenir Next', Avenir, sans-serif;
 }
 
 .library {
@@ -47,7 +47,7 @@ p {
 
 h1 {
   margin-bottom: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 3.75rem;
   font-weight: 700;
   line-height: 1.05;
@@ -89,7 +89,7 @@ h2 {
 
 .library-list a::after {
   color: var(--accent);
-  content: "->";
+  content: '->';
   font-weight: 700;
 }
 
