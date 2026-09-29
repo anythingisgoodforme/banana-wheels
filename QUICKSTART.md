@@ -1,46 +1,27 @@
 # Quick Start
 
-## 1. Install Node.js
+## Start the site
 
-Check that Node.js and npm are available:
-
-```bash
-node --version
-npm --version
-```
-
-## 2. Install dependencies
-
-From the repo root:
+Install Node.js and npm, then run these commands from the repository root:
 
 ```bash
 npm install
-```
-
-## 3. Start the local game server
-
-```bash
 npm run dev
 ```
 
-This serves the game at `http://localhost:8000`.
+Open `http://localhost:8000/`. The library links to GT, V2, SCOOT, and Bassline Rookie.
 
-## 4. Edit the right files
+## Work on Banana Wheels GT
 
-The current playable prototype lives in `public/`.
+The GT source is in `games/banana-wheels-gt/`:
 
-- `public/game.js`: first-person gameplay loop, controls, drawing, sound
-- `public/index.html`: HUD labels and page structure
-- `public/styles.css`: page styling
+- `index.html`: page structure and controls
+- `game.js`: gameplay, rendering, and audio
+- `styles.css`: game page styling
 
-## 5. Play the current build
+Controls: `A`/`D` or arrow keys change lanes, `Space` starts or triggers the spring, and `R` restarts.
 
-- `A/D` or arrow keys: steer
-- `Space`: start the run
-- `Space` again: trigger the spring when the pad flashes
-- `R`: reset the round
-
-## 6. Validate changes
+## Check your changes
 
 ```bash
 npm run lint
@@ -48,13 +29,4 @@ npm run format:check
 npm test
 ```
 
-## Common commands
-
-```bash
-npm run dev
-npm start
-npm run serve
-npm run lint:fix
-npm run format
-npm test
-```
+Use `npm run build` to compose the static site in `dist/`. `npm start` builds and serves it; `npm run serve` does the same without opening a browser.

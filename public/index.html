@@ -3,74 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🎮 Banana Wheels - Game</title>
-    <link rel="stylesheet" href="styles.css" />
+    <meta name="theme-color" content="#19372d" />
+    <title>Banana Wheels Arcade</title>
+    <link rel="stylesheet" href="library.css" />
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>Banana Wheels GT</h1>
-        <p>Arcade jungle sprint. Read the open lane, flick the car through the gap, and survive the monkey traffic.</p>
+    <main class="library">
+      <header class="masthead">
+        <p class="eyebrow">Games and practice tools</p>
+        <h1>Banana Wheels Arcade</h1>
       </header>
 
-      <section class="library-strip" aria-label="Game library">
-        <a class="library-card active" href="index.html">
-          <span>Banana Wheels GT</span>
-          <small>Classic cockpit sprint</small>
-        </a>
-        <a class="library-card" href="v2/">
-          <span>Banana Wheels V2</span>
-          <small>Jungle Rush upgrades</small>
-        </a>
-        <a class="library-card" href="scoot/">
-          <span>SCOOT</span>
-          <small>Street trick runner</small>
-        </a>
-        <a class="library-card" href="bassline-rookie/">
-          <span>Bassline Rookie</span>
-          <small>Beginner bass coach</small>
-        </a>
+      <section aria-labelledby="games-heading">
+        <h2 id="games-heading">Play</h2>
+        <ul class="library-list">
+          <li>
+            <a href="games/banana-wheels-gt/">
+              <span class="item-title">Banana Wheels GT</span>
+              <span class="item-detail">First-person jungle sprint</span>
+            </a>
+          </li>
+          <li>
+            <a href="v2/">
+              <span class="item-title">Banana Wheels V2</span>
+              <span class="item-detail">Jungle Rush</span>
+            </a>
+          </li>
+          <li>
+            <a href="scoot/">
+              <span class="item-title">SCOOT</span>
+              <span class="item-detail">Street trick runner</span>
+            </a>
+          </li>
+        </ul>
       </section>
 
-      <main>
-        <div class="game-section">
-          <div class="game-panel" id="gamePanel">
-            <button
-              id="fullscreenButton"
-              class="fullscreen-button"
-              type="button"
-              aria-label="Toggle fullscreen"
-            >
-              Full Screen
-            </button>
-            <canvas id="gameCanvas" width="1000" height="850"></canvas>
-          </div>
-          <div class="info">
-            <div class="controls">
-              <h3>Controls</h3>
-              <p><strong>Arrow Keys / A D:</strong> Flick between the three lanes</p>
-              <p><strong>Space:</strong> Start the run and trigger the spring at the right moment</p>
-              <p><strong>R:</strong> Reset the whole run</p>
-            </div>
-            <div class="stats">
-              <h3>Run Stats</h3>
-              <p>Time: <span id="score">0</span>s</p>
-              <p>Lives: <span id="lives">3</span></p>
-              <p>Phase: <span id="level">Ready</span></p>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <footer>
-        <p>
-          Built with ❤️ using JavaScript | Read
-          <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for best practices
-        </p>
-      </footer>
-    </div>
-
-    <!-- Game script -->
-    <script src="game.js"></script>
+      <section aria-labelledby="tools-heading">
+        <h2 id="tools-heading">Practice</h2>
+        <ul class="library-list">
+          <li>
+            <a href="bassline-rookie/">
+              <span class="item-title">Bassline Rookie</span>
+              <span class="item-detail">Beginner bass lessons and tuner</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+    </main>
   </body>
 </html>

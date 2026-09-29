@@ -7,29 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- Initial game development project setup
-- GitHub Actions CI/CD workflows
-- ESLint and Prettier configuration
-- Jest testing setup
-- Comprehensive documentation
-
 ### Changed
 
-- Project structure for best practices
+- Moved Banana Wheels GT into `games/banana-wheels-gt/`.
+- Added a game library home page and composed static-site build.
+- Updated development, release, and Pages routes for the new location.
 
-### Fixed
+### Documentation
 
-- N/A
+- Replaced outdated setup instructions and corrected game source paths.
 
 ## [1.0.0] - 2026-04-30
 
 ### Added
 
 - Initial project setup
-- Banana Wheels starter game
-- Complete documentation (README, CONTRIBUTING, BEST_PRACTICES)
+- First-person Banana Wheels GT browser game
+- Project setup documentation
 - GitHub Actions workflows (CI and Publishing)
 - Code quality tools (ESLint, Prettier)
 - Testing framework (Jest)
@@ -38,14 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
-- Player movement (left/right with arrow keys)
-- Jumping mechanic
-- Collision detection
-- Obstacle spawning
-- Score tracking
-- Level progression
-- Game pause functionality
-- Visual game UI
+- Three-lane driving with keyboard controls
+- Monkey traffic, damage, lives, and spring-pad objective
+- Canvas rendering and generated Web Audio effects
 
 ---
 

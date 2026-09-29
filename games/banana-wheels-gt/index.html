@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 Banana Wheels - Game</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Banana Wheels GT</h1>
+        <p>Arcade jungle sprint. Read the open lane, flick the car through the gap, and survive the monkey traffic.</p>
+      </header>
+
+      <section class="library-strip" aria-label="Game library">
+        <a class="library-card active" href="./">
+          <span>Banana Wheels GT</span>
+          <small>Classic cockpit sprint</small>
+        </a>
+        <a class="library-card" href="../../v2/">
+          <span>Banana Wheels V2</span>
+          <small>Jungle Rush upgrades</small>
+        </a>
+        <a class="library-card" href="../../scoot/">
+          <span>SCOOT</span>
+          <small>Street trick runner</small>
+        </a>
+        <a class="library-card" href="../../bassline-rookie/">
+          <span>Bassline Rookie</span>
+          <small>Beginner bass coach</small>
+        </a>
+      </section>
+
+      <main>
+        <div class="game-section">
+          <div class="game-panel" id="gamePanel">
+            <button
+              id="fullscreenButton"
+              class="fullscreen-button"
+              type="button"
+              aria-label="Toggle fullscreen"
+            >
+              Full Screen
+            </button>
+            <canvas id="gameCanvas" width="1000" height="850"></canvas>
+          </div>
+          <div class="info">
+            <div class="controls">
+              <h3>Controls</h3>
+              <p><strong>Arrow Keys / A D:</strong> Flick between the three lanes</p>
+              <p><strong>Space:</strong> Start the run and trigger the spring at the right moment</p>
+              <p><strong>R:</strong> Reset the whole run</p>
+            </div>
+            <div class="stats">
+              <h3>Run Stats</h3>
+              <p>Time: <span id="score">0</span>s</p>
+              <p>Lives: <span id="lives">3</span></p>
+              <p>Phase: <span id="level">Ready</span></p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>
+          Built with ❤️ using JavaScript | Read
+          <a href="https://github.com/anythingisgoodforme/banana-wheels/blob/main/CONTRIBUTING.md">contributing</a>
+        </p>
+      </footer>
+    </div>
+
+    <!-- Game script -->
+    <script src="game.js"></script>
+  </body>
+</html>

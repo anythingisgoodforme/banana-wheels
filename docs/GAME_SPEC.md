@@ -16,9 +16,9 @@ Banana Wheels GT is a first-person arcade lane-driving game. The player drives t
 - Vanilla HTML, CSS, and JavaScript.
 - Canvas-rendered game scene.
 - No build step required.
-- Current entry point: `public/index.html`.
-- Current game file: `public/game.js`.
-- Current styles: `public/styles.css`.
+- Current entry point: `games/banana-wheels-gt/index.html`.
+- Current game file: `games/banana-wheels-gt/game.js`.
+- Current styles: `games/banana-wheels-gt/styles.css`.
 
 ### Controls
 

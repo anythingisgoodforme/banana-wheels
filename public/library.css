@@ -1,0 +1,142 @@
+:root {
+  color-scheme: light;
+  --ink: #19372d;
+  --muted: #586a5e;
+  --paper: #f2f5ed;
+  --line: #cbd5c9;
+  --accent: #d45237;
+  --highlight: #e8c34b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Avenir Next", Avenir, sans-serif;
+}
+
+.library {
+  width: min(100% - 40px, 820px);
+  margin: 0 auto;
+  padding: 64px 0 80px;
+}
+
+.masthead {
+  padding: 0 0 28px;
+  border-bottom: 4px solid var(--ink);
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3.75rem;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+section {
+  margin-top: 34px;
+}
+
+h2 {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.library-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.library-list li {
+  border-bottom: 1px solid var(--line);
+}
+
+.library-list a {
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.library-list a::after {
+  color: var(--accent);
+  content: "->";
+  font-weight: 700;
+}
+
+.library-list a:hover .item-title,
+.library-list a:focus-visible .item-title {
+  text-decoration: underline;
+  text-decoration-color: var(--highlight);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+
+.library-list a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.item-detail {
+  color: var(--muted);
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .library {
+    width: min(100% - 32px, 820px);
+    padding-top: 40px;
+  }
+
+  .library-list a {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+  }
+
+  .library-list a::after {
+    display: none;
+  }
+
+  .item-detail {
+    text-align: left;
+  }
+}

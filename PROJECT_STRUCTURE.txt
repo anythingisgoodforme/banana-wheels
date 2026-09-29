@@ -2,22 +2,28 @@ Banana Wheels Project Structure
 ==============================
 
 banana-wheels/
+|-- games/
+|   `-- banana-wheels-gt/  # GT page, game runtime, and styles
 |-- public/
-|   |-- index.html      # Main page and HUD markup
-|   |-- styles.css      # Layout and visual styling
-|   |-- game.js         # Current first-person game runtime
-|   `-- assets/         # Optional images/audio if added later
-|-- src/                # Optional shared modules and examples
-|-- tests/              # Jest tests for reusable code
-|-- README.md           # Project overview and scripts
-|-- QUICKSTART.md       # Fast setup guide
-|-- CONTRIBUTING.md     # Development workflow
-|-- package.json        # Scripts and dependencies
-`-- jest.config.js      # Test configuration
+|   |-- index.html         # Game library home
+|   |-- library.css        # Library styling
+|   |-- v2/                # Banana Wheels V2
+|   |-- scoot/             # SCOOT game
+|   `-- bassline-rookie/   # Bass practice app
+|-- scripts/
+|   `-- build-site.js      # Compose public/ and GT into dist/
+|-- src/                   # Shared utilities and examples
+|-- tests/                 # Jest tests
+|-- docs/                  # Game specs and project notes
+|-- README.md              # Project overview and commands
+|-- QUICKSTART.md          # Setup and GT entry points
+|-- CONTRIBUTING.md        # Development workflow
+|-- package.json           # Scripts and dependencies
+`-- jest.config.js         # Test configuration
 
 Primary workflow
 ----------------
 1. Run `npm install` once.
-2. Run `npm run dev` to serve the game on port 8000.
-3. Edit `public/game.js` for gameplay changes.
+2. Run `npm run dev` to serve the library and mounted GT game on port 8000.
+3. Edit files in `games/banana-wheels-gt/` for GT changes.
 4. Run `npm run lint`, `npm run format:check`, and `npm test` before pushing.

@@ -43,7 +43,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: public/**/*
+          files: dist/**/*
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -94,7 +94,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'public'
+          path: 'dist'
       
       - name: Deploy to GitHub Pages
         id: deployment

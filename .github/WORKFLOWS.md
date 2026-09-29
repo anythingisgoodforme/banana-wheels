@@ -108,7 +108,7 @@ Creates an official GitHub release:
 
 #### 2. **Deploy Pages Job**
 Publishes your game to GitHub Pages:
-- Takes publishing files from `public/`
+- Publishes the composed `dist/` site, built from `public/` and `games/banana-wheels-gt/`
 - Deploys to yourname.github.io/repo-name
 - Makes game playable online
 
