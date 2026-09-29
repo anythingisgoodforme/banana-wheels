@@ -1,4 +1,4 @@
-import { findClosestPoint } from "./track.js";
+import { findClosestPoint } from './track.js';
 
 function wrapAngle(angle) {
   let a = angle;

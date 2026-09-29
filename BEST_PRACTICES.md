@@ -224,7 +224,12 @@ this.obstacles = this.obstacles.filter((obs) => !obs.isOffScreen());
 
 ### GitHub Pages Deployment
 
-Your game is automatically deployed when you create a release:
+Merge a reviewed pull request into `main` to deploy the game library. The Pages
+workflow builds and uploads `dist/`, including standalone games under `games/`.
+Verify the deployment URL and play the game before calling it live. See
+[the workflow guide](.github/WORKFLOWS.md) for checks and troubleshooting.
+
+A release tag creates a downloadable release without changing the live site:
 
 ```bash
 # 1. Create a tag
@@ -235,7 +240,6 @@ git push origin v1.0.0
 
 # 3. GitHub Actions automatically:
 #    - Runs all tests
-#    - Deploys to GitHub Pages
 #    - Creates a release
 ```
 

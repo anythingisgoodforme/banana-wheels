@@ -1,31 +1,31 @@
 (function () {
-  const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
   const input = window.CarGameInput;
 
   const ui = {
-    score: document.getElementById("scoreValue"),
-    combo: document.getElementById("comboValue"),
-    best: document.getElementById("bestValue"),
-    bananas: document.getElementById("bananaValue"),
-    money: document.getElementById("moneyValue"),
-    driver: document.getElementById("driverValue"),
-    practice: document.getElementById("practiceValue"),
-    boost: document.getElementById("boostFill"),
-    panel: document.getElementById("messagePanel"),
-    start: document.getElementById("startButton"),
-    aiButton: document.getElementById("aiButton"),
-    aiWarning: document.getElementById("aiWarning"),
-    turboUpgrade: document.getElementById("turboUpgradeButton"),
-    turboUpgradeValue: document.getElementById("turboUpgradeValue"),
-    magnetUpgrade: document.getElementById("magnetUpgradeButton"),
-    magnetUpgradeValue: document.getElementById("magnetUpgradeValue"),
+    score: document.getElementById('scoreValue'),
+    combo: document.getElementById('comboValue'),
+    best: document.getElementById('bestValue'),
+    bananas: document.getElementById('bananaValue'),
+    money: document.getElementById('moneyValue'),
+    driver: document.getElementById('driverValue'),
+    practice: document.getElementById('practiceValue'),
+    boost: document.getElementById('boostFill'),
+    panel: document.getElementById('messagePanel'),
+    start: document.getElementById('startButton'),
+    aiButton: document.getElementById('aiButton'),
+    aiWarning: document.getElementById('aiWarning'),
+    turboUpgrade: document.getElementById('turboUpgradeButton'),
+    turboUpgradeValue: document.getElementById('turboUpgradeValue'),
+    magnetUpgrade: document.getElementById('magnetUpgradeButton'),
+    magnetUpgradeValue: document.getElementById('magnetUpgradeValue'),
   };
 
   const assets = {
-    truck: loadImage("assets/pickup-truck.svg"),
-    trafficCar: loadImage("assets/traffic-car.svg"),
-    banana: loadImage("assets/banana.svg"),
+    truck: loadImage('assets/pickup-truck.svg'),
+    trafficCar: loadImage('assets/traffic-car.svg'),
+    banana: loadImage('assets/banana.svg'),
   };
 
   const laneCount = 5;
@@ -58,7 +58,7 @@
   };
 
   const state = {
-    mode: "menu",
+    mode: 'menu',
     time: 0,
     lastTraffic: 0,
     lastPickup: 0,
@@ -107,7 +107,7 @@
     songIndex: 0,
     songs: [
       {
-        name: "Build Up",
+        name: 'Build Up',
         beatMs: 240,
         length: 16,
         bass: [73.42, 73.42, 98, 110, 123.47, 146.83, 164.81, 196],
@@ -115,7 +115,7 @@
         party: false,
       },
       {
-        name: "Banana Party",
+        name: 'Banana Party',
         beatMs: 190,
         length: 32,
         bass: [110, 110, 146.83, 110, 164.81, 146.83, 98, 98],
@@ -123,7 +123,7 @@
         party: true,
       },
       {
-        name: "Turbo Street",
+        name: 'Turbo Street',
         beatMs: 175,
         length: 32,
         bass: [130.81, 130.81, 174.61, 196, 220, 196, 174.61, 146.83],
@@ -131,7 +131,7 @@
         party: true,
       },
       {
-        name: "Night Drive",
+        name: 'Night Drive',
         beatMs: 215,
         length: 32,
         bass: [98, 123.47, 146.83, 123.47, 87.31, 110, 130.81, 110],
@@ -151,7 +151,7 @@
 
   function readBestScore() {
     try {
-      return Number(localStorage.getItem("car-game-v2-best") || 0);
+      return Number(localStorage.getItem('car-game-v2-best') || 0);
     } catch (error) {
       return 0;
     }
@@ -159,7 +159,7 @@
 
   function saveBestScore(score) {
     try {
-      localStorage.setItem("car-game-v2-best", String(score));
+      localStorage.setItem('car-game-v2-best', String(score));
     } catch (error) {
       // Best score persistence is optional when the game is opened from file URLs.
     }
@@ -167,7 +167,7 @@
 
   function readAiPracticeSeconds() {
     try {
-      return Number(localStorage.getItem("car-game-v2-ai-practice-seconds") || 0);
+      return Number(localStorage.getItem('car-game-v2-ai-practice-seconds') || 0);
     } catch (error) {
       return 0;
     }
@@ -175,7 +175,10 @@
 
   function saveAiPracticeSeconds() {
     try {
-      localStorage.setItem("car-game-v2-ai-practice-seconds", String(Math.floor(state.aiPracticeSeconds)));
+      localStorage.setItem(
+        'car-game-v2-ai-practice-seconds',
+        String(Math.floor(state.aiPracticeSeconds))
+      );
     } catch (error) {
       // AI practice can still work for this run if browser storage is unavailable.
     }
@@ -196,7 +199,7 @@
   }
 
   function resetGame() {
-    state.mode = "playing";
+    state.mode = 'playing';
     state.time = 0;
     state.lastTraffic = 0;
     state.lastPickup = 0;
@@ -231,32 +234,32 @@
     state.particles = [];
     state.player = createPlayer();
     shopZone.worldY = state.player.worldY + 520;
-    ui.panel.classList.add("hidden");
+    ui.panel.classList.add('hidden');
     startMusic();
     updateHud();
   }
 
   function pauseGame() {
-    if (state.mode === "playing") {
-      state.mode = "paused";
+    if (state.mode === 'playing') {
+      state.mode = 'paused';
       stopMusic();
-      ui.panel.querySelector("h1").textContent = "Paused";
-      ui.panel.querySelector("p").textContent = "Press Start Race or P to keep driving.";
-      ui.start.textContent = "Resume";
-      ui.panel.classList.remove("hidden");
-    } else if (state.mode === "paused") {
-      state.mode = "playing";
+      ui.panel.querySelector('h1').textContent = 'Paused';
+      ui.panel.querySelector('p').textContent = 'Press Start Race or P to keep driving.';
+      ui.start.textContent = 'Resume';
+      ui.panel.classList.remove('hidden');
+    } else if (state.mode === 'paused') {
+      state.mode = 'playing';
       startMusic();
-      ui.panel.classList.add("hidden");
+      ui.panel.classList.add('hidden');
     }
   }
 
   function getPlayerControls() {
     return {
-      steering: (input.isDown("right") ? 1 : 0) - (input.isDown("left") ? 1 : 0),
-      up: input.isDown("up"),
-      brake: input.isDown("brake"),
-      boost: input.isDown("boost"),
+      steering: (input.isDown('right') ? 1 : 0) - (input.isDown('left') ? 1 : 0),
+      up: input.isDown('up'),
+      brake: input.isDown('brake'),
+      boost: input.isDown('boost'),
     };
   }
 
@@ -348,7 +351,7 @@
       let score = -Math.abs(center - state.player.x) * 0.04;
 
       state.objects.forEach((object) => {
-        if (object.type !== "trafficCar") return;
+        if (object.type !== 'trafficCar') return;
         const ahead = object.worldY - state.player.worldY;
         const inLane = Math.abs(object.x - center) < laneWidth * 0.45;
         if (!inLane) return;
@@ -385,7 +388,10 @@
 
   function chooseAiLineEscapeTarget() {
     const laneWidth = road.width / laneCount;
-    const stripeLines = Array.from({ length: laneCount - 1 }, (_, lane) => road.x + laneWidth * (lane + 1));
+    const stripeLines = Array.from(
+      { length: laneCount - 1 },
+      (_, lane) => road.x + laneWidth * (lane + 1)
+    );
     let bestLine = null;
     let bestScore = -Infinity;
 
@@ -395,7 +401,7 @@
       let score = -Math.abs(lineX - state.player.x) * 0.08;
 
       state.objects.forEach((object) => {
-        if (object.type !== "trafficCar") return;
+        if (object.type !== 'trafficCar') return;
         const ahead = object.worldY - state.player.worldY;
         if (ahead < -70 || ahead > 620) return;
 
@@ -462,7 +468,7 @@
         const laneDistance = Math.abs(object.x - center);
         const sameLane = laneDistance < laneWidth * 0.45;
 
-        if (object.type === "trafficCar") {
+        if (object.type === 'trafficCar') {
           const nearLane = laneDistance < laneWidth * 0.82;
           if (sameLane || nearLane) {
             const closeDanger = ahead < 340 ? 28000 : ahead < 720 ? 14000 : 4200;
@@ -490,7 +496,7 @@
           }
         }
 
-        if (object.type === "banana" && sameLane && !state.shopOpen) score += ahead < 700 ? 24 : 8;
+        if (object.type === 'banana' && sameLane && !state.shopOpen) score += ahead < 700 ? 24 : 8;
       });
 
       if (isOnStripeLine(center)) score -= 100;
@@ -510,11 +516,16 @@
 
   function getLaneCenters() {
     const laneWidth = road.width / laneCount;
-    return Array.from({ length: laneCount }, (_, lane) => road.x + laneWidth * lane + laneWidth / 2);
+    return Array.from(
+      { length: laneCount },
+      (_, lane) => road.x + laneWidth * lane + laneWidth / 2
+    );
   }
 
   function getClosestLaneCenter(x) {
-    return getLaneCenters().reduce((best, center) => (Math.abs(center - x) < Math.abs(best - x) ? center : best));
+    return getLaneCenters().reduce((best, center) =>
+      Math.abs(center - x) < Math.abs(best - x) ? center : best
+    );
   }
 
   function findAiWorthwhileBanana(maxAhead) {
@@ -523,7 +534,7 @@
     let best = null;
     let bestScore = -Infinity;
     state.objects.forEach((object) => {
-      if (object.type !== "banana") return;
+      if (object.type !== 'banana') return;
       const ahead = object.worldY - state.player.worldY;
       if (ahead < 120 || ahead > maxAhead * 0.72) return;
 
@@ -544,7 +555,7 @@
   function getTrafficRiskNear(x, ahead, range) {
     let risk = 0;
     state.objects.forEach((object) => {
-      if (object.type !== "trafficCar") return;
+      if (object.type !== 'trafficCar') return;
       const carAhead = object.worldY - state.player.worldY;
       if (Math.abs(carAhead - ahead) > range) return;
       const sideDistance = Math.abs(object.x - x);
@@ -568,7 +579,7 @@
   function findDangerCar(maxAhead, maxSideDistance) {
     let closest = null;
     state.objects.forEach((object) => {
-      if (object.type !== "trafficCar") return;
+      if (object.type !== 'trafficCar') return;
       const ahead = object.worldY - state.player.worldY;
       if (ahead < -55 || ahead > maxAhead) return;
       if (Math.abs(object.x - state.player.x) > maxSideDistance) return;
@@ -578,7 +589,7 @@
   }
 
   function toggleAiDriving() {
-    if (state.mode === "menu") resetGame();
+    if (state.mode === 'menu') resetGame();
     state.aiDriving = !state.aiDriving;
     state.aiControls = null;
     state.aiDecisionTimer = 0;
@@ -614,22 +625,30 @@
   }
 
   function aiBrakeLookAhead() {
-    const serverValue = state.aiServerPolicy ? Number(state.aiServerPolicy.brakeLookAhead) || 560 : 560;
+    const serverValue = state.aiServerPolicy
+      ? Number(state.aiServerPolicy.brakeLookAhead) || 560
+      : 560;
     return Math.max(serverValue, 560 + aiPracticeSkill() * 240);
   }
 
   function aiEmergencyLookAhead() {
-    const serverValue = state.aiServerPolicy ? Number(state.aiServerPolicy.emergencyLookAhead) || 460 : 460;
+    const serverValue = state.aiServerPolicy
+      ? Number(state.aiServerPolicy.emergencyLookAhead) || 460
+      : 460;
     return Math.max(serverValue, 460 + aiPracticeSkill() * 200);
   }
 
   function aiSideDistance() {
-    const serverValue = state.aiServerPolicy ? Number(state.aiServerPolicy.sideDistance) || 100 : 100;
+    const serverValue = state.aiServerPolicy
+      ? Number(state.aiServerPolicy.sideDistance) || 100
+      : 100;
     return Math.max(serverValue, 100 + aiPracticeSkill() * 38);
   }
 
   function aiEmergencySideDistance() {
-    const serverValue = state.aiServerPolicy ? Number(state.aiServerPolicy.emergencySideDistance) || 76 : 76;
+    const serverValue = state.aiServerPolicy
+      ? Number(state.aiServerPolicy.emergencySideDistance) || 76
+      : 76;
     return Math.max(serverValue, 76 + aiPracticeSkill() * 34);
   }
 
@@ -645,10 +664,10 @@
   }
 
   function loadTrainedAiPolicy() {
-    if (typeof fetch !== "function") return;
+    if (typeof fetch !== 'function') return;
     fetch(`trainer/out/banana-ai-driver.json?cache=${Date.now()}`)
       .then((response) => {
-        if (!response.ok) throw new Error("No trained AI policy yet");
+        if (!response.ok) throw new Error('No trained AI policy yet');
         return response.json();
       })
       .then((policy) => {
@@ -661,7 +680,7 @@
   }
 
   function update(dt) {
-    if (state.mode !== "playing") return;
+    if (state.mode !== 'playing') return;
 
     const player = state.player;
     updateAiDecisionTimer(dt);
@@ -672,14 +691,26 @@
     const selling = canSellBananas();
     const cruisingSpeed = controls.up ? (state.aiDriving ? 500 : 560) : 430;
     const boostedMaxSpeed = player.maxSpeed + state.upgrades.turbo * 85;
-    const targetSpeed = selling ? 0 : controls.brake ? (state.aiDriving ? 95 : 210) : boosting ? boostedMaxSpeed : cruisingSpeed;
+    const targetSpeed = selling
+      ? 0
+      : controls.brake
+        ? state.aiDriving
+          ? 95
+          : 210
+        : boosting
+          ? boostedMaxSpeed
+          : cruisingSpeed;
     const acceleration = targetSpeed > player.speed ? 520 : 680;
     player.speed += Math.sign(targetSpeed - player.speed) * acceleration * dt;
-    player.speed = clamp(player.speed, selling ? 0 : state.aiDriving && controls.brake ? 70 : 180, boostedMaxSpeed);
+    player.speed = clamp(
+      player.speed,
+      selling ? 0 : state.aiDriving && controls.brake ? 70 : 180,
+      boostedMaxSpeed
+    );
 
     if (boosting && !selling) {
       state.boost = Math.max(0, state.boost - Math.max(30, 44 - state.upgrades.turbo * 4) * dt);
-      emitTrail(player.x, player.y + player.height / 2, "#2fa7f7");
+      emitTrail(player.x, player.y + player.height / 2, '#2fa7f7');
     } else {
       state.boost = Math.min(100, state.boost + (7 + state.upgrades.turbo * 4) * dt);
     }
@@ -694,7 +725,7 @@
     player.worldY += player.speed * dt;
     state.distance = player.worldY;
     const scoreRate = controls.brake ? 0.35 : 1;
-    addScore((player.speed * dt * 0.04) * state.combo * scoreRate);
+    addScore(player.speed * dt * 0.04 * state.combo * scoreRate);
     state.comboTimer = Math.max(0, state.comboTimer - dt);
     if (state.comboTimer === 0) state.combo = 1;
     state.stackWobble *= Math.pow(0.07, dt);
@@ -752,17 +783,19 @@
     const occupied = new Set();
 
     state.objects.forEach((object) => {
-      if (object.type !== "trafficCar") return;
+      if (object.type !== 'trafficCar') return;
       if (Math.abs(object.worldY - worldY) > 680) return;
       const lane = Math.floor((object.x - road.x) / laneWidth);
       occupied.add(clamp(lane, 0, laneCount - 1));
     });
 
-    const openLanes = Array.from({ length: laneCount }, (_, lane) => lane).filter((lane) => !occupied.has(lane));
+    const openLanes = Array.from({ length: laneCount }, (_, lane) => lane).filter(
+      (lane) => !occupied.has(lane)
+    );
     if (openLanes.length <= 2) return null;
 
     const lane = openLanes[Math.floor(Math.random() * openLanes.length)];
-    return createObject("trafficCar", lane, spawnAhead, worldY);
+    return createObject('trafficCar', lane, spawnAhead, worldY);
   }
 
   function createBananaObject(spawnAhead) {
@@ -770,7 +803,7 @@
       const lane = Math.floor(Math.random() * laneCount);
       const worldY = state.player.worldY + spawnAhead + Math.random() * 190;
       if (isBananaClearBehindTraffic(lane, worldY)) {
-        return createObject("banana", lane, spawnAhead, worldY);
+        return createObject('banana', lane, spawnAhead, worldY);
       }
     }
 
@@ -779,7 +812,7 @@
 
   function isBananaClearBehindTraffic(lane, worldY) {
     return !state.objects.some((object) => {
-      if (object.type !== "trafficCar" || object.lane !== lane) return false;
+      if (object.type !== 'trafficCar' || object.lane !== lane) return false;
       const trafficAheadDistance = object.worldY - worldY;
       return trafficAheadDistance > 0 && trafficAheadDistance < bananaTrafficGap;
     });
@@ -788,8 +821,8 @@
   function createObject(type, lane, spawnAhead, fixedWorldY) {
     const laneWidth = road.width / laneCount;
     const x = road.x + laneWidth * lane + laneWidth / 2;
-    const width = type === "banana" ? 38 : 56;
-    const height = type === "banana" ? 38 : 92;
+    const width = type === 'banana' ? 38 : 56;
+    const height = type === 'banana' ? 38 : 92;
     const worldY = fixedWorldY || state.player.worldY + spawnAhead + Math.random() * 190;
 
     return {
@@ -800,22 +833,29 @@
       worldY,
       width,
       height,
-      rotation: type === "banana" ? Math.random() * 0.5 - 0.25 : Math.PI,
+      rotation: type === 'banana' ? Math.random() * 0.5 - 0.25 : Math.PI,
       hit: false,
     };
   }
 
   function updateObjects(dt) {
     state.objects.forEach((object) => {
-      if (object.type === "banana") updateBananaMagnet(object, dt);
+      if (object.type === 'banana') updateBananaMagnet(object, dt);
       object.y = screenYFromWorld(object.worldY);
-      if (object.type === "banana") object.rotation += dt * 4;
+      if (object.type === 'banana') object.rotation += dt * 4;
     });
-    state.objects = state.objects.filter((object) => object.worldY > state.player.worldY - 240 && !object.hit);
+    state.objects = state.objects.filter(
+      (object) => object.worldY > state.player.worldY - 240 && !object.hit
+    );
   }
 
   function updateBananaMagnet(object, dt) {
-    if (state.upgrades.magnet <= 0 || state.bananasCollected >= getTruckCapacity() || state.shopOpen) return;
+    if (
+      state.upgrades.magnet <= 0 ||
+      state.bananasCollected >= getTruckCapacity() ||
+      state.shopOpen
+    )
+      return;
 
     const ahead = object.worldY - state.player.worldY;
     const range = 130 + state.upgrades.magnet * 70;
@@ -825,7 +865,7 @@
     const pull = 5 + state.upgrades.magnet * 2.2;
     object.x += (state.player.x - object.x) * clamp(dt * pull, 0, 1);
     object.worldY += (state.player.worldY - object.worldY) * clamp(dt * pull, 0, 1);
-    emitTrail(object.x, screenYFromWorld(object.worldY), "#ffcc33");
+    emitTrail(object.x, screenYFromWorld(object.worldY), '#ffcc33');
   }
 
   function updateParticles(dt) {
@@ -839,14 +879,28 @@
   }
 
   function checkCollisions() {
-    const playerBox = worldBoxFromCenter(state.player.x, state.player.worldY, state.player.width, state.player.height, 12, 10);
+    const playerBox = worldBoxFromCenter(
+      state.player.x,
+      state.player.worldY,
+      state.player.width,
+      state.player.height,
+      12,
+      10
+    );
 
     state.objects.forEach((object) => {
-      const objectBox = worldBoxFromCenter(object.x, object.worldY, object.width, object.height, 7, 7);
+      const objectBox = worldBoxFromCenter(
+        object.x,
+        object.worldY,
+        object.width,
+        object.height,
+        7,
+        7
+      );
       if (object.hit || !overlaps(playerBox, objectBox)) return;
 
       object.hit = true;
-      if (object.type === "banana") {
+      if (object.type === 'banana') {
         if (state.bananasCollected >= getTruckCapacity()) return;
         state.combo = Math.min(8, state.combo + 1);
         state.comboTimer = 3.2;
@@ -855,15 +909,15 @@
         state.stackWobble = 1;
         state.boost = Math.min(100, state.boost + 18);
         addScore(75 * state.combo);
-        burst(object.x, screenYFromWorld(object.worldY), "#ffcc33", 12);
+        burst(object.x, screenYFromWorld(object.worldY), '#ffcc33', 12);
       } else {
         if (hasSellingShield()) {
           state.shake = Math.max(state.shake, 6);
-          burst(object.x, screenYFromWorld(object.worldY), "#2fa7f7", 16);
+          burst(object.x, screenYFromWorld(object.worldY), '#2fa7f7', 16);
           addScore(10);
           return;
         }
-        burst(state.player.x, state.player.y, "#f05b42", 18);
+        burst(state.player.x, state.player.y, '#f05b42', 18);
         endGame();
       }
     });
@@ -886,7 +940,7 @@
       state.money += bananaPrice;
       addScore(20);
       state.stackWobble = 1;
-      burst(state.player.x + 18, state.player.y - 12, "#ffcc33", 8);
+      burst(state.player.x + 18, state.player.y - 12, '#ffcc33', 8);
       if (state.bananasCollected === 0) state.shopOpen = false;
     }
   }
@@ -907,7 +961,14 @@
   }
 
   function canSellBananas() {
-    const playerBox = worldBoxFromCenter(state.player.x, state.player.worldY, state.player.width, state.player.height, 8, 8);
+    const playerBox = worldBoxFromCenter(
+      state.player.x,
+      state.player.worldY,
+      state.player.width,
+      state.player.height,
+      8,
+      8
+    );
     return state.shopOpen && state.bananasCollected > 0 && overlaps(playerBox, boxFromShopZone());
   }
 
@@ -922,7 +983,7 @@
   function upgradeCost(type) {
     const level = state.upgrades[type];
     if (level >= upgradeMaxLevel) return null;
-    return type === "turbo" ? 200 + level * 180 : 240 + level * 220;
+    return type === 'turbo' ? 200 + level * 180 : 240 + level * 220;
   }
 
   function buyUpgrade(type) {
@@ -933,40 +994,42 @@
     state.upgrades[type] += 1;
     state.stackWobble = 1;
     state.shake = Math.max(state.shake, 4);
-    burst(state.player.x, state.player.y - 24, type === "turbo" ? "#2fa7f7" : "#ffcc33", 18);
+    burst(state.player.x, state.player.y - 24, type === 'turbo' ? '#2fa7f7' : '#ffcc33', 18);
     updateHud();
   }
 
   function endGame() {
     stopMusic();
     playFailVoice(state.aiDriving);
-    state.mode = "ended";
+    state.mode = 'ended';
     state.shake = 18;
     state.best = Math.max(state.best, Math.floor(state.score));
     saveBestScore(state.best);
-    ui.panel.querySelector("h1").textContent = "FAIL!!!!!!!!";
-    ui.panel.querySelector("p").textContent = `Score ${Math.floor(state.score)}. Press Enter or start a fresh run.`;
-    ui.start.textContent = "Race Again";
-    ui.panel.classList.remove("hidden");
+    ui.panel.querySelector('h1').textContent = 'FAIL!!!!!!!!';
+    ui.panel.querySelector('p').textContent =
+      `Score ${Math.floor(state.score)}. Press Enter or start a fresh run.`;
+    ui.start.textContent = 'Race Again';
+    ui.panel.classList.remove('hidden');
     updateHud();
   }
 
   function finishGame() {
     stopMusic();
     state.score = finishScore;
-    state.mode = "finished";
+    state.mode = 'finished';
     state.shake = 0;
     state.best = Math.max(state.best, finishScore);
     saveBestScore(state.best);
-    ui.panel.querySelector("h1").textContent = "Finish Line";
-    ui.panel.querySelector("p").textContent = `You reached exactly ${finishScore} score. Press Enter or start a fresh run.`;
-    ui.start.textContent = "Race Again";
-    ui.panel.classList.remove("hidden");
+    ui.panel.querySelector('h1').textContent = 'Finish Line';
+    ui.panel.querySelector('p').textContent =
+      `You reached exactly ${finishScore} score. Press Enter or start a fresh run.`;
+    ui.start.textContent = 'Race Again';
+    ui.panel.classList.remove('hidden');
     updateHud();
   }
 
   function addScore(amount) {
-    if (state.mode !== "playing") return;
+    if (state.mode !== 'playing') return;
     state.score = Math.min(finishScore, state.score + amount);
     if (state.score >= finishScore) finishGame();
   }
@@ -982,7 +1045,7 @@
       state.player.vx += state.policeAttackSide * 1650 * dt;
       state.player.x += state.policeAttackSide * 240 * dt;
       state.shake = Math.max(state.shake, 10);
-      emitTrail(state.player.x - state.policeAttackSide * 22, state.player.y + 34, "#17202a");
+      emitTrail(state.player.x - state.policeAttackSide * 22, state.player.y + 34, '#17202a');
       if (state.policeAttackTimer <= 0) {
         endPoliceCrash();
       }
@@ -996,7 +1059,7 @@
     }
 
     const braking = Boolean(state.currentControls && state.currentControls.brake);
-    const steering = input.isDown("left") || input.isDown("right");
+    const steering = input.isDown('left') || input.isDown('right');
     if (!state.aiDriving && (steering || (!braking && state.player.speed < 160))) {
       state.laneLineTimer = 0;
       return;
@@ -1017,20 +1080,21 @@
     state.laneLineTimer = 0;
     state.policeAttackTimer = 1.2;
     state.policeAttackSide = state.player.x < road.x + road.width / 2 ? 1 : -1;
-    burst(state.player.x - state.policeAttackSide * 26, state.player.y + 14, "#ffcc33", 10);
+    burst(state.player.x - state.policeAttackSide * 26, state.player.y + 14, '#ffcc33', 10);
   }
 
   function endPoliceCrash() {
     stopMusic();
     playFailVoice(state.aiDriving);
-    state.mode = "ended";
+    state.mode = 'ended';
     state.shake = 18;
     state.best = Math.max(state.best, Math.floor(state.score));
     saveBestScore(state.best);
-    ui.panel.querySelector("h1").textContent = "FAIL!!!!!!!!";
-    ui.panel.querySelector("p").textContent = `You stayed centered too long. Score ${Math.floor(state.score)}. Press Enter or start a fresh run.`;
-    ui.start.textContent = "Race Again";
-    ui.panel.classList.remove("hidden");
+    ui.panel.querySelector('h1').textContent = 'FAIL!!!!!!!!';
+    ui.panel.querySelector('p').textContent =
+      `You stayed centered too long. Score ${Math.floor(state.score)}. Press Enter or start a fresh run.`;
+    ui.start.textContent = 'Race Again';
+    ui.panel.classList.remove('hidden');
     updateHud();
   }
 
@@ -1038,7 +1102,7 @@
     if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
 
     window.speechSynthesis.cancel();
-    const voice = new SpeechSynthesisUtterance(aiFailed ? "you failed you dumb thing" : "fail");
+    const voice = new SpeechSynthesisUtterance(aiFailed ? 'you failed you dumb thing' : 'fail');
     voice.rate = 0.62;
     voice.pitch = 1.35;
     voice.volume = 1;
@@ -1058,7 +1122,7 @@
       music.master.connect(music.audio.destination);
     }
 
-    if (music.audio.state === "suspended") {
+    if (music.audio.state === 'suspended') {
       music.audio.resume();
     }
 
@@ -1084,15 +1148,29 @@
     const bassVolume = song.party ? 0.15 : 0.06 + buildAmount * 0.09;
     const melodyVolume = song.party ? 0.06 : 0.02 + buildAmount * 0.04;
 
-    playMusicNote(song.bass[note], song.beatMs / 1000 * 0.78, bassVolume, song.party ? "sawtooth" : "triangle");
+    playMusicNote(
+      song.bass[note],
+      (song.beatMs / 1000) * 0.78,
+      bassVolume,
+      song.party ? 'sawtooth' : 'triangle'
+    );
 
     if (song.party || step > 5) {
-      if (step % 2 === 0) playMusicNote(song.melody[note], 0.1 + buildAmount * 0.05, melodyVolume, "square");
-      if (step % 8 === 6) playMusicNote(song.melody[(note + 2) % song.melody.length] * 1.5, 0.08, melodyVolume * 0.7, "triangle");
+      if (step % 2 === 0)
+        playMusicNote(song.melody[note], 0.1 + buildAmount * 0.05, melodyVolume, 'square');
+      if (step % 8 === 6)
+        playMusicNote(
+          song.melody[(note + 2) % song.melody.length] * 1.5,
+          0.08,
+          melodyVolume * 0.7,
+          'triangle'
+        );
     }
 
-    if (step % 4 === 0 && (song.party || step > 7)) playMusicKick(song.party ? 0.2 : 0.08 + buildAmount * 0.12);
-    if (step % 4 === 2 && (song.party || step > 9)) playMusicHat(song.party ? 0.04 : 0.015 + buildAmount * 0.025);
+    if (step % 4 === 0 && (song.party || step > 7))
+      playMusicKick(song.party ? 0.2 : 0.08 + buildAmount * 0.12);
+    if (step % 4 === 2 && (song.party || step > 9))
+      playMusicHat(song.party ? 0.04 : 0.015 + buildAmount * 0.025);
     if (song.party && step % 8 === 7) playMusicSnare();
 
     music.step += 1;
@@ -1123,7 +1201,7 @@
     const now = music.audio.currentTime;
     const oscillator = music.audio.createOscillator();
     const gain = music.audio.createGain();
-    oscillator.type = "sine";
+    oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(90, now);
     oscillator.frequency.exponentialRampToValueAtTime(42, now + 0.12);
     gain.gain.setValueAtTime(volume, now);
@@ -1138,7 +1216,7 @@
     const now = music.audio.currentTime;
     const oscillator = music.audio.createOscillator();
     const gain = music.audio.createGain();
-    oscillator.type = "triangle";
+    oscillator.type = 'triangle';
     oscillator.frequency.setValueAtTime(950, now);
     gain.gain.setValueAtTime(volume, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
@@ -1150,10 +1228,10 @@
 
   function playMusicSnare() {
     const now = music.audio.currentTime;
-    playMusicNote(220, 0.05, 0.035, "triangle");
+    playMusicNote(220, 0.05, 0.035, 'triangle');
     const oscillator = music.audio.createOscillator();
     const gain = music.audio.createGain();
-    oscillator.type = "square";
+    oscillator.type = 'square';
     oscillator.frequency.setValueAtTime(180, now);
     gain.gain.setValueAtTime(0.055, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
@@ -1169,17 +1247,18 @@
     ui.best.textContent = String(state.best);
     ui.bananas.textContent = `${state.bananasCollected}/${getTruckCapacity()}`;
     ui.money.textContent = `$${state.money}`;
-    ui.driver.textContent = state.aiDriving ? "AI" : "You";
+    ui.driver.textContent = state.aiDriving ? 'AI' : 'You';
     ui.practice.textContent = formatPractice();
-    if (ui.aiButton) ui.aiButton.textContent = state.aiDriving ? "You Drive" : "AI Drive";
-    if (ui.aiWarning) ui.aiWarning.classList.toggle("visible", state.aiDriving && state.mode === "playing");
+    if (ui.aiButton) ui.aiButton.textContent = state.aiDriving ? 'You Drive' : 'AI Drive';
+    if (ui.aiWarning)
+      ui.aiWarning.classList.toggle('visible', state.aiDriving && state.mode === 'playing');
     ui.boost.style.width = `${Math.floor(state.boost)}%`;
     updateGarage();
   }
 
   function updateGarage() {
-    updateUpgradeButton(ui.turboUpgrade, ui.turboUpgradeValue, "turbo", "Turbo");
-    updateUpgradeButton(ui.magnetUpgrade, ui.magnetUpgradeValue, "magnet", "Magnet");
+    updateUpgradeButton(ui.turboUpgrade, ui.turboUpgradeValue, 'turbo', 'Turbo');
+    updateUpgradeButton(ui.magnetUpgrade, ui.magnetUpgradeValue, 'magnet', 'Magnet');
   }
 
   function updateUpgradeButton(button, label, type, name) {
@@ -1188,8 +1267,8 @@
     const level = state.upgrades[type];
     const cost = upgradeCost(type);
     button.disabled = cost === null || state.money < cost;
-    button.querySelector("span").textContent = `${name} ${level}/${upgradeMaxLevel}`;
-    label.textContent = cost === null ? "MAX" : `$${cost}`;
+    button.querySelector('span').textContent = `${name} ${level}/${upgradeMaxLevel}`;
+    label.textContent = cost === null ? 'MAX' : `$${cost}`;
   }
 
   function render() {
@@ -1216,15 +1295,15 @@
 
   function drawWorld() {
     const horizon = 160;
-    ctx.fillStyle = "#9ed8ff";
+    ctx.fillStyle = '#9ed8ff';
     ctx.fillRect(0, 0, canvas.width, horizon);
-    ctx.fillStyle = "#74c56d";
+    ctx.fillStyle = '#74c56d';
     ctx.fillRect(0, horizon, canvas.width, canvas.height - horizon);
 
-    drawBuildings(32, "#5b7892", 0.38);
-    drawBuildings(canvas.width - 150, "#456579", 0.54);
+    drawBuildings(32, '#5b7892', 0.38);
+    drawBuildings(canvas.width - 150, '#456579', 0.54);
 
-    ctx.fillStyle = "#4c9a54";
+    ctx.fillStyle = '#4c9a54';
     for (let i = 0; i < 14; i += 1) {
       const y = ((i * 102 + state.distance * 0.1) % (canvas.height + 120)) - 80;
       drawTree(92, y);
@@ -1243,9 +1322,17 @@
       const sideX = sideDirection * depth;
 
       ctx.save();
-      ctx.fillStyle = "rgba(13, 21, 32, 0.18)";
+      ctx.fillStyle = 'rgba(13, 21, 32, 0.18)';
       ctx.beginPath();
-      ctx.ellipse(buildingX + width / 2 + sideX * 0.5, y + height + 10, width * 0.62, 16, 0, 0, Math.PI * 2);
+      ctx.ellipse(
+        buildingX + width / 2 + sideX * 0.5,
+        y + height + 10,
+        width * 0.62,
+        16,
+        0,
+        0,
+        Math.PI * 2
+      );
       ctx.fill();
 
       ctx.fillStyle = shadeColor(color, -18);
@@ -1269,7 +1356,7 @@
       ctx.fillStyle = color;
       ctx.fillRect(buildingX, y, width, height);
 
-      ctx.strokeStyle = "rgba(248, 251, 255, 0.18)";
+      ctx.strokeStyle = 'rgba(248, 251, 255, 0.18)';
       ctx.lineWidth = 2;
       ctx.strokeRect(buildingX + 1, y + 1, width - 2, height - 2);
 
@@ -1283,32 +1370,32 @@
   }
 
   function drawWindow(x, y) {
-    ctx.fillStyle = "rgba(13, 21, 32, 0.28)";
+    ctx.fillStyle = 'rgba(13, 21, 32, 0.28)';
     ctx.fillRect(x - 2, y - 2, 16, 14);
-    ctx.fillStyle = "rgba(255, 241, 150, 0.86)";
+    ctx.fillStyle = 'rgba(255, 241, 150, 0.86)';
     ctx.fillRect(x, y, 12, 10);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.38)";
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.38)';
     ctx.fillRect(x + 2, y + 1, 3, 8);
   }
 
   function drawTree(x, y) {
-    ctx.fillStyle = "#7d542b";
+    ctx.fillStyle = '#7d542b';
     ctx.fillRect(x - 5, y + 18, 10, 32);
-    ctx.fillStyle = "#2f7d45";
+    ctx.fillStyle = '#2f7d45';
     ctx.beginPath();
     ctx.arc(x, y + 16, 22, 0, Math.PI * 2);
     ctx.fill();
   }
 
   function drawRoad() {
-    ctx.fillStyle = "#30353f";
+    ctx.fillStyle = '#30353f';
     ctx.fillRect(road.x, 0, road.width, road.height);
-    ctx.fillStyle = "#252b34";
+    ctx.fillStyle = '#252b34';
     ctx.fillRect(road.x, 0, 18, road.height);
     ctx.fillRect(road.x + road.width - 18, 0, 18, road.height);
 
     const laneWidth = road.width / laneCount;
-    ctx.strokeStyle = "rgba(248, 251, 255, 0.56)";
+    ctx.strokeStyle = 'rgba(248, 251, 255, 0.56)';
     ctx.lineWidth = 6;
     ctx.setLineDash([32, 34]);
     ctx.lineDashOffset = -state.distance * 0.35;
@@ -1336,8 +1423,8 @@
     }
 
     ctx.save();
-    ctx.fillStyle = selling ? "rgba(255, 204, 51, 0.42)" : "rgba(47, 167, 247, 0.28)";
-    ctx.strokeStyle = selling ? "#ffcc33" : "#2fa7f7";
+    ctx.fillStyle = selling ? 'rgba(255, 204, 51, 0.42)' : 'rgba(47, 167, 247, 0.28)';
+    ctx.strokeStyle = selling ? '#ffcc33' : '#2fa7f7';
     ctx.lineWidth = 4;
     ctx.setLineDash([14, 10]);
     roundRect(shopX, shopY, shopZone.width, shopZone.height, 8);
@@ -1345,18 +1432,18 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = "#17202a";
-    ctx.font = "900 20px Inter, system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("$20", shopX + shopZone.width / 2, shopY + 34);
-    ctx.font = "800 13px Inter, system-ui, sans-serif";
-    ctx.fillText("SELL", shopX + shopZone.width / 2, shopY + 55);
+    ctx.fillStyle = '#17202a';
+    ctx.font = '900 20px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('$20', shopX + shopZone.width / 2, shopY + 34);
+    ctx.font = '800 13px Inter, system-ui, sans-serif';
+    ctx.fillText('SELL', shopX + shopZone.width / 2, shopY + 55);
 
     drawShopArrow(shopX + shopZone.width / 2, shopY - 34);
 
     if (selling) {
       const progress = state.sellTimer / sellEvery;
-      ctx.fillStyle = "#ffcc33";
+      ctx.fillStyle = '#ffcc33';
       roundRect(shopX + 14, shopY + shopZone.height - 20, (shopZone.width - 28) * progress, 8, 4);
       ctx.fill();
     }
@@ -1375,25 +1462,30 @@
     const cols = Math.ceil(road.width / tileSize);
 
     ctx.save();
-    ctx.fillStyle = "#f8fbff";
+    ctx.fillStyle = '#f8fbff';
     ctx.fillRect(road.x, y - rows * tileSize, road.width, rows * tileSize);
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
         if ((row + col) % 2 === 0) {
-          ctx.fillStyle = "#17202a";
-          ctx.fillRect(road.x + col * tileSize, y - rows * tileSize + row * tileSize, tileSize, tileSize);
+          ctx.fillStyle = '#17202a';
+          ctx.fillRect(
+            road.x + col * tileSize,
+            y - rows * tileSize + row * tileSize,
+            tileSize,
+            tileSize
+          );
         }
       }
     }
 
-    ctx.fillStyle = "#ffcc33";
-    ctx.strokeStyle = "#17202a";
+    ctx.fillStyle = '#ffcc33';
+    ctx.strokeStyle = '#17202a';
     ctx.lineWidth = 4;
-    ctx.font = "900 28px Inter, system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.strokeText("FINISH 100000", road.x + road.width / 2, y - rows * tileSize - 18);
-    ctx.fillText("FINISH 100000", road.x + road.width / 2, y - rows * tileSize - 18);
+    ctx.font = '900 28px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.strokeText('FINISH 100000', road.x + road.width / 2, y - rows * tileSize - 18);
+    ctx.fillText('FINISH 100000', road.x + road.width / 2, y - rows * tileSize - 18);
     ctx.restore();
   }
 
@@ -1410,30 +1502,30 @@
     ctx.translate(state.player.x, chaseY);
     ctx.scale(carScale, carScale);
 
-    ctx.fillStyle = "rgba(23, 32, 42, 0.32)";
+    ctx.fillStyle = 'rgba(23, 32, 42, 0.32)';
     ctx.beginPath();
     ctx.ellipse(0, 46, 46, 14, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "#f8fbff";
+    ctx.fillStyle = '#f8fbff';
     roundRect(-32, -46, 64, 100, 18);
     ctx.fill();
-    ctx.strokeStyle = "#17202a";
+    ctx.strokeStyle = '#17202a';
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    ctx.fillStyle = "#17202a";
+    ctx.fillStyle = '#17202a';
     roundRect(-21, -20, 42, 32, 8);
     ctx.fill();
-    ctx.fillStyle = "#2fa7f7";
+    ctx.fillStyle = '#2fa7f7';
     ctx.fillRect(-24, -35, 20, 10);
-    ctx.fillStyle = "#f05b42";
+    ctx.fillStyle = '#f05b42';
     ctx.fillRect(4, -35, 20, 10);
-    ctx.fillStyle = lightFlash ? "#f05b42" : "#2fa7f7";
+    ctx.fillStyle = lightFlash ? '#f05b42' : '#2fa7f7';
     ctx.fillRect(-30, -55, 60, 10);
 
     if (attack) {
-      ctx.strokeStyle = "#ffcc33";
+      ctx.strokeStyle = '#ffcc33';
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(0, -45);
@@ -1448,8 +1540,8 @@
     const bounce = Math.sin(state.time * 8) * 7;
     ctx.save();
     ctx.translate(x, y + bounce);
-    ctx.fillStyle = "#ffcc33";
-    ctx.strokeStyle = "#17202a";
+    ctx.fillStyle = '#ffcc33';
+    ctx.strokeStyle = '#17202a';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(0, 34);
@@ -1462,10 +1554,10 @@
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = "#17202a";
-    ctx.font = "900 15px Inter, system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("SHOP", 0, -10);
+    ctx.fillStyle = '#17202a';
+    ctx.font = '900 15px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('SHOP', 0, -10);
     ctx.restore();
   }
 
@@ -1474,7 +1566,7 @@
       ctx.save();
       ctx.translate(object.x, object.y);
       ctx.rotate(object.rotation);
-      if (object.type === "banana") {
+      if (object.type === 'banana') {
         drawImageCentered(assets.banana, object.width, object.height);
       } else {
         drawImageCentered(assets.trafficCar, object.width, object.height);
@@ -1518,7 +1610,15 @@
       ctx.setLineDash([10, 12]);
       ctx.lineDashOffset = -state.time * 28;
       ctx.beginPath();
-      ctx.ellipse(0, 0, 48 + state.upgrades.magnet * 14, 70 + state.upgrades.magnet * 18, 0, 0, Math.PI * 2);
+      ctx.ellipse(
+        0,
+        0,
+        48 + state.upgrades.magnet * 14,
+        70 + state.upgrades.magnet * 18,
+        0,
+        0,
+        Math.PI * 2
+      );
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.restore();
@@ -1526,7 +1626,7 @@
 
     if (state.upgrades.turbo > 0) {
       ctx.save();
-      ctx.fillStyle = "rgba(47, 167, 247, 0.55)";
+      ctx.fillStyle = 'rgba(47, 167, 247, 0.55)';
       for (let i = 0; i < state.upgrades.turbo; i += 1) {
         const flicker = Math.sin(state.time * 18 + i) * 5;
         ctx.beginPath();
@@ -1565,7 +1665,7 @@
     roundRect(-27, -8, 54, 45, 6);
     ctx.clip();
 
-    ctx.fillStyle = "rgba(54, 36, 20, 0.45)";
+    ctx.fillStyle = 'rgba(54, 36, 20, 0.45)';
     ctx.fillRect(-27, -8, 54, 45);
 
     for (let i = 0; i < visibleCount; i += 1) {
@@ -1587,11 +1687,11 @@
     if (count > visibleCount) {
       ctx.save();
       ctx.translate(19, -15);
-      ctx.fillStyle = "#17202a";
-      ctx.strokeStyle = "#f8fbff";
+      ctx.fillStyle = '#17202a';
+      ctx.strokeStyle = '#f8fbff';
       ctx.lineWidth = 3;
-      ctx.font = "900 13px Inter, system-ui, sans-serif";
-      ctx.textAlign = "center";
+      ctx.font = '900 13px Inter, system-ui, sans-serif';
+      ctx.textAlign = 'center';
       ctx.strokeText(`+${count - visibleCount}`, 0, 0);
       ctx.fillText(`+${count - visibleCount}`, 0, 0);
       ctx.restore();
@@ -1600,8 +1700,8 @@
 
   function drawVignette() {
     const gradient = ctx.createRadialGradient(480, 320, 180, 480, 320, 610);
-    gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-    gradient.addColorStop(1, "rgba(13, 21, 32, 0.28)");
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    gradient.addColorStop(1, 'rgba(13, 21, 32, 0.28)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
@@ -1611,7 +1711,7 @@
       ctx.drawImage(image, -width / 2, -height / 2, width, height);
       return;
     }
-    ctx.fillStyle = "#ffcc33";
+    ctx.fillStyle = '#ffcc33';
     ctx.fillRect(-width / 2, -height / 2, width, height);
   }
 
@@ -1710,23 +1810,23 @@
     const dt = Math.min(0.033, (now - previous) / 1000);
     previous = now;
 
-    if (input.wasPressed("KeyP")) {
-      input.clear("KeyP");
+    if (input.wasPressed('KeyP')) {
+      input.clear('KeyP');
       pauseGame();
     }
 
-    if (input.wasPressed("Escape")) {
-      input.clear("Escape");
+    if (input.wasPressed('Escape')) {
+      input.clear('Escape');
       pauseGame();
     }
 
-    if (input.wasPressed("Space")) {
-      input.clear("Space");
+    if (input.wasPressed('Space')) {
+      input.clear('Space');
       toggleAiDriving();
     }
 
-    if (input.wasPressed("Enter")) {
-      input.clear("Enter");
+    if (input.wasPressed('Enter')) {
+      input.clear('Enter');
       resetGame();
     }
 
@@ -1735,25 +1835,25 @@
     requestAnimationFrame(frame);
   }
 
-  ui.start.addEventListener("click", () => {
-    if (state.mode === "paused") {
+  ui.start.addEventListener('click', () => {
+    if (state.mode === 'paused') {
       pauseGame();
       return;
     }
-    ui.start.textContent = "Start Race";
+    ui.start.textContent = 'Start Race';
     resetGame();
   });
 
   if (ui.aiButton) {
-    ui.aiButton.addEventListener("click", toggleAiDriving);
+    ui.aiButton.addEventListener('click', toggleAiDriving);
   }
 
   if (ui.turboUpgrade) {
-    ui.turboUpgrade.addEventListener("click", () => buyUpgrade("turbo"));
+    ui.turboUpgrade.addEventListener('click', () => buyUpgrade('turbo'));
   }
 
   if (ui.magnetUpgrade) {
-    ui.magnetUpgrade.addEventListener("click", () => buyUpgrade("magnet"));
+    ui.magnetUpgrade.addEventListener('click', () => buyUpgrade('magnet'));
   }
 
   updateHud();
