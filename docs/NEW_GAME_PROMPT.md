@@ -9,9 +9,9 @@ small game in this repo using the closest existing game's patterns.
 My idea: [What does the player do, and what makes it fun?]
 
 Start with a playable 10-second loop. Pick sensible defaults and explain
-the few choices that matter. Teach me one thing and give me one small
-code change I can try. Test it, make clear commits and push at working
-milestones, open a PR, and help get the reviewed game live on GitHub Pages.
+the few choices that matter. Help me add features and see progress quickly.
+Test it, make clear commits and push at working milestones. Handle PRs for
+larger features quietly as a history trail, and help ship to GitHub Pages.
 Keep this prompt and the repo instructions accurate as the project changes.
 ```
 
@@ -30,16 +30,16 @@ Example idea: “Drive a tiny 3D-printed rover across a desk, collect three scre
 
 ## Instructions for the coding assistant
 
-Treat the learner as a capable beginner. Use short explanations and concrete examples. Explain a pull request once as a place to see the proposed change, run checks, and get feedback before it reaches the live game. Like checking a 3D model before printing, a PR helps catch mistakes while they are easy to fix.
+Treat the learner as a capable beginner. Focus on making features, playing them, and enjoying visible progress. Keep explanations short and relevant; teach fundamentals when asked, leaving the parent to introduce them later. Handle Git and PRs quietly during active work. PRs for larger features leave a review and history trail; they are not lessons or required reading for the son.
 
 1. **Look first.** Read applicable `AGENTS.md` files, `package.json`, `scripts/build-site.js`, the Pages workflow, and the nearest existing game. Check the branch, working tree, remotes, and GitHub authentication before changing anything. Preserve unrelated work. Ask only questions that block a playable first version; otherwise state a reasonable assumption and proceed.
 2. **Make one fun action work.** State the fun promise in one sentence and implement a tiny loop: start, act, get feedback, finish or fail, restart. Make the action clear in the first ten seconds, failures understandable, and restart immediate. Delay accounts, upgrades, complicated architecture, and extra modes until the loop is worth playing.
 3. **Follow the repository.** Prefer static HTML, CSS, and JavaScript. Reuse a small relevant pattern rather than copying a whole game or inventing a framework. Make important tuning values easy to find. A 3D engine is an option when it serves the idea, not a requirement; keep any new dependency justified and reproducible.
 4. **Ship in working steps.** Work on a feature branch. At each useful milestone—playable loop, feedback and controls, tested release—review the diff, stage only this task's files, make a meaningful commit, and push the branch. Do this proactively even if the learner forgets. Examples: `feat: add rover steering and screw pickups`, `fix: reset battery when restarting rover`, `docs: explain rover controls`. Never commit credentials, force-push, or discard someone else's edits. If authentication or access blocks progress, preserve local work and report the exact next step.
-5. **Give the learner ownership.** Explain one useful concept while showing the relevant code, then suggest one small experiment, such as changing rover speed and predicting the result. Keep shipping independent of the optional exercise. Leave a specific file and value to change; avoid turning every step into homework.
+5. **Give the learner ownership.** Let their ideas and playtest feedback drive the next small feature. Help them edit code when interested, but do not require a lesson or append an exercise every time. Offer a small experiment only when requested or naturally useful; preserve their edits.
 6. **Use specialists selectively.** The lead developer owns the small plan and integration. Use one bounded UI/UX review when readability or controls need it, and an independent game tester when a playable loop exists. Delegate in parallel only when it saves time and each agent has a clear task and separate files. Do not spawn a standing team for a tiny change or make the learner coordinate agents. Summarize findings briefly.
-7. **Review and release.** Run the relevant checks below, open a PR with the included template, explain the change and evidence, and resolve failures related to the change. Report pre-existing failures honestly. Merge when authorized under the current session and repository rules; otherwise leave a reviewable PR ready for the final decision. A pushed branch or an open PR is not a live release. After merge, verify the Pages run and published game before saying it is live.
-8. **Keep the helper current.** In the same PR, update this file, `AGENTS.md`, and the relevant README when paths, commands, deployment, or working conventions change. Keep the copyable prompt short. End with the PR link, live link if verified, test results, and one optional learner experiment.
+7. **Review and release.** Run the relevant checks below, use the included PR template for larger features to record the change and evidence, and resolve failures related to the change. Report pre-existing failures honestly. Merge when authorized under the current session and repository rules; otherwise leave a reviewable PR ready for the final decision. A pushed branch or an open PR is not a live release. After merge, verify the Pages run and published game before saying it is live.
+8. **Keep the helper current.** In the same PR, update this file, `AGENTS.md`, and the relevant README when paths, commands, deployment, or working conventions change. Keep the copyable prompt short. End with what changed, how to try it, test results, and brief PR/live status. No automatic homework.
 
 ## Repository map and release checks
 

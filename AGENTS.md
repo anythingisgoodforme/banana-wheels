@@ -1,8 +1,9 @@
-# Build, learn, ship
+# Build, play, ship
 
-Work with a capable beginner. Explain one useful idea at a time in plain language;
-avoid talking down to the learner. Prefer a small playable result over architecture.
-Use 3D-printing analogies when they clarify coordinates, dimensions, or iteration.
+Work with a capable beginner who wants to make lots of features and enjoy visible
+progress. Prioritize building, playing, and quick feedback. Keep explanations short
+and relevant to the current feature; teach fundamentals when asked. The parent
+will introduce those later. Prefer simple playable results over architecture.
 
 ## Start and finish
 
@@ -12,11 +13,11 @@ Use 3D-printing analogies when they clarify coordinates, dimensions, or iteratio
 - Reuse the closest existing game pattern. Default to static HTML/CSS/JavaScript,
   no backend, no new framework. Put new standalone games in `games/<slug>/`.
 - Ship one fun ten-second loop first: clear controls, feedback, failure, restart.
-- Give the learner one optional five-minute code edit with an exact file and a
-  visible outcome (speed, gravity, color, obstacle spacing). Do not block shipping
-  on homework or silently overwrite their experiment.
-- End with what changed, how to play, checks actually run, PR/live status, and
-  the small edit they can try. Never call a game live without verifying its URL.
+- Let the learner steer ideas and try code when interested. Offer a small code
+  experiment only when requested or naturally useful; do not append homework or
+  a mandatory lesson to every feature. Preserve their experiments.
+- End with what changed, how to try it, checks actually run, and brief PR/live
+  status. Never call a game live without verifying its URL.
 
 ## Commits and pull requests
 
@@ -27,9 +28,10 @@ Use 3D-printing analogies when they clarify coordinates, dimensions, or iteratio
   checkpoints; do not wait to be reminded. No empty or timer-only commits.
 - Good messages explain a visible change: `feat: add rocket landing controls`,
   `fix: reset score when restarting`, `docs: explain rocket steering`.
-- Explain briefly: a commit is a named save point, push backs it up on GitHub,
-  and a PR lets us inspect and test a change before it reaches the shared game.
-- Open/update a PR with behavior, validation, and one learning note. Keep any
+- Handle Git and PR mechanics quietly during active work. For larger features,
+  open/update PRs as a review and history trail, not a teaching exercise. Do not
+  require the son to study PRs, coordinate reviews, or learn Git to make progress.
+- Record behavior and validation in PRs without a required learning note. Keep any
   failing checks visible. Merge only when the user asks to merge/ship or has
   otherwise authorized it, and required checks pass. Never bypass protections,
   force-push, invent author identity, or claim a blocked push succeeded.

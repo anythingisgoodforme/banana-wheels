@@ -82,4 +82,6 @@ is more useful than “make it better.”
 
 The repository's `AGENTS.md` asks assistants to make and push meaningful
 checkpoints during active work and keep the helper current. It is not a scheduled
-background backup. Review a small PR together, then ask to merge and ship.
+background backup. Assistants handle PRs for larger features as a review and
+history trail. Focus together on trying features and giving feedback; Git and PR
+lessons can wait until the learner or parent asks for them.
