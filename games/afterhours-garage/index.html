@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#edf0df" />
+    <title>Afterhours • Your little car, a big adventure</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <a class="brand" href="../../">◈ AFTERHOURS <small>THE LITTLE CAR CLUB</small></a
+        ><span class="top-note">A little care. A long way.</span
+        ><button id="collect" class="primary collect">Collect £0</button>
+      </header>
+      <main class="layout">
+        <aside class="garage">
+          <div class="eyebrow">YOUR GARAGE / NO. 001</div>
+          <h1>A second life.<br />A new adventure.</h1>
+          <span id="status" class="status">Barn find · waiting for you</span>
+          <div class="stage">
+            <canvas
+              id="carCanvas"
+              width="600"
+              height="420"
+              aria-label="Rotating car. Drag to rotate."
+              tabindex="0"
+            ></canvas
+            ><span class="stage-label">1978 / LITTLE COMET</span>
+          </div>
+          <p class="car-hint">↔ Drag to look around · arrow keys to rotate</p>
+          <div id="meters" class="meters"></div>
+          <div id="care" class="care-actions"></div>
+          <nav class="tabs" aria-label="Garage views">
+            <button data-view="parts" class="active">▦ Parts shop</button
+            ><button data-view="activity">↗ Car activity</button
+            ><button data-view="facts">✧ Car facts</button>
+          </nav>
+          <div class="wallet">
+            <span>YOUR BANK ACCOUNT</span><strong id="bank">£1,500</strong
+            ><small>Saved on this browser · no account needed</small>
+          </div>
+        </aside>
+        <section class="workspace">
+          <div id="tutorial" class="tutorial"></div>
+          <div class="workspace-heading">
+            <div>
+              <div class="eyebrow" id="overline">BUILD SOMETHING GOOD</div>
+              <h2 id="heading">Little parts. Big possibilities.</h2>
+            </div>
+            <span id="summary"></span>
+          </div>
+          <div id="filters" class="filters"></div>
+          <input id="search" type="search" placeholder="Find a part…" aria-label="Search parts" />
+          <div id="content" class="parts-grid"></div>
+        </section>
+      </main>
+      <footer>
+        AFTERHOURS CAR CLUB <span>Made for the joy of bringing things back to life.</span
+        ><button id="reset">Start a new garage</button>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status"></div>
+    <dialog id="confirmDialog">
+      <h2>A fresh start?</h2>
+      <p>This deletes your saved car, parts and money in this browser.</p>
+      <button id="cancelReset">Keep my car</button><button id="confirmReset">Start again</button>
+    </dialog>
+    <script type="module" src="game.js"></script>
+  </body>
+</html>
