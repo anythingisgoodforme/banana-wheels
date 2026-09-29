@@ -489,6 +489,34 @@ async function startGarage() {
         color,
       });
     }
+    function roundedShell(sections, bottom, top, colors) {
+      const rings = sections.map(([x, halfWidth, shoulder]) => [
+        [x, bottom + 8, -halfWidth],
+        [x, bottom, -halfWidth + 10],
+        [x, bottom, halfWidth - 10],
+        [x, bottom + 8, halfWidth],
+        [x, top - shoulder, halfWidth],
+        [x, top, halfWidth - 11],
+        [x, top, -halfWidth + 11],
+        [x, top - shoulder, -halfWidth],
+      ]);
+      rings.forEach((ring, section) => {
+        if (section === rings.length - 1) return;
+        ring.forEach((point, side) =>
+          polygon(
+            [
+              point,
+              ring[(side + 1) % ring.length],
+              rings[section + 1][(side + 1) % ring.length],
+              rings[section + 1][side],
+            ],
+            colors[side % colors.length]
+          )
+        );
+      });
+      polygon(rings[0], colors[2]);
+      polygon([...rings.at(-1)].reverse(), colors[0]);
+    }
     function wheel(x, z) {
       const ring = (depth, radius) =>
         Array.from({ length: 16 }, (_, i) => {
@@ -511,14 +539,86 @@ async function startGarage() {
       polygon(ring(z + 20.6, 7), '#425e55');
     }
     for (const x of [-97, 98]) for (const z of [-71, 51]) wheel(x, z);
-    box(-150, 20, -60, 300, 45, 120, paint);
-    box(-62, 65, -52, 143, 49, 104, paint);
-    box(-54, 73, -54, 57, 34, 2, ['#294c50']);
-    box(14, 73, -54, 57, 34, 2, ['#294c50']);
-    box(-54, 73, 52, 57, 34, 2, ['#35585b']);
-    box(14, 73, 52, 57, 34, 2, ['#35585b']);
-    box(80, 73, -44, 2, 32, 88, ['#24484a']);
-    box(-64, 73, -44, 2, 32, 88, ['#35585b']);
+    roundedShell(
+      [
+        [-150, 45, 12],
+        [-140, 57, 8],
+        [-118, 61, 6],
+        [112, 61, 6],
+        [140, 55, 9],
+        [151, 39, 13],
+      ],
+      20,
+      67,
+      paint
+    );
+    roundedShell(
+      [
+        [-68, 37, 17],
+        [-57, 51, 10],
+        [-39, 54, 7],
+        [58, 54, 7],
+        [77, 49, 11],
+        [86, 34, 18],
+      ],
+      63,
+      116,
+      paint
+    );
+    polygon(
+      [
+        [-56, 75, -54],
+        [-42, 106, -45],
+        [5, 108, -45],
+        [5, 75, -54],
+      ],
+      '#294c50'
+    );
+    polygon(
+      [
+        [12, 75, -54],
+        [12, 108, -45],
+        [61, 104, -43],
+        [76, 75, -52],
+      ],
+      '#294c50'
+    );
+    polygon(
+      [
+        [-56, 75, 54],
+        [-42, 106, 45],
+        [5, 108, 45],
+        [5, 75, 54],
+      ],
+      '#35585b'
+    );
+    polygon(
+      [
+        [12, 75, 54],
+        [12, 108, 45],
+        [61, 104, 43],
+        [76, 75, 52],
+      ],
+      '#35585b'
+    );
+    polygon(
+      [
+        [77, 75, -43],
+        [63, 104, -38],
+        [63, 104, 38],
+        [77, 75, 43],
+      ],
+      '#24484a'
+    );
+    polygon(
+      [
+        [-59, 75, -43],
+        [-44, 106, -38],
+        [-44, 106, 38],
+        [-59, 75, 43],
+      ],
+      '#35585b'
+    );
     box(15, 66, -64, 16, 3, 4, ['#b8c3b0']);
     box(15, 66, 60, 16, 3, 4, ['#b8c3b0']);
     box(71, 72, -71, 13, 10, 12, paint);
