@@ -24,7 +24,7 @@ The six required entries represent major assemblies. Other components are collec
 
 ## Saves and offline simulation
 
-Progress is saved in this browser's local storage. Offline driving is calculated on return; no server or actual background process runs. Normal page hiding/closing records the departure time. Browser crashes, storage clearing or blocked storage may lose progress. Use one open garage tab at a time. Saves do not sync between devices. The clock is local and this is a friendly single-player game, not an anti-cheat economy.
+Progress is saved in this browser's local storage. Offline driving is calculated on return; no server or actual background process runs. Normal page hiding/closing records the departure time. Browser crashes, storage clearing or blocked storage may lose progress. On browsers supporting Web Locks, a second garage tab displays a reminder to use the first one, preventing duplicate rewards. Otherwise use one open garage tab at a time. Saves do not sync between devices. The clock is local and this is a friendly single-player game, not an anti-cheat economy.
 
 ## Credits
 

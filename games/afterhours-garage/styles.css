@@ -913,3 +913,42 @@ footer button {
     scroll-behavior: auto !important;
   }
 }
+.trump-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column: 1/-1;
+  gap: 8px;
+  margin-top: 8px;
+}
+.trump-stats span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+}
+.trump-stats b {
+  display: block;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+  color: var(--forest);
+}
+.repair-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-basis: 100%;
+}
+.repair-list button {
+  font-size: 11px;
+  padding: 8px;
+}
+.care-actions {
+  flex-wrap: wrap;
+}
+.collect:disabled {
+  opacity: 1;
+  color: #52663b;
+  background: #e0edc4;
+  box-shadow: none;
+}

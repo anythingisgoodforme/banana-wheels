@@ -18,25 +18,23 @@ const groups = {
 };
 const required = ['Engine', 'Tyres', 'Brakes', 'Gearbox', 'Battery', 'Windshield'];
 export const PARTS = Object.entries(groups).flatMap(([category, names]) =>
-  names
-    .split(',')
-    .map((name) => ({
-      id: name.toLowerCase().replaceAll(' ', '-'),
-      name,
-      category,
-      required: required.includes(name),
-      price: required.includes(name) ? 100 : 45,
-      description:
-        category === 'Engine'
-          ? 'Help your engine breathe, cool and deliver power.'
-          : category === 'Running gear'
-            ? 'Put power on the road with better control and grip.'
-            : category === 'Electrics'
-              ? 'Keep the car powered, visible and running reliably.'
-              : category === 'Body'
-                ? 'Protect your car from weather and the road.'
-                : 'Make every long drive more comfortable.',
-    }))
+  names.split(',').map((name) => ({
+    id: name.toLowerCase().replaceAll(' ', '-'),
+    name,
+    category,
+    required: required.includes(name),
+    price: required.includes(name) ? 100 : 45,
+    description:
+      category === 'Engine' || category === 'Engine internals'
+        ? 'Help your engine breathe, cool and deliver power.'
+        : category === 'Running gear' || category === 'Chassis details'
+          ? 'Put power on the road with better control and grip.'
+          : category === 'Electrics'
+            ? 'Keep the car powered, visible and running reliably.'
+            : category === 'Body' || category === 'Finishing touches'
+              ? 'Protect your car from weather and the road.'
+              : 'Make every long drive more comfortable.',
+  }))
 );
 export function newState(now = Date.now()) {
   return {
