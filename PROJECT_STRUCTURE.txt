@@ -3,27 +3,37 @@ Banana Wheels Project Structure
 
 banana-wheels/
 |-- games/
-|   `-- banana-wheels-gt/  # GT page, game runtime, and styles
+|   |-- banana-wheels-gt/  # GT index.html, game.js runtime, and styles
+|   |   |-- src/           # Preserved player/enemy/utility learning samples
+|   |   `-- tests/         # GT utility tests; excluded from publication
+|   |-- car-game-v2/       # Browser driving game
+|   |-- f1-sim-web/        # Browser F1 game and nested car-game/
+|   `-- f1-sim/            # Python/Pygame desktop game, not published
 |-- public/
 |   |-- index.html         # Game library home
 |   |-- library.css        # Library styling
 |   |-- v2/                # Banana Wheels V2
 |   |-- scoot/             # SCOOT game
 |   `-- bassline-rookie/   # Bass practice app
+|       |-- src/           # Bassline runtime modules
+|       `-- tests/         # Bassline tests; excluded from publication
 |-- scripts/
-|   `-- build-site.js      # Compose public/ and GT into dist/
-|-- src/                   # Shared utilities and examples
-|-- tests/                 # Jest tests
-|-- docs/                  # Game specs and project notes
+|   `-- build-site.js      # Compose public/ and browser games into dist/
+|-- docs/                  # Game specs, prompt helper, and project notes
+|-- AGENTS.md              # Learning, checkpoints, and PR workflow
 |-- README.md              # Project overview and commands
 |-- QUICKSTART.md          # Setup and GT entry points
 |-- CONTRIBUTING.md        # Development workflow
 |-- package.json           # Scripts and dependencies
-`-- jest.config.js         # Test configuration
+`-- jest.config.js         # Game-owned discovery and coverage configuration
 
 Primary workflow
 ----------------
-1. Run `npm install` once.
-2. Run `npm run dev` to serve the library and mounted GT game on port 8000.
-3. Edit files in `games/banana-wheels-gt/` for GT changes.
-4. Run `npm run lint`, `npm run format:check`, and `npm test` before pushing.
+1. Run `npm ci` to install pinned dependencies.
+2. Run `npm run dev` to serve the library and mounted games on port 8000.
+3. Edit files in the owning game's folder. GT src/ samples are learning
+   material; the playable GT runtime remains game.js.
+4. Run `npm run lint`, `npm run format:check`, `npm test -- --runInBand`,
+   and `npm run build` before pushing. Playtest the built browser games.
+5. Keep tests in each game's tests/ folder. The build excludes tests/,
+   __tests__/, JavaScript test/spec files, and node_modules/ from dist/.
