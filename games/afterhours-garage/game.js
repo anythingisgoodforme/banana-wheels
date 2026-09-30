@@ -46,6 +46,8 @@ async function startGarage() {
     angle = 0.6;
   let factIndex = 0,
     answered = false;
+  let newsCache = null,
+    newsCachedAt = 0;
   let hitTargets = [];
   const money = (n) => '£' + Math.floor(n).toLocaleString('en-GB');
   function save() {
@@ -200,7 +202,7 @@ async function startGarage() {
           ? 'Stories from the road.'
           : view === 'facts'
             ? 'Get to know your car.'
-            : 'Today in your little car world.';
+            : 'Real news from around Norway.';
     $('#overline').textContent =
       view === 'parts'
         ? 'BUILD SOMETHING GOOD'
@@ -429,71 +431,106 @@ async function startGarage() {
       renderFacts();
     };
   }
-  function renderNews() {
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+  function safeNrkUrl(value) {
+    try {
+      const url = new URL(value);
+      if (
+        url.protocol === 'https:' &&
+        (url.hostname === 'nrk.no' || url.hostname.endsWith('.nrk.no'))
+      )
+        return url.href;
+    } catch {
+      // Invalid feed URLs fall back to NRK's news front page.
+    }
+    return 'https://www.nrk.no/nyheter/';
+  }
+  function newsShell(content) {
     const now = new Date(),
-      dayNumber = Math.floor(
-        new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 86400000
-      ),
-      editionDate = new Intl.DateTimeFormat('en-GB', {
+      editionDate = new Intl.DateTimeFormat('nb-NO', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
         year: 'numeric',
-      }).format(now),
-      dailyStories = [
-        [
-          'Small cars voted the most fun on narrow roads',
-          'Drivers praised light steering, tidy dimensions and the joy of carrying momentum through every bend.',
-        ],
-        [
-          'Clean oil wins workshop hero award',
-          'Local mechanics reminded drivers that fresh oil quietly protects hundreds of fast-moving engine surfaces.',
-        ],
-        [
-          'Tyre team reveals the secret of dependable grip',
-          'Correct pressure and healthy tread help a car brake, steer and clear water when the road turns wet.',
-        ],
-        [
-          'Barn finds bring old colours back to the road',
-          'Patient scrubbing and careful repairs are giving forgotten cars another chance to explore.',
-        ],
-        [
-          'Battery experts ask drivers to listen for slow starts',
-          'A healthy battery starts the engine while the alternator keeps the electrical system supplied on the move.',
-        ],
-        [
-          'The humble brake pad takes centre stage',
-          'Workshop crews celebrated the small friction parts that turn a moving car’s energy into heat.',
-        ],
-        [
-          'Meadow circuit opens its gates for tiny tourers',
-          'The gentle route offers sweeping corners, long views and an ideal first adventure for a restored car.',
-        ],
-      ],
-      missing = blockers(state),
-      latest = state.activity[0],
-      leadTitle = !state.owned
-        ? 'Rusty Comet waits for a new owner'
-        : missing.length
-          ? `${missing.length} essential ${missing.length === 1 ? 'part' : 'parts'} stand between Comet and the road`
-          : latest
-            ? `Little Comet returns from the ${latest.track}`
-            : 'Little Comet declared ready for its first adventure',
-      leadCopy = !state.owned
-        ? 'A small 1978 Comet has been discovered in a local barn. Club members say £400 and a little care could begin a remarkable second life.'
-        : missing.length
-          ? `The workshop has named ${missing
-              .slice(0, 3)
-              .map((part) => part.name)
-              .join(', ')}${missing.length > 3 ? ' and more' : ''} as today’s priority jobs.`
-          : latest
-            ? `The restored car covered ${latest.distance.toFixed(1)} km and brought home ${money(latest.earned)}. The driver reports excellent views and a very happy engine.`
-            : 'The final safety check is complete. Club officials say the freshly restored car can begin earning as soon as its owner steps away.',
-      firstStory = dailyStories[dayNumber % dailyStories.length],
-      secondStory = dailyStories[(dayNumber + 3) % dailyStories.length];
+      }).format(now);
     $('#content').className = 'news-view';
     $('#content').innerHTML =
-      `<header class="newspaper-head"><span>YOUR GARAGE · DAILY EDITION</span><h2>The Afterhours Gazette</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header><article class="news-lead"><div class="news-kicker">FRONT PAGE</div><h2>${leadTitle}</h2><p>${leadCopy}</p><svg viewBox="0 0 560 210" role="img" aria-label="Little car travelling through rolling countryside"><rect width="560" height="210" fill="#dfe8d3"/><circle cx="455" cy="45" r="25" fill="#c5f46b"/><path d="M0 145 Q120 70 240 140 T560 120 V210 H0Z" fill="#9db4a1"/><path d="M0 175 Q150 105 300 174 T560 150 V210 H0Z" fill="#657b70"/><path d="M175 132 h132 l30 25 h-190z" fill="#7faaa0"/><path d="M214 103 h68 l25 29 h-112z" fill="#7faaa0"/><path d="M220 110 h25 v19 h-38zM251 110 h27 l18 19 h-45z" fill="#294c50"/><circle cx="185" cy="158" r="22" fill="#203631"/><circle cx="185" cy="158" r="9" fill="#d9e2d3"/><circle cx="309" cy="158" r="22" fill="#203631"/><circle cx="309" cy="158" r="9" fill="#d9e2d3"/></svg></article><aside class="news-numbers"><div class="news-kicker">GARAGE AT A GLANCE</div><dl><div><dt>Bank</dt><dd>${money(state.bank)}</dd></div><div><dt>Parts fitted</dt><dd>${Object.keys(state.parts).length}</dd></div><div><dt>Driving rate</dt><dd>${money(rate(state))}/hr</dd></div><div><dt>Body condition</dt><dd>${Math.round(100 - state.rust)}%</dd></div></dl></aside><article class="news-brief"><div class="news-kicker">MOTORING</div><h3>${firstStory[0]}</h3><p>${firstStory[1]}</p></article><article class="news-brief"><div class="news-kicker">WORKSHOP DESK</div><h3>${secondStory[0]}</h3><p>${secondStory[1]}</p></article><footer class="news-footer">A fresh edition arrives tomorrow · Your garage creates the headlines</footer>`;
+      `<header class="newspaper-head"><span>EKTE NYHETER FRA NORGE · NRK</span><h2>Norge i dag</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header>${content}`;
+  }
+  function showLiveNews(items) {
+    const lead = items[0],
+      published = (item) =>
+        new Intl.DateTimeFormat('nb-NO', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: 'numeric',
+          month: 'short',
+        }).format(item.published);
+    newsShell(
+      `<article class="news-lead"><div class="news-kicker">TOPPSAK FRA NRK · ${published(lead)}</div><h2><a href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lead.title)}</a></h2>${lead.summary ? `<p>${escapeHtml(lead.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">Les hele saken hos NRK →</a></article><aside class="news-numbers news-source"><div class="news-kicker">DIREKTE FRA NORGE</div><strong>${items.length} ferske saker</strong><p>Overskrifter og korte sammendrag hentes fra NRKs offisielle toppsaker-feed.</p><a href="https://www.nrk.no/nyheter/" target="_blank" rel="noopener noreferrer">Åpne NRK Nyheter →</a><small>Sist hentet ${new Intl.DateTimeFormat('nb-NO', { hour: '2-digit', minute: '2-digit' }).format(new Date(newsCachedAt))}</small></aside>${items
+        .slice(1)
+        .map(
+          (item, index) =>
+            `<article class="news-brief"><div class="news-kicker">${index === 0 ? 'SISTE' : 'NORGE NÅ'} · ${published(item)}</div><h3><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a></h3>${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">NRK →</a></article>`
+        )
+        .join(
+          ''
+        )}<footer class="news-footer">Kilde: NRK · Lenker åpnes hos NRK · Oppdateres automatisk</footer>`
+    );
+  }
+  async function renderNews(forceRefresh = false) {
+    if (!forceRefresh && newsCache && Date.now() - newsCachedAt < 10 * 60 * 1000) {
+      showLiveNews(newsCache);
+      return;
+    }
+    newsShell(
+      '<div class="news-loading" role="status"><span></span><h3>Henter ferske nyheter fra Norge…</h3><p>Kobler til NRKs offisielle nyhetsfeed.</p></div>'
+    );
+    const controller = new AbortController(),
+      timeout = setTimeout(() => controller.abort(), 7000);
+    try {
+      const response = await fetch('https://www.nrk.no/toppsaker.rss', {
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error(`NRK returned ${response.status}`);
+      const xml = new DOMParser().parseFromString(await response.text(), 'application/xml');
+      if (xml.querySelector('parsererror')) throw new Error('NRK feed was not valid XML');
+      const items = [...xml.querySelectorAll('item')].slice(0, 7).map((item) => {
+        const description = item.querySelector('description')?.textContent || '',
+          summary = new DOMParser()
+            .parseFromString(description, 'text/html')
+            .body.textContent.replace(/\s+/g, ' ')
+            .trim(),
+          published = new Date(item.querySelector('pubDate')?.textContent || Date.now());
+        return {
+          title: item.querySelector('title')?.textContent?.trim() || 'Ny sak fra NRK',
+          link: safeNrkUrl(item.querySelector('link')?.textContent?.trim() || ''),
+          summary: summary.length > 220 ? `${summary.slice(0, 217)}…` : summary,
+          published: Number.isNaN(published.getTime()) ? new Date() : published,
+        };
+      });
+      if (!items.length) throw new Error('NRK feed contained no stories');
+      newsCache = items;
+      newsCachedAt = Date.now();
+      if (view === 'news') showLiveNews(items);
+    } catch (error) {
+      if (view !== 'news') return;
+      newsShell(
+        `<div class="news-error"><div class="news-kicker">KAN IKKE NÅ NRK</div><h3>Nyhetene tok en liten omvei.</h3><p>Sjekk internettforbindelsen og prøv igjen. Ingen personlige opplysninger sendes.</p><button id="retryNews" class="primary">Prøv igjen</button><a href="https://www.nrk.no/nyheter/" target="_blank" rel="noopener noreferrer">Åpne NRK direkte →</a></div>`
+      );
+      $('#retryNews').onclick = () => renderNews(true);
+      console.warn('Could not load NRK news:', error.message);
+    } finally {
+      clearTimeout(timeout);
+    }
   }
   $('#search').oninput = (e) => {
     selectedRepair = null;

@@ -727,6 +727,11 @@ progress::-moz-progress-bar {
   letter-spacing: -0.045em;
   margin: 9px 0 15px;
 }
+.news-lead a,
+.news-brief a,
+.news-source a {
+  color: inherit;
+}
 .news-lead p,
 .news-brief p {
   color: #4d5a56;
@@ -766,11 +771,85 @@ progress::-moz-progress-bar {
   font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
   font-weight: 800;
 }
+.news-source strong {
+  display: block;
+  color: var(--green);
+  font-size: clamp(1.7rem, 3vw, 2.8rem);
+  line-height: 1;
+  margin: 23px 0 15px;
+}
+.news-source p {
+  color: #c7d2cf;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+.news-source a {
+  display: inline-block;
+  color: #fff;
+  font-weight: 700;
+  margin-top: 18px;
+}
+.news-source small {
+  display: block;
+  color: #9baaa6;
+  margin-top: 24px;
+}
 .news-brief h3 {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 1.45rem;
   line-height: 1.1;
   margin: 10px 0;
+}
+.news-read {
+  display: inline-block;
+  margin-top: 17px;
+  font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.news-loading,
+.news-error {
+  grid-column: 1 / -1;
+  min-height: 270px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  padding: 35px;
+}
+.news-loading span {
+  width: 42px;
+  height: 42px;
+  border: 5px solid #dce4d3;
+  border-top-color: var(--forest);
+  border-radius: 50%;
+  animation: news-loading 0.8s linear infinite;
+  margin-bottom: 20px;
+}
+.news-loading h3,
+.news-error h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+.news-loading p,
+.news-error p {
+  color: var(--muted);
+}
+.news-error button {
+  margin-top: 20px;
+}
+.news-error > a {
+  font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
+  font-size: 0.75rem;
+  margin-top: 15px;
+}
+@keyframes news-loading {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .news-footer {
   grid-column: 1 / -1;
