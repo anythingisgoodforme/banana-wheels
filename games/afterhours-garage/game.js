@@ -561,6 +561,19 @@ async function startGarage() {
         color,
       });
     }
+    function discOnEnd(x, centerY, centerZ, radius, color, sides = 16) {
+      polygon(
+        Array.from({ length: sides }, (_, index) => {
+          const discAngle = (index / sides) * Math.PI * 2;
+          return [
+            x,
+            centerY + Math.cos(discAngle) * radius,
+            centerZ + Math.sin(discAngle) * radius,
+          ];
+        }),
+        color
+      );
+    }
     function roundedShell(sections, bottom, top, colors) {
       const rings = sections.map(([x, halfWidth, shoulder]) => [
         [x, bottom + 8, -halfWidth],
@@ -626,6 +639,26 @@ async function startGarage() {
     );
     roundedShell(
       [
+        [-145, 44, 10],
+        [-136, 56, 7],
+        [-76, 59, 6],
+      ],
+      57,
+      73,
+      paint
+    );
+    roundedShell(
+      [
+        [75, 58, 7],
+        [122, 57, 8],
+        [144, 45, 12],
+      ],
+      57,
+      72,
+      paint
+    );
+    roundedShell(
+      [
         [-68, 37, 17],
         [-57, 51, 10],
         [-39, 54, 7],
@@ -675,19 +708,19 @@ async function startGarage() {
     );
     polygon(
       [
-        [77, 75, -43],
-        [63, 104, -38],
-        [63, 104, 38],
-        [77, 75, 43],
+        [89, 76, -27],
+        [89, 101, -25],
+        [89, 101, 25],
+        [89, 76, 27],
       ],
       '#24484a'
     );
     polygon(
       [
-        [-59, 75, -43],
-        [-44, 106, -38],
-        [-44, 106, 38],
-        [-59, 75, 43],
+        [-71, 76, -27],
+        [-71, 101, -25],
+        [-71, 101, 25],
+        [-71, 76, 27],
       ],
       '#35585b'
     );
@@ -704,10 +737,50 @@ async function startGarage() {
     }
     box(148, 26, -60, 7, 13, 120, ['#b9bda9']);
     box(-154, 26, -60, 7, 13, 120, ['#b9bda9']);
-    box(150, 43, -49, 3, 15, 27, ['#fbefb6']);
-    box(150, 43, 22, 3, 15, 27, ['#fbefb6']);
-    box(-153, 44, -50, 2, 13, 24, ['#b95440']);
-    box(-153, 44, 26, 2, 13, 24, ['#b95440']);
+    polygon(
+      [
+        [156, 31, -31],
+        [156, 31, 31],
+        [156, 49, 31],
+        [156, 49, -31],
+      ],
+      '#29423d'
+    );
+    for (let grilleBar = -24; grilleBar <= 24; grilleBar += 8) {
+      polygon(
+        [
+          [157, 33, grilleBar - 1],
+          [157, 33, grilleBar + 1],
+          [157, 47, grilleBar + 1],
+          [157, 47, grilleBar - 1],
+        ],
+        '#9eaea5'
+      );
+    }
+    discOnEnd(158, 53, -40, 10, '#fff0a8');
+    discOnEnd(158.5, 53, -40, 5, '#f7d95f');
+    discOnEnd(158, 53, 40, 10, '#fff0a8');
+    discOnEnd(158.5, 53, 40, 5, '#f7d95f');
+    polygon(
+      [
+        [159, 29, -14],
+        [159, 29, 14],
+        [159, 38, 14],
+        [159, 38, -14],
+      ],
+      '#f2eee0'
+    );
+    discOnEnd(-157, 51, -43, 9, '#b94f42');
+    discOnEnd(-157, 51, 43, 9, '#b94f42');
+    polygon(
+      [
+        [-158, 30, -15],
+        [-158, 38, -15],
+        [-158, 38, 15],
+        [-158, 30, 15],
+      ],
+      '#f2eee0'
+    );
     faces
       .sort((a, b) => a.depth - b.depth)
       .forEach((f) => {
@@ -720,16 +793,85 @@ async function startGarage() {
         ctx.lineWidth = 0.6;
         ctx.stroke();
       });
+    const visibleSide = cos >= 0 ? 61.5 : -61.5;
+    const drawBodyLine = (points, color = '#365f55', width = 1.6) => {
+      ctx.beginPath();
+      points
+        .map(project)
+        .forEach(([lineX, lineY], index) =>
+          index ? ctx.lineTo(lineX, lineY) : ctx.moveTo(lineX, lineY)
+        );
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    };
+    drawBodyLine([
+      [-137, 66, visibleSide],
+      [-75, 69, visibleSide],
+      [74, 69, visibleSide],
+      [139, 64, visibleSide],
+    ]);
+    drawBodyLine([
+      [-58, 28, visibleSide],
+      [-58, 72, visibleSide],
+      [-42, 106, Math.sign(visibleSide) * 45],
+    ]);
+    drawBodyLine([
+      [7, 27, visibleSide],
+      [7, 108, Math.sign(visibleSide) * 45],
+    ]);
+    drawBodyLine([
+      [77, 29, visibleSide],
+      [77, 73, visibleSide],
+      [62, 103, Math.sign(visibleSide) * 43],
+    ]);
+    drawBodyLine(
+      [
+        [83, 72, visibleSide],
+        [116, 71, visibleSide],
+        [143, 63, Math.sign(visibleSide) * 44],
+      ],
+      '#527b70',
+      1.2
+    );
+    for (const wheelX of [-97, 98]) {
+      drawBodyLine(
+        Array.from({ length: 13 }, (_, index) => {
+          const archAngle = (index / 12) * Math.PI;
+          return [wheelX + Math.cos(archAngle) * 34, 14 + Math.sin(archAngle) * 34, visibleSide];
+        }),
+        '#2e5048',
+        2.4
+      );
+    }
+    drawBodyLine(
+      [
+        [-29, 66, visibleSide + Math.sign(visibleSide) * 1.5],
+        [-15, 66, visibleSide + Math.sign(visibleSide) * 1.5],
+      ],
+      '#d9e0d3',
+      3
+    );
+    drawBodyLine(
+      [
+        [38, 66, visibleSide + Math.sign(visibleSide) * 1.5],
+        [52, 66, visibleSide + Math.sign(visibleSide) * 1.5],
+      ],
+      '#d9e0d3',
+      3
+    );
     if (
       (repair && blockers(state).some((p) => p.id === 'windshield')) ||
       pendingFitId === 'windshield'
     ) {
       ctx.beginPath();
       [
-        [83, 72, -44],
-        [83, 106, -44],
-        [83, 106, 44],
-        [83, 72, 44],
+        [90, 76, -27],
+        [90, 101, -25],
+        [90, 101, 25],
+        [90, 76, 27],
       ]
         .map(project)
         .forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
