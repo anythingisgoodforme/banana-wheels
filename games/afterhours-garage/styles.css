@@ -76,7 +76,11 @@ p {
 }
 .app {
   max-width: 1680px;
+  height: 100vh;
   margin: auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
 }
 .topbar {
   min-height: 98px;
@@ -153,15 +157,36 @@ p {
 .layout {
   display: grid;
   grid-template-columns: minmax(300px, 34%) minmax(0, 1fr);
-  min-height: calc(100vh - 160px);
+  min-height: 0;
+  overflow: hidden;
 }
 .garage {
-  align-self: start;
-  position: sticky;
-  top: 0;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #9daa9d transparent;
   padding: 32px 28px 24px 40px;
   border-right: 1px solid var(--line);
   background: linear-gradient(150deg, #eef0e6, #f6f5ee 60%);
+}
+.garage::-webkit-scrollbar,
+.workspace::-webkit-scrollbar {
+  width: 9px;
+}
+.garage::-webkit-scrollbar-thumb,
+.workspace::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 20px;
+  background: #9daa9d;
+  background-clip: padding-box;
+}
+.garage:focus-visible,
+.workspace:focus-visible {
+  outline: 3px solid #277a65;
+  outline-offset: -3px;
 }
 .eyebrow {
   font-size: 0.66rem;
@@ -342,7 +367,14 @@ progress::-moz-progress-bar {
   margin-top: 5px;
 }
 .workspace {
+  height: 100%;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #9daa9d transparent;
   padding: 32px 40px 40px 32px;
 }
 .tutorial {
@@ -812,6 +844,12 @@ footer button {
   }
 }
 @media (max-width: 760px) {
+  .app {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
   .top-note {
     display: none;
   }
@@ -837,8 +875,11 @@ footer button {
   }
   .layout {
     display: block;
+    overflow: visible;
   }
   .garage {
+    height: auto;
+    overflow: visible;
     position: relative;
     border-right: 0;
     border-bottom: 1px solid var(--line);
@@ -880,6 +921,8 @@ footer button {
     font-size: 2.5rem;
   }
   .workspace {
+    height: auto;
+    overflow: visible;
     padding: 25px 20px 32px;
   }
   .tutorial {
