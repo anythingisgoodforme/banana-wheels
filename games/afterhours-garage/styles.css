@@ -802,6 +802,16 @@ progress::-moz-progress-bar {
 .newspaper-head time {
   color: var(--muted);
 }
+.newspaper-deck {
+  grid-column: 1 / -1;
+  max-width: 760px;
+  justify-self: center;
+  margin: 0 auto 4px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  text-align: center;
+}
 .news-lead,
 .news-numbers,
 .news-brief {

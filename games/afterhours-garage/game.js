@@ -359,11 +359,20 @@ async function startGarage() {
       );
   }
   function trackPath(name) {
-    return name === 'Alpine pass'
+    const mountainTracks = ['Alpine pass', 'Summit Serpent', 'Glacier Pass', 'Midnight Mountain'],
+      coastalTracks = ['Coastal loop', 'Fjordlight Loop', 'Saltwind Raceway', 'Lighthouse Run'];
+    return mountainTracks.includes(name)
       ? 'M70 110 L110 30 Q140 10 160 40 L200 115 Q220 145 240 110 L285 35 Q340 15 345 80 Q330 140 270 135 L90 140 Z'
-      : name === 'Coastal loop'
+      : coastalTracks.includes(name)
         ? 'M70 110 C0 10 135 0 195 40 S370 25 355 85 S280 140 205 115 S105 170 70 110 Z'
         : 'M70 110 C10 20 220 5 210 55 S370 10 350 90 S125 170 70 110Z';
+  }
+  function trackLandscape(name) {
+    if (['Alpine pass', 'Summit Serpent', 'Glacier Pass', 'Midnight Mountain'].includes(name))
+      return '#d8dedd';
+    if (['Coastal loop', 'Fjordlight Loop', 'Saltwind Raceway', 'Lighthouse Run'].includes(name))
+      return '#c9e2df';
+    return '#e6ebcd';
   }
   function renderActivity() {
     $('#content').className = 'activity-grid';
@@ -373,7 +382,7 @@ async function startGarage() {
         ? state.activity
             .map(
               (a, i) =>
-                `<article class="track-card"><svg viewBox="0 0 400 160" aria-label="Illustration of ${a.track}" role="img"><rect width="400" height="160" fill="${a.track === 'Coastal loop' ? '#c9e2df' : a.track === 'Alpine pass' ? '#d8dedd' : '#e6ebcd'}"/><path d="M0 130 Q90 45 150 135 T400 110" fill="none" stroke="#c2d2b5" stroke-width="60"/><path d="${trackPath(a.track)}" fill="none" stroke="#657568" stroke-width="17"/><path d="${trackPath(a.track)}" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="6 8"/><circle cx="70" cy="110" r="7" fill="#d7ef70"/></svg><div><span class="eyebrow">${i === 0 ? 'LATEST ADVENTURE' : 'FROM YOUR LOGBOOK'}</span><h3>${a.track}</h3><p>${a.distance.toFixed(1)} km · ${Math.max(1, Math.round(a.hours * 60))} minutes away</p><strong>+ ${money(a.earned)}</strong></div></article>`
+                `<article class="track-card"><svg viewBox="0 0 400 160" aria-label="Illustration of ${a.track}" role="img"><rect width="400" height="160" fill="${trackLandscape(a.track)}"/><path d="M0 130 Q90 45 150 135 T400 110" fill="none" stroke="#c2d2b5" stroke-width="60"/><path d="${trackPath(a.track)}" fill="none" stroke="#657568" stroke-width="17"/><path d="${trackPath(a.track)}" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="6 8"/><circle cx="70" cy="110" r="7" fill="#d7ef70"/></svg><div><span class="eyebrow">${i === 0 ? 'LATEST ADVENTURE' : 'FROM YOUR LOGBOOK'}</span><h3>${a.track}</h3><p>${a.distance.toFixed(1)} km · ${Math.max(1, Math.round(a.hours * 60))} minutes away</p><strong>+ ${money(a.earned)}</strong></div></article>`
             )
             .join('')
         : '<div class="empty"><span>↗</span><h3>The road is waiting.</h3><p>Make your car road ready, switch to another tab, then come back. Your adventures will appear here.</p></div>');
@@ -509,7 +518,7 @@ async function startGarage() {
       }).format(now);
     $('#content').className = 'news-view';
     $('#content').innerHTML =
-      `<header class="newspaper-head"><span>EKTE NYHETER FRA NORGE · NRK</span><h2>Norge i dag</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header>${content}`;
+      `<header class="newspaper-head"><span>EKTE NYHETER FRA NORGE · NRK</span><h2>Norge i dag</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header><p class="newspaper-deck">Et lite overblikk over dagens overskrifter. Les utdragene her, og åpne saken hos NRK for hele historien, bakgrunnen og eventuelle oppdateringer.</p>${content}`;
   }
   function showLiveNews(items) {
     const lead = items[0],
@@ -560,7 +569,7 @@ async function startGarage() {
         return {
           title: item.querySelector('title')?.textContent?.trim() || 'Ny sak fra NRK',
           link: safeNrkUrl(item.querySelector('link')?.textContent?.trim() || ''),
-          summary: summary.length > 220 ? `${summary.slice(0, 217)}…` : summary,
+          summary: summary.length > 560 ? `${summary.slice(0, 557)}…` : summary,
           published: Number.isNaN(published.getTime()) ? new Date() : published,
         };
       });
@@ -602,7 +611,7 @@ async function startGarage() {
       }).format(now);
     $('#content').className = 'news-view car-news-view';
     $('#content').innerHTML =
-      `<header class="newspaper-head"><span>LIVE MOTORING NEWS · CAR AND DRIVER</span><h2>The motoring desk</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header>${content}`;
+      `<header class="newspaper-head"><span>LIVE MOTORING NEWS · CAR AND DRIVER</span><h2>The motoring desk</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header><p class="newspaper-deck">A longer read from the motoring desk: these are excerpts from the publisher's feed, with the full story and reporting one click away.</p>${content}`;
   }
   function showCarNews(items) {
     const lead = items[0],
@@ -654,7 +663,7 @@ async function startGarage() {
         return {
           title: String(item.title || 'New story from Car and Driver').trim(),
           link: safeCarNewsUrl(item.link || ''),
-          summary: summary.length > 220 ? `${summary.slice(0, 217)}…` : summary,
+          summary: summary.length > 560 ? `${summary.slice(0, 557)}…` : summary,
           published: Number.isNaN(published.getTime()) ? new Date() : published,
         };
       });

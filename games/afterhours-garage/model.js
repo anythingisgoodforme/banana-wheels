@@ -117,13 +117,20 @@ export function settle(s, now = Date.now()) {
   const hours = hourly ? Math.min(away, wearLimit, (100 - s.rust) * 0.72) : 0;
   const earned = hours * hourly;
   if (hours > 0) {
+    const routes =
+        hourly >= 220
+          ? ['Summit Serpent', 'Glacier Pass', 'Midnight Mountain']
+          : hourly >= 160
+            ? ['Fjordlight Loop', 'Saltwind Raceway', 'Lighthouse Run']
+            : ['Cloverfield Circuit', 'Birchwood Bend', 'Lantern Lane'],
+      track = routes[s.activity.length % routes.length];
     for (const [id, p] of Object.entries(s.parts))
       p.condition = Math.max(0, p.condition - (hours * (id === 'tyres' ? 5 : 1.5)) / p.tier);
     s.pending += earned;
     s.totalEarned += earned;
     s.totalDistance += hours * 65;
     s.activity.unshift({
-      track: hourly >= 220 ? 'Alpine pass' : hourly >= 160 ? 'Coastal loop' : 'Meadow circuit',
+      track,
       hours,
       distance: hours * 65,
       earned,
