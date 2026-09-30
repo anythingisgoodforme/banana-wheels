@@ -7,12 +7,12 @@ A small car-care game: restore a rusty 1978 Comet, fit its essentials, and let i
 Run `npm ci`, then `npm run dev`, and open http://localhost:8000/games/afterhours-garage/.
 
 1. Adopt the Comet for £400, then press **Scrub rust** four times.
-2. Fit the six essential parts in **Needed**. The default £1,500 covers everything.
+2. Choose each of the six essential parts in **Needed**, then tap its highlighted place on the car to fit it. The default £1,500 covers everything, and money is charged only after you tap the car.
 3. Switch tabs, minimise the browser, or close the game. Driving happens only while this page is hidden or closed. Return and press **Collect** to move earnings to your bank.
 4. Upgrade parts, check **Car activity**, and keep the body and tyres healthy. Missing or broken essentials stop driving. Wash for free; replace worn tyres in the shop.
 5. **Car facts** has repeatable questions rewarding £40. You can always recover from selling essential parts.
 
-Drag the car with mouse or touch, or focus it and use left/right arrows. Reduced-motion settings disable automatic rotation. **Repair me** marks missing/broken essentials on the car and provides named repair buttons; choosing one opens that part in the shop. **Start a new garage** asks before deleting the save.
+Drag the car with mouse or touch, or focus it and use left/right arrows. Reduced-motion settings disable automatic rotation. Every new part, replacement and upgrade must be placed on the highlighted area of the car; press Enter or Space while the car is focused for an accessible alternative. Engine and electrical parts use the front, tyres and running gear use a wheel, cabin parts use the roof, and body parts use their body area. **Repair me** marks missing/broken essentials on the car and provides named repair buttons; choosing one opens that part in the shop. **Start a new garage** asks before deleting the save.
 
 ## Change the starting money
 

@@ -40,6 +40,7 @@ async function startGarage() {
     category = 'Needed',
     query = '',
     selectedRepair = null,
+    pendingFitId = null,
     repair = false,
     angle = 0.6;
   let factIndex = 0,
@@ -72,7 +73,8 @@ async function startGarage() {
   }
   function render() {
     const missing = blockers(state),
-      hourly = rate(state);
+      hourly = rate(state),
+      pendingPart = PARTS.find((p) => p.id === pendingFitId);
     $('#bank').textContent = money(state.bank);
     $('#collect').textContent = `Collect ${money(state.pending)} ↗`;
     $('#collect').disabled = state.pending < 1;
@@ -95,6 +97,10 @@ async function startGarage() {
     $('#care').innerHTML = !state.owned
       ? `<button class="primary" id="buyCar">Adopt the Comet · ${money(CONFIG.CAR_PRICE)}</button>`
       : `<button id="clean">✧ ${state.clean < 100 ? 'Scrub rust' : 'Wash & protect'} · Free</button><button id="repair">${repair ? 'Exit inspection' : '⌖ Repair me'}</button>`;
+    $('#carCanvas').classList.toggle('fitting', Boolean(pendingPart));
+    $('.car-hint').textContent = pendingPart
+      ? `Tap the highlighted ${fitLocation(pendingPart)} to fit ${pendingPart.name}`
+      : '↔ Drag to look around · arrow keys to rotate';
     $('#buyCar')?.addEventListener('click', () =>
       act(() => buyCar(state), 'Your Comet is home. Let’s clean it up!')
     );
@@ -105,6 +111,7 @@ async function startGarage() {
       )
     );
     $('#repair')?.addEventListener('click', () => {
+      pendingFitId = null;
       repair = !repair;
       render();
       toast('Tap an outlined part, or choose a missing part below.');
@@ -135,6 +142,13 @@ async function startGarage() {
               'Your next adventure happens afterhours.',
               `Your car drives only while this tab is hidden or closed. Come back to collect. ${money(hourly)}/hour • driving stops if an essential part wears out.`,
             ];
+    if (pendingPart) {
+      step = [
+        'READY TO FIT',
+        `Where does the ${pendingPart.name} go?`,
+        `Tap the highlighted ${fitLocation(pendingPart)} on the car. You will only pay when you fit it.`,
+      ];
+    }
     $('#tutorial').innerHTML =
       `<span class="step">${step[0]}</span><h3>${step[1]}</h3><p>${step[2]}</p>`;
     if (repair && state.owned) {
@@ -146,6 +160,16 @@ async function startGarage() {
       $('#care')
         .querySelectorAll('[data-repair]')
         .forEach((b) => (b.onclick = () => openRepair(b.dataset.repair)));
+    }
+    if (pendingPart) {
+      $('#care').insertAdjacentHTML(
+        'beforeend',
+        `<div class="fit-instruction"><strong>${pendingPart.name}</strong><span>Tap the ${fitLocation(pendingPart)} on the car</span><button id="cancelFit">Cancel</button></div>`
+      );
+      $('#cancelFit').onclick = () => {
+        pendingFitId = null;
+        render();
+      };
     }
     document
       .querySelectorAll('[data-view]')
@@ -173,6 +197,40 @@ async function startGarage() {
     $('#search').value = p.name;
     render();
     $('#content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function fitLocation(part) {
+    if (
+      part.id === 'tyres' ||
+      part.category === 'Running gear' ||
+      part.category === 'Chassis details'
+    )
+      return 'front wheel';
+    if (part.id === 'windshield') return 'windscreen';
+    if (part.category === 'Cabin') return 'cabin';
+    if (part.category === 'Body' || part.category === 'Finishing touches') return 'body';
+    return 'front of the car';
+  }
+  function beginFit(id) {
+    const part = PARTS.find((p) => p.id === id);
+    if (!part || !state.owned) return;
+    if (state.bank < partCost(state, part)) {
+      toast('Not enough money yet. Car facts can help you earn a little more.');
+      return;
+    }
+    pendingFitId = id;
+    repair = false;
+    render();
+    $('#carCanvas').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $('#carCanvas').focus({ preventScroll: true });
+    toast(`Now tap the ${fitLocation(part)} to fit ${part.name}.`);
+  }
+  function completeFit(id) {
+    const part = PARTS.find((p) => p.id === id);
+    act(() => {
+      const fitted = buyPart(state, id);
+      if (fitted) pendingFitId = null;
+      return fitted;
+    }, `${part.name} fitted. A little closer to the open road.`);
   }
   function renderParts() {
     const cats = ['Needed', 'All', ...new Set(PARTS.map((p) => p.category))];
@@ -202,20 +260,22 @@ async function startGarage() {
         .map((p) => {
           const owned = state.parts[p.id],
             cost = partCost(state, p),
-            max = owned?.tier === 3 && owned.condition === 100;
-          return `<article class="part-card ${owned ? 'installed' : ''}"><div class="part-top"><span class="part-icon">${{ Engine: '⚙', 'Running gear': '◉', Electrics: 'ϟ', Body: '▱', Cabin: '▤' }[p.category]}</span><span class="badge">${owned ? `LEVEL ${owned.tier} / ${Math.round(owned.condition)}%` : p.required ? 'ESSENTIAL' : 'OPTIONAL'}</span></div><div class="part-category">${p.category}</div><h3>${p.name}</h3><p>${p.description}</p><div class="part-meta">${owned ? (owned.tier < 3 ? '+ £14/hr with next level' : 'Premium specification') : p.required ? 'Needed to drive' : '+ £3/hr when fitted'}</div><div class="part-actions"><button class="${owned ? 'secondary' : 'primary'}" data-buy="${p.id}" ${!state.owned || max ? 'disabled' : ''}>${max ? 'Fully upgraded' : owned?.condition < 100 ? 'Replace / upgrade' : owned ? 'Upgrade' : 'Fit part'}${max ? '' : ` · ${money(cost)}`}</button>${owned ? `<button class="sell" data-sell="${p.id}" aria-label="Sell ${p.name}">Sell</button>` : ''}</div></article>`;
+            max = owned?.tier === 3 && owned.condition === 100,
+            actionText = max
+              ? 'Fully upgraded'
+              : pendingFitId === p.id
+                ? `Tap ${fitLocation(p)} on car ↑`
+                : owned?.condition < 100
+                  ? 'Choose replacement'
+                  : owned
+                    ? 'Choose upgrade'
+                    : 'Choose & place';
+          return `<article class="part-card ${owned ? 'installed' : ''} ${pendingFitId === p.id ? 'fitting' : ''}"><div class="part-top"><span class="part-icon">${{ Engine: '⚙', 'Engine internals': '⚙', 'Running gear': '◉', 'Chassis details': '◉', Electrics: 'ϟ', Body: '▱', 'Finishing touches': '✧', Cabin: '▤' }[p.category]}</span><span class="badge">${owned ? `LEVEL ${owned.tier} / ${Math.round(owned.condition)}%` : p.required ? 'ESSENTIAL' : 'OPTIONAL'}</span></div><div class="part-category">${p.category}</div><h3>${p.name}</h3><p>${p.description}</p><div class="part-meta">${owned ? (owned.tier < 3 ? '+ £14/hr with next level' : 'Premium specification') : p.required ? 'Needed to drive' : '+ £3/hr when fitted'}</div><div class="part-actions"><button class="${owned ? 'secondary' : 'primary'}" data-buy="${p.id}" ${!state.owned || max ? 'disabled' : ''}>${actionText}${max || pendingFitId === p.id ? '' : ` · ${money(cost)}`}</button>${owned ? `<button class="sell" data-sell="${p.id}" aria-label="Sell ${p.name}" ${pendingFitId === p.id ? 'disabled' : ''}>Sell</button>` : ''}</div></article>`;
         })
         .join('') || '<p class="empty">No parts found. Try another search.</p>';
     $('#content')
       .querySelectorAll('[data-buy]')
-      .forEach(
-        (b) =>
-          (b.onclick = () =>
-            act(
-              () => buyPart(state, b.dataset.buy),
-              'Part fitted. A little closer to the open road.'
-            ))
-      );
+      .forEach((b) => (b.onclick = () => beginFit(b.dataset.buy)));
     $('#content')
       .querySelectorAll('[data-sell]')
       .forEach(
@@ -346,6 +406,7 @@ async function startGarage() {
     (b) =>
       (b.onclick = () => {
         view = b.dataset.view;
+        pendingFitId = null;
         answered = false;
         render();
       })
@@ -361,6 +422,7 @@ async function startGarage() {
   $('#confirmReset').onclick = () => {
     state = newState();
     selectedRepair = null;
+    pendingFitId = null;
     query = '';
     category = 'Needed';
     view = 'parts';
@@ -417,12 +479,13 @@ async function startGarage() {
     }
   };
   canvas.onpointerup = (e) => {
-    if (drag && drag.moved < 8 && repair) {
+    if (drag && drag.moved < 8 && (repair || pendingFitId)) {
       const rect = canvas.getBoundingClientRect();
       const x = ((e.clientX - rect.left) * 600) / rect.width,
         y = ((e.clientY - rect.top) * 420) / rect.height;
-      const target = hitTargets.find((t) => Math.hypot(x - t.x, y - t.y) < 32);
-      if (target) openRepair(target.id);
+      const target = hitTargets.find((t) => Math.hypot(x - t.x, y - t.y) < 42);
+      if (target?.action === 'fit') completeFit(target.id);
+      if (target?.action === 'repair') openRepair(target.id);
     }
     drag = null;
   };
@@ -431,6 +494,10 @@ async function startGarage() {
     if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
       e.preventDefault();
       angle += e.key === 'ArrowLeft' ? -0.15 : 0.15;
+    }
+    if (pendingFitId && ['Enter', ' '].includes(e.key)) {
+      e.preventDefault();
+      completeFit(pendingFitId);
     }
   };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -648,7 +715,10 @@ async function startGarage() {
         ctx.lineWidth = 0.6;
         ctx.stroke();
       });
-    if (repair && blockers(state).some((p) => p.id === 'windshield')) {
+    if (
+      (repair && blockers(state).some((p) => p.id === 'windshield')) ||
+      pendingFitId === 'windshield'
+    ) {
       ctx.beginPath();
       [
         [83, 72, -44],
@@ -665,20 +735,24 @@ async function startGarage() {
     }
     ctx.restore();
     hitTargets = [];
+    const anchorFor = (part) => {
+      if (part.id === 'tyres' || part.id === 'brakes') return [98, 12, 61];
+      if (part.id === 'gearbox') return [10, 38, 48];
+      if (part.id === 'battery') return [112, 66, 42];
+      if (part.id === 'windshield') return [70, 91, 0];
+      if (part.category === 'Running gear' || part.category === 'Chassis details')
+        return [98, 12, 61];
+      if (part.category === 'Cabin') return [0, 93, 48];
+      if (part.category === 'Body') return [8, 52, 61];
+      if (part.category === 'Finishing touches') return [-105, 53, 58];
+      return [112, 66, 35];
+    };
     if (repair) {
-      const anchors = {
-        engine: [112, 76, 0],
-        tyres: [-95, 10, 60],
-        brakes: [97, 10, 60],
-        gearbox: [0, 25, 0],
-        battery: [110, 68, -45],
-        windshield: [82, 95, 0],
-      };
       blockers(state).forEach((p) => {
-        const [px, py] = project(anchors[p.id]);
+        const [px, py] = project(anchorFor(p));
         const x = px + 300,
           y = py + 235;
-        hitTargets.push({ id: p.id, x, y });
+        hitTargets.push({ id: p.id, x, y, action: 'repair' });
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 3;
         ctx.beginPath();
@@ -691,6 +765,34 @@ async function startGarage() {
         ctx.textAlign = 'center';
         ctx.fillText(p.name, x, y + 4);
       });
+    }
+    if (pendingFitId) {
+      const part = PARTS.find((p) => p.id === pendingFitId);
+      const [px, py] = project(anchorFor(part));
+      const x = px + 300,
+        y = py + 235,
+        pulse = reduced ? 0 : Math.sin(Date.now() / 180) * 3;
+      hitTargets.push({ id: part.id, x, y, action: 'fit' });
+      ctx.fillStyle = '#c5f46b55';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x, y, 30 + pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = '#25623d';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 37 + pulse, 0, Math.PI * 2);
+      ctx.stroke();
+      const label = `FIT ${part.name.toUpperCase()} HERE`;
+      ctx.font = 'bold 11px sans-serif';
+      const labelWidth = Math.min(170, Math.max(105, ctx.measureText(label).width + 20));
+      ctx.fillStyle = '#172a32';
+      ctx.fillRect(x - labelWidth / 2, y - 58, labelWidth, 25);
+      ctx.fillStyle = '#c5f46b';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x, y - 41, labelWidth - 14);
     }
     if (!drag && !reduced) angle += 0.002;
     requestAnimationFrame(draw);
