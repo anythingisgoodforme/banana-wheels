@@ -488,7 +488,7 @@ async function startGarage() {
       const rect = canvas.getBoundingClientRect();
       const x = ((e.clientX - rect.left) * 600) / rect.width,
         y = ((e.clientY - rect.top) * 420) / rect.height;
-      const target = hitTargets.find((t) => Math.hypot(x - t.x, y - t.y) < 42);
+      const target = hitTargets.find((t) => Math.hypot(x - t.x, y - t.y) < (t.radius || 42));
       if (target?.action === 'fit') completeFit(target.id);
       if (target?.action === 'repair') openRepair(target.id);
     }
@@ -794,6 +794,7 @@ async function startGarage() {
       previewBox(-18, 25, -11, 36, 11, 22, ['#9bad9f', '#60756c', '#b7c4b5']);
       previewBox(-29, 7, -11, 7, 12, 22, ['#213a35', '#304d45']);
       previewBox(22, 7, -11, 7, 12, 22, ['#213a35', '#304d45']);
+      previewBox(-12, 36, -8, 10, 4, 16, ['#c5f46b', '#8db844']);
       previewFaces
         .sort((a, b) => a.depth - b.depth)
         .forEach((face) => {
@@ -869,24 +870,46 @@ async function startGarage() {
       ctx.fillText(label, x, y - 41, labelWidth - 14);
       if (part.id === 'engine') {
         const bob = reduced ? 0 : Math.sin(performance.now() / 220) * 5,
-          spin = reduced ? 0.55 : performance.now() / 520;
+          spin = reduced ? 0.55 : performance.now() / 310,
+          engineY = y - 69 + bob,
+          orbitStart = spin % (Math.PI * 2),
+          orbitEnd = orbitStart + Math.PI * 1.45;
+        hitTargets.push({ id: part.id, x, y: engineY, radius: 54, action: 'fit' });
         ctx.fillStyle = '#172a3222';
         ctx.beginPath();
         ctx.ellipse(x, y - 20, 35, 9, 0, 0, Math.PI * 2);
         ctx.fill();
-        drawEnginePreview(x, y - 62 + bob, spin, 1.05);
+        ctx.strokeStyle = '#25623d';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(x, engineY, 47, orbitStart, orbitEnd);
+        ctx.stroke();
+        const arrowX = x + Math.cos(orbitEnd) * 47,
+          arrowY = engineY + Math.sin(orbitEnd) * 47;
+        ctx.save();
+        ctx.translate(arrowX, arrowY);
+        ctx.rotate(orbitEnd + Math.PI / 2);
+        ctx.fillStyle = '#25623d';
+        ctx.beginPath();
+        ctx.moveTo(0, -7);
+        ctx.lineTo(6, 5);
+        ctx.lineTo(-6, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        drawEnginePreview(x, engineY, spin, 1.28);
       }
     }
     if (fittingAnimation) {
       const elapsed = performance.now() - fittingAnimation.startedAt,
-        progress = Math.min(1, elapsed / 720),
+        progress = Math.min(1, elapsed / 1300),
         eased = 1 - Math.pow(1 - progress, 3),
         [px, py] = project(anchorFor(fittingAnimation.part)),
         x = px + 300,
         y = py + 235;
       if (fittingAnimation.part.id === 'engine') {
         const spin = reduced ? 0.55 : performance.now() / 190;
-        drawEnginePreview(x, y - 62 + eased * 62, spin, 1.05 - eased * 0.25);
+        drawEnginePreview(x, y - 69 + eased * 69, spin, 1.28 - eased * 0.42);
       }
       ctx.strokeStyle = `rgba(197, 244, 107, ${1 - progress})`;
       ctx.lineWidth = 5;
@@ -895,7 +918,7 @@ async function startGarage() {
       ctx.stroke();
       if (progress === 1) fittingAnimation = null;
     }
-    if (!drag && !reduced) angle += 0.002;
+    if (!drag && !reduced && !pendingFitId) angle += 0.002;
     requestAnimationFrame(draw);
   }
   save();
