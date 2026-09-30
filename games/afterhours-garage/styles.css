@@ -12,12 +12,23 @@
   background: var(--paper);
   font-synthesis: none;
 }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ink: #eef5e9;
+  --muted: #a7b5b0;
+  --paper: #10191d;
+  --line: #34464b;
+  --forest: #a9db69;
+  --rust: #e9855f;
+}
 
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
+  background: var(--paper);
+  color: var(--ink);
 }
 button,
 input {
@@ -116,6 +127,15 @@ p {
   color: var(--muted);
   font-size: 0.75rem;
 }
+.theme-toggle {
+  min-width: 116px;
+  padding: 9px 12px;
+  font-size: 0.7rem;
+  background: transparent;
+}
+.theme-toggle span {
+  margin-right: 6px;
+}
 .stage {
   position: relative;
 }
@@ -171,6 +191,72 @@ p {
   padding: 32px 28px 24px 40px;
   border-right: 1px solid var(--line);
   background: linear-gradient(150deg, #eef0e6, #f6f5ee 60%);
+}
+:root[data-theme='dark'] .garage {
+  background: linear-gradient(150deg, #172328, #10191d 60%);
+}
+:root[data-theme='dark'] button {
+  background: #1b292e;
+}
+:root[data-theme='dark'] button:hover:not(:disabled) {
+  background: #26383e;
+}
+:root[data-theme='dark'] .primary,
+:root[data-theme='dark'] .collect {
+  color: #132018;
+  background: var(--green);
+}
+:root[data-theme='dark'] .status,
+:root[data-theme='dark'] .part-icon,
+:root[data-theme='dark'] .track-card svg,
+:root[data-theme='dark'] .stat {
+  background: #223137;
+}
+:root[data-theme='dark'] .badge {
+  color: #172a32;
+  background: #e7eee1;
+}
+:root[data-theme='dark'] .status.ready,
+:root[data-theme='dark'] .installed,
+:root[data-theme='dark'] .part-card.installed,
+:root[data-theme='dark'] .part-card.installed .badge {
+  background: #20372d;
+}
+:root[data-theme='dark'] .missing {
+  color: #ffc1a9;
+  background: #4a2922;
+}
+:root[data-theme='dark'] progress,
+:root[data-theme='dark'] progress::-webkit-progress-bar {
+  background: #304147;
+}
+:root[data-theme='dark'] #search,
+:root[data-theme='dark'] .part-card,
+:root[data-theme='dark'] .track-card,
+:root[data-theme='dark'] .fact-card,
+:root[data-theme='dark'] .news-lead,
+:root[data-theme='dark'] .news-brief,
+:root[data-theme='dark'] .news-loading,
+:root[data-theme='dark'] .news-error {
+  background: #172328;
+}
+:root[data-theme='dark'] .facts-view .fact-card {
+  background: radial-gradient(ellipse at 100% 0%, #273822, transparent 60%), #172328;
+}
+:root[data-theme='dark'] .tabs button.active,
+:root[data-theme='dark'] .filters button.active,
+:root[data-theme='dark'] #nextFact,
+:root[data-theme='dark'] .tutorial,
+:root[data-theme='dark'] .news-numbers {
+  background: #263c44;
+}
+:root[data-theme='dark'] .tutorial p,
+:root[data-theme='dark'] .news-numbers p,
+:root[data-theme='dark'] .news-source small {
+  color: #c8d4d0;
+}
+:root[data-theme='dark'] .fact-answers button {
+  background: #223137;
 }
 .garage::-webkit-scrollbar,
 .workspace::-webkit-scrollbar {
@@ -1052,6 +1138,22 @@ footer button {
     min-width: 135px;
     padding: 10px;
     font-size: 0.75rem;
+  }
+  .theme-toggle {
+    min-width: 42px;
+    width: 42px;
+    padding-inline: 8px;
+  }
+  .theme-toggle span {
+    margin: 0;
+    font-size: 1rem;
+  }
+  .theme-toggle b {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
   }
   .collect small {
     font-size: 0.6rem;

@@ -28,6 +28,36 @@ async function startGarage() {
   }
   const $ = (s) => document.querySelector(s),
     key = 'afterhours-garage-v1';
+  const themeKey = 'afterhours-garage-theme';
+  function applyTheme(theme) {
+    const dark = theme === 'dark';
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    $('meta[name="theme-color"]').content = dark ? '#10191d' : '#edf0df';
+    $('#themeToggle').setAttribute('aria-pressed', String(dark));
+    $('#themeToggle').setAttribute(
+      'aria-label',
+      dark ? 'Dark mode is on. Switch to light mode' : 'Light mode is on. Switch to dark mode'
+    );
+    $('#themeToggle').innerHTML =
+      `<span aria-hidden="true">${dark ? '☀' : '◐'}</span><b>Dark / Light</b>`;
+  }
+  let theme = 'light';
+  try {
+    theme = localStorage.getItem(themeKey) === 'dark' ? 'dark' : 'light';
+  } catch {
+    // The switch still works for this visit when browser storage is unavailable.
+  }
+  applyTheme(theme);
+  $('#themeToggle').onclick = () => {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    try {
+      localStorage.setItem(themeKey, theme);
+    } catch {
+      // Keep the selected theme for this visit.
+    }
+    applyTheme(theme);
+  };
   let state;
   try {
     state = JSON.parse(localStorage.getItem(key));

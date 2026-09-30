@@ -13,6 +13,7 @@ Run `npm ci`, then `npm run dev`, and open http://localhost:8000/games/afterhour
 5. **Car facts** has repeatable questions rewarding £40. You can always recover from selling essential parts.
 6. **Daily news** loads current Norwegian headlines from [NRK’s official top-stories RSS feed](https://www.nrk.no/toppsaker.rss). A fresh edition is fetched on each new calendar day. Headlines link to the complete articles on NRK. The game shows a retry screen and direct NRK link if the feed or internet connection is unavailable.
 7. **Car news** loads current motoring headlines from [Car and Driver's official RSS feed](https://www.caranddriver.com/rss/all.xml/). A fresh edition is fetched on each new calendar day. Stories open on the publisher's site, and the game shows a retry screen if the feed is unavailable.
+8. Use **Dark / Light** in the top bar to change the whole garage theme. The choice is remembered on this browser.
 
 If a car, part, upgrade or wash costs more than the current balance, the garage shakes and flashes red for one second. Reduced-motion mode keeps the red flash without the shake.
 
