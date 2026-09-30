@@ -48,6 +48,8 @@ async function startGarage() {
     answered = false;
   let newsCache = null,
     newsCachedAt = 0;
+  let carNewsCache = null,
+    carNewsCachedAt = 0;
   let hitTargets = [];
   const money = (n) => '£' + Math.floor(n).toLocaleString('en-GB');
   function save() {
@@ -202,7 +204,9 @@ async function startGarage() {
           ? 'Stories from the road.'
           : view === 'facts'
             ? 'Get to know your car.'
-            : 'Real news from around Norway.';
+            : view === 'news'
+              ? 'Real news from around Norway.'
+              : 'Fresh stories from the car world.';
     $('#overline').textContent =
       view === 'parts'
         ? 'BUILD SOMETHING GOOD'
@@ -210,13 +214,16 @@ async function startGarage() {
           ? 'THE ROAD LOG'
           : view === 'facts'
             ? 'THE CURIOUS DRIVER'
-            : 'THE AFTERHOURS GAZETTE';
+            : view === 'news'
+              ? 'THE AFTERHOURS GAZETTE'
+              : 'THE MOTORING DESK';
     $('#summary').textContent =
       view === 'parts' ? `${Object.keys(state.parts).length} / ${PARTS.length} fitted` : '';
     if (view === 'parts') renderParts();
     if (view === 'activity') renderActivity();
     if (view === 'facts') renderFacts();
     if (view === 'news') renderNews();
+    if (view === 'carnews') renderCarNews();
   }
   function openRepair(id) {
     const p = PARTS.find((p) => p.id === id);
@@ -528,6 +535,100 @@ async function startGarage() {
       );
       $('#retryNews').onclick = () => renderNews(true);
       console.warn('Could not load NRK news:', error.message);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  function safeCarNewsUrl(value) {
+    try {
+      const url = new URL(value);
+      if (
+        url.protocol === 'https:' &&
+        (url.hostname === 'caranddriver.com' || url.hostname.endsWith('.caranddriver.com'))
+      )
+        return url.href;
+    } catch {
+      // Invalid feed URLs fall back to the publisher's front page.
+    }
+    return 'https://www.caranddriver.com/';
+  }
+  function carNewsShell(content) {
+    const now = new Date(),
+      editionDate = new Intl.DateTimeFormat('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(now);
+    $('#content').className = 'news-view car-news-view';
+    $('#content').innerHTML =
+      `<header class="newspaper-head"><span>LIVE MOTORING NEWS · CAR AND DRIVER</span><h2>The motoring desk</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header>${content}`;
+  }
+  function showCarNews(items) {
+    const lead = items[0],
+      published = (item) =>
+        new Intl.DateTimeFormat('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: 'numeric',
+          month: 'short',
+        }).format(item.published);
+    carNewsShell(
+      `<article class="news-lead"><div class="news-kicker">TOP STORY · ${published(lead)}</div><h2><a href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lead.title)}</a></h2>${lead.summary ? `<p>${escapeHtml(lead.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">Read at Car and Driver →</a></article><aside class="news-numbers news-source"><div class="news-kicker">FROM THE CAR WORLD</div><strong>${items.length} fresh stories</strong><p>Current headlines and summaries from Car and Driver's official feed.</p><a href="https://www.caranddriver.com/" target="_blank" rel="noopener noreferrer">Open Car and Driver →</a><small>Updated ${new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date(carNewsCachedAt))}</small></aside>${items
+        .slice(1)
+        .map(
+          (item, index) =>
+            `<article class="news-brief"><div class="news-kicker">${index === 0 ? 'LATEST' : 'ON THE ROAD'} · ${published(item)}</div><h3><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a></h3>${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">Car and Driver →</a></article>`
+        )
+        .join(
+          ''
+        )}<footer class="news-footer">Source: Car and Driver · Links open at the publisher · Updates automatically</footer>`
+    );
+  }
+  async function renderCarNews(forceRefresh = false) {
+    if (!forceRefresh && carNewsCache && Date.now() - carNewsCachedAt < 10 * 60 * 1000) {
+      showCarNews(carNewsCache);
+      return;
+    }
+    carNewsShell(
+      '<div class="news-loading" role="status"><span></span><h3>Fetching fresh car news…</h3><p>Connecting to the Car and Driver news feed.</p></div>'
+    );
+    const controller = new AbortController(),
+      timeout = setTimeout(() => controller.abort(), 7000),
+      feed = encodeURIComponent('https://www.caranddriver.com/rss/all.xml/');
+    try {
+      const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feed}`, {
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error(`News reader returned ${response.status}`);
+      const data = await response.json();
+      if (data.status !== 'ok' || !Array.isArray(data.items))
+        throw new Error('Car news feed was unavailable');
+      const items = data.items.slice(0, 7).map((item) => {
+        const summary = new DOMParser()
+            .parseFromString(item.description || '', 'text/html')
+            .body.textContent.replace(/\s+/g, ' ')
+            .trim(),
+          published = new Date(item.pubDate || Date.now());
+        return {
+          title: String(item.title || 'New story from Car and Driver').trim(),
+          link: safeCarNewsUrl(item.link || ''),
+          summary: summary.length > 220 ? `${summary.slice(0, 217)}…` : summary,
+          published: Number.isNaN(published.getTime()) ? new Date() : published,
+        };
+      });
+      if (!items.length) throw new Error('Car news feed contained no stories');
+      carNewsCache = items;
+      carNewsCachedAt = Date.now();
+      if (view === 'carnews') showCarNews(items);
+    } catch (error) {
+      if (view !== 'carnews') return;
+      carNewsShell(
+        '<div class="news-error"><div class="news-kicker">CAR NEWS IS OFFLINE</div><h3>The stories hit a roadblock.</h3><p>Check your internet connection and try again.</p><button id="retryCarNews" class="primary">Try again</button><a href="https://www.caranddriver.com/" target="_blank" rel="noopener noreferrer">Open Car and Driver directly →</a></div>'
+      );
+      $('#retryCarNews').onclick = () => renderCarNews(true);
+      console.warn('Could not load car news:', error.message);
     } finally {
       clearTimeout(timeout);
     }

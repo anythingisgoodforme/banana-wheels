@@ -329,6 +329,9 @@ progress::-moz-progress-bar {
   background: var(--ink);
   color: #fff;
 }
+.tabs button:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .wallet {
   margin-top: 24px;
   padding: 21px 0 0;
