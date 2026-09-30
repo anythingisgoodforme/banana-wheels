@@ -41,6 +41,7 @@ async function startGarage() {
     query = '',
     selectedRepair = null,
     pendingFitId = null,
+    fittingAnimation = null,
     repair = false,
     angle = 0.6;
   let factIndex = 0,
@@ -146,7 +147,7 @@ async function startGarage() {
       step = [
         'READY TO FIT',
         `Where does the ${pendingPart.name} go?`,
-        `Tap the highlighted ${fitLocation(pendingPart)} on the car. You will only pay when you fit it.`,
+        `Tap the highlighted ${fitLocation(pendingPart)}. You will only pay when you fit it.`,
       ];
     }
     $('#tutorial').innerHTML =
@@ -228,7 +229,10 @@ async function startGarage() {
     const part = PARTS.find((p) => p.id === id);
     act(() => {
       const fitted = buyPart(state, id);
-      if (fitted) pendingFitId = null;
+      if (fitted) {
+        fittingAnimation = { part, startedAt: performance.now() };
+        pendingFitId = null;
+      }
       return fitted;
     }, `${part.name} fitted. A little closer to the open road.`);
   }
@@ -264,7 +268,7 @@ async function startGarage() {
             actionText = max
               ? 'Fully upgraded'
               : pendingFitId === p.id
-                ? `Tap ${fitLocation(p)} on car ↑`
+                ? `Tap ${fitLocation(p)} ↑`
                 : owned?.condition < 100
                   ? 'Choose replacement'
                   : owned
@@ -423,6 +427,7 @@ async function startGarage() {
     state = newState();
     selectedRepair = null;
     pendingFitId = null;
+    fittingAnimation = null;
     query = '';
     category = 'Needed';
     view = 'parts';
@@ -747,6 +752,75 @@ async function startGarage() {
       if (part.category === 'Finishing touches') return [-105, 53, 58];
       return [112, 66, 35];
     };
+    const drawEnginePreview = (x, y, spin, scale = 1) => {
+      const previewFaces = [],
+        previewCos = Math.cos(spin),
+        previewSin = Math.sin(spin),
+        previewProject = ([localX, localY, localZ]) => [
+          x + (localX * previewCos - localZ * previewSin) * scale,
+          y + ((localX * previewSin + localZ * previewCos) * 0.34 - localY) * scale,
+        ];
+      const previewBox = (boxX, boxY, boxZ, width, height, depth, colors) => {
+        const vertices = [
+          [boxX, boxY, boxZ],
+          [boxX + width, boxY, boxZ],
+          [boxX + width, boxY, boxZ + depth],
+          [boxX, boxY, boxZ + depth],
+          [boxX, boxY + height, boxZ],
+          [boxX + width, boxY + height, boxZ],
+          [boxX + width, boxY + height, boxZ + depth],
+          [boxX, boxY + height, boxZ + depth],
+        ];
+        [
+          [0, 1, 5, 4],
+          [1, 2, 6, 5],
+          [2, 3, 7, 6],
+          [3, 0, 4, 7],
+          [4, 5, 6, 7],
+        ].forEach((indices, side) =>
+          previewFaces.push({
+            points: indices.map((index) => previewProject(vertices[index])),
+            depth:
+              indices.reduce(
+                (total, index) =>
+                  total + vertices[index][0] * previewSin + vertices[index][2] * previewCos,
+                0
+              ) / indices.length,
+            color: colors[side % colors.length],
+          })
+        );
+      };
+      previewBox(-25, 0, -15, 50, 25, 30, ['#4f655d', '#324a43', '#6f8378']);
+      previewBox(-18, 25, -11, 36, 11, 22, ['#9bad9f', '#60756c', '#b7c4b5']);
+      previewBox(-29, 7, -11, 7, 12, 22, ['#213a35', '#304d45']);
+      previewBox(22, 7, -11, 7, 12, 22, ['#213a35', '#304d45']);
+      previewFaces
+        .sort((a, b) => a.depth - b.depth)
+        .forEach((face) => {
+          ctx.beginPath();
+          face.points.forEach(([pointX, pointY], index) =>
+            index ? ctx.lineTo(pointX, pointY) : ctx.moveTo(pointX, pointY)
+          );
+          ctx.closePath();
+          ctx.fillStyle = face.color;
+          ctx.fill();
+          ctx.strokeStyle = '#172a3288';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+      const pulley = previewProject([30, 12, 0]);
+      ctx.beginPath();
+      ctx.ellipse(pulley[0], pulley[1], 7 * scale, 7 * scale, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#d2ddce';
+      ctx.fill();
+      ctx.strokeStyle = '#233c36';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(pulley[0], pulley[1], 2 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = '#233c36';
+      ctx.fill();
+    };
     if (repair) {
       blockers(state).forEach((p) => {
         const [px, py] = project(anchorFor(p));
@@ -793,6 +867,33 @@ async function startGarage() {
       ctx.fillStyle = '#c5f46b';
       ctx.textAlign = 'center';
       ctx.fillText(label, x, y - 41, labelWidth - 14);
+      if (part.id === 'engine') {
+        const bob = reduced ? 0 : Math.sin(performance.now() / 220) * 5,
+          spin = reduced ? 0.55 : performance.now() / 520;
+        ctx.fillStyle = '#172a3222';
+        ctx.beginPath();
+        ctx.ellipse(x, y - 20, 35, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        drawEnginePreview(x, y - 62 + bob, spin, 1.05);
+      }
+    }
+    if (fittingAnimation) {
+      const elapsed = performance.now() - fittingAnimation.startedAt,
+        progress = Math.min(1, elapsed / 720),
+        eased = 1 - Math.pow(1 - progress, 3),
+        [px, py] = project(anchorFor(fittingAnimation.part)),
+        x = px + 300,
+        y = py + 235;
+      if (fittingAnimation.part.id === 'engine') {
+        const spin = reduced ? 0.55 : performance.now() / 190;
+        drawEnginePreview(x, y - 62 + eased * 62, spin, 1.05 - eased * 0.25);
+      }
+      ctx.strokeStyle = `rgba(197, 244, 107, ${1 - progress})`;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(x, y, 24 + progress * 38, 0, Math.PI * 2);
+      ctx.stroke();
+      if (progress === 1) fittingAnimation = null;
     }
     if (!drag && !reduced) angle += 0.002;
     requestAnimationFrame(draw);

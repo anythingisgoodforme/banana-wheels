@@ -12,7 +12,7 @@ Run `npm ci`, then `npm run dev`, and open http://localhost:8000/games/afterhour
 4. Upgrade parts, check **Car activity**, and keep the body and tyres healthy. Missing or broken essentials stop driving. Wash for free; replace worn tyres in the shop.
 5. **Car facts** has repeatable questions rewarding £40. You can always recover from selling essential parts.
 
-Drag the car with mouse or touch, or focus it and use left/right arrows. Reduced-motion settings disable automatic rotation. Every new part, replacement and upgrade must be placed on the highlighted area of the car; press Enter or Space while the car is focused for an accessible alternative. Engine and electrical parts use the front, tyres and running gear use a wheel, cabin parts use the roof, and body parts use their body area. **Repair me** marks missing/broken essentials on the car and provides named repair buttons; choosing one opens that part in the shop. **Start a new garage** asks before deleting the save.
+Drag the car with mouse or touch, or focus it and use left/right arrows. Reduced-motion settings disable automatic rotation. Every new part, replacement and upgrade must be placed on the highlighted area of the car; press Enter or Space while the car is focused for an accessible alternative. The engine spins above the bonnet while selected, then drops into place. Engine and electrical parts use the front, tyres and running gear use a wheel, cabin parts use the roof, and body parts use their body area. **Repair me** marks missing/broken essentials on the car and provides named repair buttons; choosing one opens that part in the shop. **Start a new garage** asks before deleting the save.
 
 ## Change the starting money
 
