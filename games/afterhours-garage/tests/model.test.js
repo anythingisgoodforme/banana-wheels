@@ -80,3 +80,17 @@ test('clock moving backwards never creates earnings or negative wear', () => {
   expect(s.pending).toBe(0);
   expect(s.parts.tyres.condition).toBe(100);
 });
+test('later washes cost £1,000 but tutorial scrubbing stays free', () => {
+  const s = newState(0);
+  buyCar(s);
+  const afterCar = s.bank;
+  for (let i = 0; i < 4; i++) expect(cleanCar(s)).toBe(true);
+  expect(s.bank).toBe(afterCar);
+  s.rust = 25;
+  expect(cleanCar(s)).toBe(true);
+  expect(s.bank).toBe(afterCar - 1000);
+  expect(s.rust).toBe(0);
+  s.rust = 25;
+  expect(cleanCar(s)).toBe(false);
+  expect(s.rust).toBe(25);
+});

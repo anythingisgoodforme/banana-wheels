@@ -97,7 +97,7 @@ async function startGarage() {
     );
     $('#care').innerHTML = !state.owned
       ? `<button class="primary" id="buyCar">Adopt the Comet · ${money(CONFIG.CAR_PRICE)}</button>`
-      : `<button id="clean">✧ ${state.clean < 100 ? 'Scrub rust' : 'Wash & protect'} · Free</button><button id="repair">${repair ? 'Exit inspection' : '⌖ Repair me'}</button>`;
+      : `<button id="clean">✧ ${state.clean < 100 ? 'Scrub rust · Free' : `Wash & protect · ${money(CONFIG.WASH_PRICE)}`}</button><button id="repair">${repair ? 'Exit inspection' : '⌖ Repair me'}</button>`;
     $('#carCanvas').classList.toggle('fitting', Boolean(pendingPart));
     $('.car-hint').textContent = pendingPart
       ? `Tap the highlighted ${fitLocation(pendingPart)} to fit ${pendingPart.name}`
@@ -105,12 +105,17 @@ async function startGarage() {
     $('#buyCar')?.addEventListener('click', () =>
       act(() => buyCar(state), 'Your Comet is home. Let’s clean it up!')
     );
-    $('#clean')?.addEventListener('click', () =>
+    $('#clean')?.addEventListener('click', () => {
+      const isPaidWash = state.clean >= 100;
       act(
         () => cleanCar(state),
-        state.clean < 75 ? 'A little shinier. Keep scrubbing!' : 'Looking good!'
-      )
-    );
+        isPaidWash
+          ? 'Washed and protected for the road!'
+          : state.clean < 75
+            ? 'A little shinier. Keep scrubbing!'
+            : 'Looking good!'
+      );
+    });
     $('#repair')?.addEventListener('click', () => {
       pendingFitId = null;
       repair = !repair;

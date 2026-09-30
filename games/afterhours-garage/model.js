@@ -1,4 +1,4 @@
-export const CONFIG = { STARTING_MONEY: 1500, CAR_PRICE: 400 };
+export const CONFIG = { STARTING_MONEY: 1500, CAR_PRICE: 400, WASH_PRICE: 1000 };
 const groups = {
   Engine:
     'Engine,Air filter,Oil filter,Fuel pump,Radiator,Turbocharger,Exhaust,Intake manifold,Camshaft,Crankshaft,Pistons,Connecting rods,Timing belt,Water pump,Oil pump,Intercooler,Throttle body,Injectors,Spark plugs,Head gasket,Valve springs,Flywheel,Engine mounts,Sump,Thermostat',
@@ -94,9 +94,14 @@ export function buyCar(s) {
   return true;
 }
 export function cleanCar(s) {
-  if (!s.owned) return;
+  if (!s.owned) return false;
+  if (s.clean >= 100) {
+    if (s.bank < CONFIG.WASH_PRICE) return false;
+    s.bank -= CONFIG.WASH_PRICE;
+  }
   s.clean = Math.min(100, s.clean + 25);
   s.rust = Math.max(0, s.rust - 25);
+  return true;
 }
 export function settle(s, now = Date.now()) {
   const elapsed = Math.max(0, (now - s.lastSeen) / 3600000);
