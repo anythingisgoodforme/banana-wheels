@@ -48,6 +48,7 @@ export function newState(now = Date.now()) {
     lastSeen: now,
     awaySince: null,
     activity: [],
+    routeCount: 0,
     totalDistance: 0,
     totalEarned: 0,
     factsRead: 0,
@@ -123,7 +124,9 @@ export function settle(s, now = Date.now()) {
           : hourly >= 160
             ? ['Fjordlight Loop', 'Saltwind Raceway', 'Lighthouse Run']
             : ['Cloverfield Circuit', 'Birchwood Bend', 'Lantern Lane'],
-      track = routes[s.activity.length % routes.length];
+        routeCount = Number.isInteger(s.routeCount) && s.routeCount >= 0 ? s.routeCount : s.activity.length,
+        track = routes[routeCount % routes.length];
+      s.routeCount = routeCount + 1;
     for (const [id, p] of Object.entries(s.parts))
       p.condition = Math.max(0, p.condition - (hours * (id === 'tyres' ? 5 : 1.5)) / p.tier);
     s.pending += earned;

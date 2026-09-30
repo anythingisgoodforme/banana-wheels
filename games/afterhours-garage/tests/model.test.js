@@ -44,6 +44,23 @@ test('away earnings are queued, never counted twice', () => {
   settle(s, 3 * HOUR);
   expect(s.pending).toBeCloseTo(hourly * 3);
 });
+test('route names keep rotating after the activity log reaches its cap', () => {
+  const s = ready();
+  s.activity = Array.from({ length: 20 }, (_, index) => ({ track: `Old track ${index}` }));
+  delete s.routeCount;
+  let now = 0;
+  const newTracks = [];
+  for (let trip = 0; trip < 4; trip++) {
+    s.lastSeen = now;
+    s.awaySince = now;
+    now += HOUR / 10;
+    settle(s, now);
+    newTracks.push(s.activity[0].track);
+  }
+  expect(new Set(newTracks.slice(0, 3)).size).toBe(3);
+  expect(s.activity).toHaveLength(20);
+  expect(s.routeCount).toBe(24);
+});
 test('selling an essential stops the car and buying it restores readiness', () => {
   const s = ready();
   sellPart(s, 'engine');
