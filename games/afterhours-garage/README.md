@@ -12,6 +12,8 @@ Run `npm ci`, then `npm run dev`, and open http://localhost:8000/games/afterhour
 4. Upgrade parts, check **Car activity**, and keep the body and tyres healthy. Missing or broken essentials stop driving. Tutorial scrubbing is free; later **Wash & protect** treatments cost £1,000. Replace worn tyres in the shop.
 5. **Car facts** has repeatable questions rewarding £40. You can always recover from selling essential parts.
 
+If a car, part, upgrade or wash costs more than the current balance, the garage shakes and flashes red for one second. Reduced-motion mode keeps the red flash without the shake.
+
 Drag the car with mouse or touch, or focus it and use left/right arrows. Reduced-motion settings disable automatic rotation. Every new part, replacement and upgrade must be placed on the highlighted area of the car; press Enter or Space while the car is focused for an accessible alternative. The car pauses while a part is waiting to be fitted. The engine spins above the bonnet while selected; tap either the engine or the bonnet target to drop it into place. Engine and electrical parts use the front, tyres and running gear use a wheel, cabin parts use the roof, and body parts use their body area. **Repair me** marks missing/broken essentials on the car and provides named repair buttons; choosing one opens that part in the shop. **Start a new garage** asks before deleting the save.
 
 ## Change the starting money

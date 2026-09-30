@@ -61,10 +61,21 @@ async function startGarage() {
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => $('#toast').classList.remove('show'), 3500);
   }
+  function showPurchaseDenied() {
+    document.body.classList.remove('purchase-denied');
+    void $('.app').offsetWidth;
+    document.body.classList.add('purchase-denied');
+    clearTimeout(showPurchaseDenied.timer);
+    showPurchaseDenied.timer = setTimeout(
+      () => document.body.classList.remove('purchase-denied'),
+      1000
+    );
+  }
   function act(fn, message) {
     settle(state);
     const result = fn();
     if (result === false) {
+      showPurchaseDenied();
       toast('Not enough money yet. Car facts can help you earn a little more.');
       return;
     }
@@ -220,6 +231,7 @@ async function startGarage() {
     const part = PARTS.find((p) => p.id === id);
     if (!part || !state.owned) return;
     if (state.bank < partCost(state, part)) {
+      showPurchaseDenied();
       toast('Not enough money yet. Car facts can help you earn a little more.');
       return;
     }
