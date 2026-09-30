@@ -198,12 +198,23 @@ async function startGarage() {
         ? 'Little parts. Big possibilities.'
         : view === 'activity'
           ? 'Stories from the road.'
-          : 'Get to know your car.';
+          : view === 'facts'
+            ? 'Get to know your car.'
+            : 'Today in your little car world.';
+    $('#overline').textContent =
+      view === 'parts'
+        ? 'BUILD SOMETHING GOOD'
+        : view === 'activity'
+          ? 'THE ROAD LOG'
+          : view === 'facts'
+            ? 'THE CURIOUS DRIVER'
+            : 'THE AFTERHOURS GAZETTE';
     $('#summary').textContent =
       view === 'parts' ? `${Object.keys(state.parts).length} / ${PARTS.length} fitted` : '';
     if (view === 'parts') renderParts();
     if (view === 'activity') renderActivity();
     if (view === 'facts') renderFacts();
+    if (view === 'news') renderNews();
   }
   function openRepair(id) {
     const p = PARTS.find((p) => p.id === id);
@@ -417,6 +428,72 @@ async function startGarage() {
       answered = false;
       renderFacts();
     };
+  }
+  function renderNews() {
+    const now = new Date(),
+      dayNumber = Math.floor(
+        new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 86400000
+      ),
+      editionDate = new Intl.DateTimeFormat('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(now),
+      dailyStories = [
+        [
+          'Small cars voted the most fun on narrow roads',
+          'Drivers praised light steering, tidy dimensions and the joy of carrying momentum through every bend.',
+        ],
+        [
+          'Clean oil wins workshop hero award',
+          'Local mechanics reminded drivers that fresh oil quietly protects hundreds of fast-moving engine surfaces.',
+        ],
+        [
+          'Tyre team reveals the secret of dependable grip',
+          'Correct pressure and healthy tread help a car brake, steer and clear water when the road turns wet.',
+        ],
+        [
+          'Barn finds bring old colours back to the road',
+          'Patient scrubbing and careful repairs are giving forgotten cars another chance to explore.',
+        ],
+        [
+          'Battery experts ask drivers to listen for slow starts',
+          'A healthy battery starts the engine while the alternator keeps the electrical system supplied on the move.',
+        ],
+        [
+          'The humble brake pad takes centre stage',
+          'Workshop crews celebrated the small friction parts that turn a moving car’s energy into heat.',
+        ],
+        [
+          'Meadow circuit opens its gates for tiny tourers',
+          'The gentle route offers sweeping corners, long views and an ideal first adventure for a restored car.',
+        ],
+      ],
+      missing = blockers(state),
+      latest = state.activity[0],
+      leadTitle = !state.owned
+        ? 'Rusty Comet waits for a new owner'
+        : missing.length
+          ? `${missing.length} essential ${missing.length === 1 ? 'part' : 'parts'} stand between Comet and the road`
+          : latest
+            ? `Little Comet returns from the ${latest.track}`
+            : 'Little Comet declared ready for its first adventure',
+      leadCopy = !state.owned
+        ? 'A small 1978 Comet has been discovered in a local barn. Club members say £400 and a little care could begin a remarkable second life.'
+        : missing.length
+          ? `The workshop has named ${missing
+              .slice(0, 3)
+              .map((part) => part.name)
+              .join(', ')}${missing.length > 3 ? ' and more' : ''} as today’s priority jobs.`
+          : latest
+            ? `The restored car covered ${latest.distance.toFixed(1)} km and brought home ${money(latest.earned)}. The driver reports excellent views and a very happy engine.`
+            : 'The final safety check is complete. Club officials say the freshly restored car can begin earning as soon as its owner steps away.',
+      firstStory = dailyStories[dayNumber % dailyStories.length],
+      secondStory = dailyStories[(dayNumber + 3) % dailyStories.length];
+    $('#content').className = 'news-view';
+    $('#content').innerHTML =
+      `<header class="newspaper-head"><span>YOUR GARAGE · DAILY EDITION</span><h2>The Afterhours Gazette</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header><article class="news-lead"><div class="news-kicker">FRONT PAGE</div><h2>${leadTitle}</h2><p>${leadCopy}</p><svg viewBox="0 0 560 210" role="img" aria-label="Little car travelling through rolling countryside"><rect width="560" height="210" fill="#dfe8d3"/><circle cx="455" cy="45" r="25" fill="#c5f46b"/><path d="M0 145 Q120 70 240 140 T560 120 V210 H0Z" fill="#9db4a1"/><path d="M0 175 Q150 105 300 174 T560 150 V210 H0Z" fill="#657b70"/><path d="M175 132 h132 l30 25 h-190z" fill="#7faaa0"/><path d="M214 103 h68 l25 29 h-112z" fill="#7faaa0"/><path d="M220 110 h25 v19 h-38zM251 110 h27 l18 19 h-45z" fill="#294c50"/><circle cx="185" cy="158" r="22" fill="#203631"/><circle cx="185" cy="158" r="9" fill="#d9e2d3"/><circle cx="309" cy="158" r="22" fill="#203631"/><circle cx="309" cy="158" r="9" fill="#d9e2d3"/></svg></article><aside class="news-numbers"><div class="news-kicker">GARAGE AT A GLANCE</div><dl><div><dt>Bank</dt><dd>${money(state.bank)}</dd></div><div><dt>Parts fitted</dt><dd>${Object.keys(state.parts).length}</dd></div><div><dt>Driving rate</dt><dd>${money(rate(state))}/hr</dd></div><div><dt>Body condition</dt><dd>${Math.round(100 - state.rust)}%</dd></div></dl></aside><article class="news-brief"><div class="news-kicker">MOTORING</div><h3>${firstStory[0]}</h3><p>${firstStory[1]}</p></article><article class="news-brief"><div class="news-kicker">WORKSHOP DESK</div><h3>${secondStory[0]}</h3><p>${secondStory[1]}</p></article><footer class="news-footer">A fresh edition arrives tomorrow · Your garage creates the headlines</footer>`;
   }
   $('#search').oninput = (e) => {
     selectedRepair = null;

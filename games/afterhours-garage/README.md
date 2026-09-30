@@ -11,6 +11,7 @@ Run `npm ci`, then `npm run dev`, and open http://localhost:8000/games/afterhour
 3. Switch tabs, minimise the browser, or close the game. Driving happens only while this page is hidden or closed. Return and press **Collect** to move earnings to your bank.
 4. Upgrade parts, check **Car activity**, and keep the body and tyres healthy. Missing or broken essentials stop driving. Tutorial scrubbing is free; later **Wash & protect** treatments cost £1,000. Replace worn tyres in the shop.
 5. **Car facts** has repeatable questions rewarding £40. You can always recover from selling essential parts.
+6. **Daily news** opens the offline Afterhours Gazette. A new dated edition arrives each day with a headline based on your car, two rotating motoring stories, an illustrated front page and current garage statistics.
 
 If a car, part, upgrade or wash costs more than the current balance, the garage shakes and flashes red for one second. Reduced-motion mode keeps the red flash without the shake.
 
