@@ -446,6 +446,16 @@ async function startGarage() {
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#039;');
   }
+  function isToday(timestamp) {
+    if (!timestamp) return false;
+    const saved = new Date(timestamp),
+      today = new Date();
+    return (
+      saved.getFullYear() === today.getFullYear() &&
+      saved.getMonth() === today.getMonth() &&
+      saved.getDate() === today.getDate()
+    );
+  }
   function safeNrkUrl(value) {
     try {
       const url = new URL(value);
@@ -489,11 +499,11 @@ async function startGarage() {
         )
         .join(
           ''
-        )}<footer class="news-footer">Kilde: NRK · Lenker åpnes hos NRK · Oppdateres automatisk</footer>`
+        )}<footer class="news-footer">Kilde: NRK · Lenker åpnes hos NRK · Ny utgave hver dag</footer>`
     );
   }
   async function renderNews(forceRefresh = false) {
-    if (!forceRefresh && newsCache && Date.now() - newsCachedAt < 10 * 60 * 1000) {
+    if (!forceRefresh && newsCache && isToday(newsCachedAt)) {
       showLiveNews(newsCache);
       return;
     }
@@ -582,11 +592,11 @@ async function startGarage() {
         )
         .join(
           ''
-        )}<footer class="news-footer">Source: Car and Driver · Links open at the publisher · Updates automatically</footer>`
+        )}<footer class="news-footer">Source: Car and Driver · Links open at the publisher · New edition every day</footer>`
     );
   }
   async function renderCarNews(forceRefresh = false) {
-    if (!forceRefresh && carNewsCache && Date.now() - carNewsCachedAt < 10 * 60 * 1000) {
+    if (!forceRefresh && carNewsCache && isToday(carNewsCachedAt)) {
       showCarNews(carNewsCache);
       return;
     }

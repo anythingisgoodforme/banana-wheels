@@ -11,8 +11,8 @@ Run `npm ci`, then `npm run dev`, and open http://localhost:8000/games/afterhour
 3. Switch tabs, minimise the browser, or close the game. Driving happens only while this page is hidden or closed. Return and press **Collect** to move earnings to your bank.
 4. Upgrade parts, check **Car activity**, and keep the body and tyres healthy. Missing or broken essentials stop driving. Tutorial scrubbing is free; later **Wash & protect** treatments cost £1,000. Replace worn tyres in the shop.
 5. **Car facts** has repeatable questions rewarding £40. You can always recover from selling essential parts.
-6. **Daily news** loads current Norwegian headlines from [NRK’s official top-stories RSS feed](https://www.nrk.no/toppsaker.rss). Headlines link to the complete articles on NRK. The game shows a retry screen and direct NRK link if the feed or internet connection is unavailable.
-7. **Car news** loads current motoring headlines from [Car and Driver's official RSS feed](https://www.caranddriver.com/rss/all.xml/). Stories open on the publisher's site, and the game shows a retry screen if the feed is unavailable.
+6. **Daily news** loads current Norwegian headlines from [NRK’s official top-stories RSS feed](https://www.nrk.no/toppsaker.rss). A fresh edition is fetched on each new calendar day. Headlines link to the complete articles on NRK. The game shows a retry screen and direct NRK link if the feed or internet connection is unavailable.
+7. **Car news** loads current motoring headlines from [Car and Driver's official RSS feed](https://www.caranddriver.com/rss/all.xml/). A fresh edition is fetched on each new calendar day. Stories open on the publisher's site, and the game shows a retry screen if the feed is unavailable.
 
 If a car, part, upgrade or wash costs more than the current balance, the garage shakes and flashes red for one second. Reduced-motion mode keeps the red flash without the shake.
 
