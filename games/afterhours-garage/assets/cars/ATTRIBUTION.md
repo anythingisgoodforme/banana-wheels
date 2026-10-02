@@ -24,7 +24,7 @@ These models are licensed under Creative Commons Attribution 3.0. License: https
 - `classic-car.glb` - Car by Quaternius, from the Cars Bundle GLB collection: https://poly.pizza/m/unqqkULtRU
 - `alternate-car.glb` - Car by Quaternius, from the Cars Bundle GLB collection
 - `taxi.glb` - Taxi by Quaternius, from the Cars Bundle GLB collection
-- `suv.glb` - SUV by Quaternius, from the Cars Bundle GLB collection: https://poly.pizza/m/xsMtZhBkxL
+- `SUV.glb` - SUV by Quaternius, from the Cars Bundle GLB collection: https://poly.pizza/m/xsMtZhBkxL
 - `pickup-truck.glb` - Pickup Truck by Quaternius: https://poly.pizza/m/qn4grQgHm8
 - `police-car.glb` - Police Car by Quaternius: https://poly.pizza/m/BwwnUrWGmV
 - `broken-car.glb` - Broken Car by Quaternius: https://poly.pizza/m/Y67erogmR9

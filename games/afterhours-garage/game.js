@@ -31,7 +31,7 @@ const CAR_MODEL_FILES = {
   'popup-legend': 'sports-car.glb',
   'midnight-drift': 'mazda-rx7.glb',
   'v8-thunder': 'dodge-charger.glb',
-  'safari-rally': 'suv.glb',
+  'safari-rally': 'SUV.glb',
   'city-pickup': 'pickup-truck.glb',
   'electric-sprint': 'ignition-labs-car.glb',
   'classic-gt': 'convertible.glb',
@@ -479,7 +479,7 @@ async function startGarage() {
               car.monster && 'Monster wheels',
               car.pickup && 'Pickup bed',
             ].filter(Boolean);
-          return `<article class="car-card ${active ? 'active' : ''} ${unavailable ? 'locked' : ''}" style="--car-paint:${car.color}"><div class="car-card-top"><span class="car-type">${car.type}</span><span class="car-status">${active ? 'CURRENT' : owned ? 'OWNED' : locked ? 'LOCKED' : carExoticness(car) >= 65 ? 'EXOTIC' : 'AVAILABLE'}</span></div><div class="car-card-art" aria-hidden="true"><span class="mini-car"><i class="mini-roof"></i><i class="mini-body"></i><i class="mini-wheel left"></i><i class="mini-wheel right"></i>${car.spoiler ? '<i class="mini-spoiler"></i>' : ''}</span></div><h3>${car.name}</h3><div class="car-specs">${[
+          return `<article class="car-card ${active ? 'active' : ''} ${unavailable ? 'locked' : ''}" style="--car-paint:${car.color}"><div class="car-card-top"><span class="car-type">${car.type}</span><span class="car-status">${active ? 'CURRENT' : owned ? 'OWNED' : locked ? 'LOCKED' : carExoticness(car) >= 65 ? 'EXOTIC' : 'AVAILABLE'}</span></div><div class="car-card-art" data-car-preview="${car.id}" aria-hidden="true"><span class="mini-car"><i class="mini-roof"></i><i class="mini-body"></i><i class="mini-wheel left"></i><i class="mini-wheel right"></i>${car.spoiler ? '<i class="mini-spoiler"></i>' : ''}</span></div><h3>${car.name}</h3><div class="car-specs">${[
             ['DESIRABILITY', car.desirability, 10],
             ['POWER', car.power, 10],
             ['SPEED', car.speed, 10],
@@ -495,6 +495,7 @@ async function startGarage() {
             )}</div><div class="car-score"><span>EXOTIC SCORE <b>${carExoticness(car)}/100</b></span><span>AWAY RATE <b>${money(Math.round(138 * carEarningsMultiplier(car.id)))} / hr</b></span></div><div class="car-features">${features.map((feature) => `<span>${feature}</span>`).join('') || '<span>Classic trim</span>'}</div><p class="car-cost">${owned ? `Invested ${money(state.cars[car.id].investment)}` : `Price ${money(car.price)}${car.id === 'little-comet' ? '' : ` · lifetime unlock ${money(car.price)}`}`}</p><button class="${active ? 'secondary' : 'primary'} car-action" data-car-action="${car.id}" ${active || unavailable ? 'disabled' : ''}>${actionText}</button></article>`;
         }
       ).join('')}</div>`;
+    renderGaragePreviews();
     $('#sellCar').onclick = beginSellConfirmation;
     $('#content')
       .querySelectorAll('[data-car-action]')
@@ -1026,7 +1027,7 @@ async function startGarage() {
   let modelLoaded = false,
     currentModelKey = '',
     modelRequest = 0;
-  function showVehicleModel(source, car, file) {
+  function prepareVehicleModel(source) {
     const model = source.clone(true),
       bounds = new THREE.Box3().setFromObject(model),
       size = bounds.getSize(new THREE.Vector3()),
@@ -1039,6 +1040,10 @@ async function startGarage() {
       object.castShadow = true;
       object.receiveShadow = true;
     });
+    return model;
+  }
+  function showVehicleModel(source, car, file) {
+    const model = prepareVehicleModel(source);
     vehicleGroup.clear();
     vehicleGroup.add(model);
     vehicleGroup.userData.modelFile = file;
@@ -1073,6 +1078,60 @@ async function startGarage() {
         console.warn(`Could not load ${car.name} model; using the built-in car.`, error);
       }
     );
+  }
+  const previewCache = new Map();
+  function carPreview(file) {
+    if (!previewCache.has(file)) {
+      previewCache.set(
+        file,
+        (async () => {
+          const source =
+            modelCache.get(file) ||
+            (await modelLoader.loadAsync(new URL(`./assets/cars/${file}`, import.meta.url).href))
+              .scene;
+          modelCache.set(file, source);
+          const previewScene = new THREE.Scene();
+          previewScene.add(new THREE.HemisphereLight(0xe8f4f2, 0x34453e, 2.1));
+          const light = new THREE.DirectionalLight(0xfff5df, 3.2);
+          light.position.set(-3, 7, 5);
+          previewScene.add(light);
+          const model = prepareVehicleModel(source);
+          model.rotation.y = 0.6;
+          previewScene.add(model);
+          const previewCamera = new THREE.PerspectiveCamera(32, 2, 0.1, 100);
+          previewCamera.position.set(4.4, 2.7, 5.6);
+          previewCamera.lookAt(0, 0.75, 0);
+          try {
+            renderer.setSize(360, 180, false);
+            renderer.render(previewScene, previewCamera);
+            return renderer.domElement.toDataURL('image/png');
+          } finally {
+            resizeVehicleRenderer();
+            renderer.render(scene, camera);
+          }
+        })()
+      );
+    }
+    return previewCache.get(file);
+  }
+  function renderGaragePreviews() {
+    if (!renderer) return;
+    $('#content')
+      .querySelectorAll('[data-car-preview]')
+      .forEach(async (element) => {
+        try {
+          const url = await carPreview(CAR_MODEL_FILES[element.dataset.carPreview]);
+          if (!element.isConnected) return;
+          const image = document.createElement('img');
+          image.src = url;
+          image.alt = '';
+          image.width = 360;
+          image.height = 180;
+          element.replaceChildren(image);
+        } catch (error) {
+          console.warn('Could not render garage preview; keeping built-in artwork.', error);
+        }
+      });
   }
   function resizeVehicleRenderer() {
     if (!renderer) return;

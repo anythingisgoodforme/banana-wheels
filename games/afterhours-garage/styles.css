@@ -1644,3 +1644,11 @@ body.purchase-denied::after {
     animation: purchase-denied-flash 1s ease-out forwards !important;
   }
 }
+
+.car-card-art img {
+  display: block;
+  width: 100%;
+  height: 94px;
+  min-width: 0;
+  object-fit: contain;
+}
