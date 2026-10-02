@@ -1,4 +1,5 @@
 import {
+  CAR_CATALOG,
   CONFIG,
   PARTS,
   newState,
@@ -8,9 +9,53 @@ import {
   buyPart,
   sellPart,
   buyCar,
+  buyVehicle,
+  carEarningsMultiplier,
+  carExoticness,
   cleanCar,
+  getCar,
+  migrateState,
+  saveActiveCar,
   settle,
+  sellVehicle,
+  switchCar,
+  vehicleSaleValue,
 } from './model.js';
+const NEWS_COUNTRY_CODES = `AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW`;
+const NEWS_COUNTRY_NAMES = new Intl.DisplayNames(['en'], { type: 'region' });
+const NEWS_COUNTRIES = NEWS_COUNTRY_CODES.split(' ').map((code) => ({
+  code,
+  name: NEWS_COUNTRY_NAMES.of(code),
+}));
+const NEWS_LOCALES = {
+  AR: 'es-AR',
+  AT: 'de-AT',
+  AU: 'en-AU',
+  BE: 'nl-BE',
+  BR: 'pt-BR',
+  CA: 'en-CA',
+  CH: 'de-CH',
+  CL: 'es-CL',
+  CO: 'es-CO',
+  DE: 'de-DE',
+  DK: 'da-DK',
+  ES: 'es-ES',
+  FI: 'fi-FI',
+  FR: 'fr-FR',
+  GB: 'en-GB',
+  IE: 'en-IE',
+  IN: 'en-IN',
+  IT: 'it-IT',
+  JP: 'ja-JP',
+  MX: 'es-MX',
+  NL: 'nl-NL',
+  NO: 'nb-NO',
+  NZ: 'en-NZ',
+  PL: 'pl-PL',
+  PT: 'pt-PT',
+  SE: 'sv-SE',
+  US: 'en-US',
+};
 async function startGarage() {
   // One writer per browser prevents a second garage tab duplicating away rewards.
   if (navigator.locks) {
@@ -65,6 +110,7 @@ async function startGarage() {
   } catch {
     state = newState();
   }
+  state = migrateState(state);
   settle(state);
   let view = 'parts',
     category = 'Needed',
@@ -72,18 +118,21 @@ async function startGarage() {
     selectedRepair = null,
     pendingFitId = null,
     fittingAnimation = null,
+    sellConfirmationStep = 0,
     repair = false,
     angle = 0.6;
   let factIndex = 0,
     answered = false;
-  let newsCache = null,
-    newsCachedAt = 0;
+  const newsCache = new Map();
+  let newsCountry = NEWS_COUNTRIES.find((country) => country.code === 'NO'),
+    newsStatus = 'Choose a country to update the headlines.';
   let carNewsCache = null,
     carNewsCachedAt = 0;
   let hitTargets = [];
   const money = (n) => '£' + Math.floor(n).toLocaleString('en-GB');
   function save() {
     try {
+      saveActiveCar(state);
       localStorage.setItem(key, JSON.stringify(state));
     } catch {
       toast('Storage is unavailable. Keep this tab open to preserve your garage.');
@@ -120,6 +169,7 @@ async function startGarage() {
   function render() {
     const missing = blockers(state),
       hourly = rate(state),
+      activeCar = getCar(state.carId),
       pendingPart = PARTS.find((p) => p.id === pendingFitId);
     $('#bank').textContent = money(state.bank);
     $('#collect').textContent = `Collect ${money(state.pending)} ↗`;
@@ -127,7 +177,7 @@ async function startGarage() {
     $('#status').textContent = !state.owned
       ? 'Barn find · waiting for you'
       : hourly
-        ? '● Road ready · resting in garage'
+        ? `● ${activeCar.name} · road ready`
         : state.clean < 100
           ? 'Restoration in progress'
           : missing.length
@@ -143,6 +193,9 @@ async function startGarage() {
     $('#care').innerHTML = !state.owned
       ? `<button class="primary" id="buyCar">Adopt the Comet · ${money(CONFIG.CAR_PRICE)}</button>`
       : `<button id="clean">✧ ${state.clean < 100 ? 'Scrub rust · Free' : `Wash & protect · ${money(CONFIG.WASH_PRICE)}`}</button><button id="repair">${repair ? 'Exit inspection' : '⌖ Repair me'}</button>`;
+    $('#stageLabel').textContent = state.owned
+      ? `${activeCar.type.toUpperCase()} / ${activeCar.name.toUpperCase()}`
+      : '1978 / LITTLE COMET';
     $('#carCanvas').classList.toggle('fitting', Boolean(pendingPart));
     $('.car-hint').textContent = pendingPart
       ? `Tap the highlighted ${fitLocation(pendingPart)} to fit ${pendingPart.name}`
@@ -201,7 +254,9 @@ async function startGarage() {
       ];
     }
     $('#tutorial').innerHTML =
-      `<span class="step">${step[0]}</span><h3>${step[1]}</h3><p>${step[2]}</p>`;
+      view === 'garage'
+        ? ''
+        : `<span class="step">${step[0]}</span><h3>${step[1]}</h3><p>${step[2]}</p>`;
     if (repair && state.owned) {
       const issues = blockers(state);
       $('#care').insertAdjacentHTML(
@@ -230,26 +285,35 @@ async function startGarage() {
     $('#heading').textContent =
       view === 'parts'
         ? 'Little parts. Big possibilities.'
-        : view === 'activity'
-          ? 'Stories from the road.'
-          : view === 'facts'
-            ? 'Get to know your car.'
-            : view === 'news'
-              ? 'Real news from around Norway.'
-              : 'Fresh stories from the car world.';
+        : view === 'garage'
+          ? 'Your garage, your next ride.'
+          : view === 'activity'
+            ? 'Stories from the road.'
+            : view === 'facts'
+              ? 'Get to know your car.'
+              : view === 'news'
+                ? `Real news from around ${newsCountry.name}.`
+                : 'Fresh stories from the car world.';
     $('#overline').textContent =
       view === 'parts'
         ? 'BUILD SOMETHING GOOD'
         : view === 'activity'
           ? 'THE ROAD LOG'
-          : view === 'facts'
-            ? 'THE CURIOUS DRIVER'
-            : view === 'news'
-              ? 'THE AFTERHOURS GAZETTE'
-              : 'THE MOTORING DESK';
+          : view === 'garage'
+            ? 'THE CAR COLLECTION'
+            : view === 'facts'
+              ? 'THE CURIOUS DRIVER'
+              : view === 'news'
+                ? 'THE AFTERHOURS GAZETTE'
+                : 'THE MOTORING DESK';
     $('#summary').textContent =
-      view === 'parts' ? `${Object.keys(state.parts).length} / ${PARTS.length} fitted` : '';
+      view === 'parts'
+        ? `${Object.keys(state.parts).length} / ${PARTS.length} fitted`
+        : view === 'garage'
+          ? `${Object.keys(state.cars || {}).length} / ${CAR_CATALOG.length} owned`
+          : '';
     if (view === 'parts') renderParts();
+    if (view === 'garage') renderGarage();
     if (view === 'activity') renderActivity();
     if (view === 'facts') renderFacts();
     if (view === 'news') renderNews();
@@ -357,6 +421,110 @@ async function startGarage() {
               'Part sold. Missing essentials pause driving.'
             ))
       );
+  }
+  function renderGarage() {
+    $('#content').className = 'car-gallery';
+    $('#content').innerHTML =
+      `<div class="garage-toolbar"><p>Each ride has its own parts, condition and Top Trumps stats. Earn lifetime money to unlock it, then pay from your bank.</p><button id="sellCar" class="sell-car" ${state.owned ? '' : 'disabled'}>Sell car</button></div><div class="car-grid">${CAR_CATALOG.map(
+        (car) => {
+          const owned = Boolean(state.cars?.[car.id]),
+            active = state.carId === car.id,
+            earnedShort = Math.max(0, car.price - state.totalEarned),
+            bankShort = Math.max(0, car.price - state.bank),
+            locked = !owned && car.id !== 'little-comet' && earnedShort > 0,
+            unavailable = !owned && (locked || bankShort > 0),
+            actionText = active
+              ? 'Current car'
+              : owned
+                ? 'Switch to car'
+                : car.id === 'little-comet'
+                  ? `Adopt · ${money(car.price)}`
+                  : unavailable
+                    ? locked
+                      ? `Earn ${money(earnedShort)} more to unlock`
+                      : `Need ${money(bankShort)} in bank`
+                    : `Buy car · ${money(car.price)}`,
+            features = [
+              car.spoiler && 'Spoiler',
+              car.bodyKit && 'Body kit',
+              car.convertible && 'Convertible',
+              car.popups && 'Popup lights',
+              car.monster && 'Monster wheels',
+              car.pickup && 'Pickup bed',
+            ].filter(Boolean);
+          return `<article class="car-card ${active ? 'active' : ''} ${unavailable ? 'locked' : ''}" style="--car-paint:${car.color}"><div class="car-card-top"><span class="car-type">${car.type}</span><span class="car-status">${active ? 'CURRENT' : owned ? 'OWNED' : locked ? 'LOCKED' : carExoticness(car) >= 65 ? 'EXOTIC' : 'AVAILABLE'}</span></div><div class="car-card-art" aria-hidden="true"><span class="mini-car"><i class="mini-roof"></i><i class="mini-body"></i><i class="mini-wheel left"></i><i class="mini-wheel right"></i>${car.spoiler ? '<i class="mini-spoiler"></i>' : ''}</span></div><h3>${car.name}</h3><div class="car-specs">${[
+            ['DESIRABILITY', car.desirability, 10],
+            ['POWER', car.power, 10],
+            ['SPEED', car.speed, 10],
+            ['SAFETY', car.safety, 10],
+            ['SEATS', car.seats, 7],
+          ]
+            .map(
+              ([label, value, max]) =>
+                `<div class="car-spec"><span>${label}<b>${value}${label === 'SEATS' ? '' : '/10'}</b></span><progress max="${max}" value="${value}"></progress></div>`
+            )
+            .join(
+              ''
+            )}</div><div class="car-score"><span>EXOTIC SCORE <b>${carExoticness(car)}/100</b></span><span>AWAY RATE <b>${money(Math.round(138 * carEarningsMultiplier(car.id)))} / hr</b></span></div><div class="car-features">${features.map((feature) => `<span>${feature}</span>`).join('') || '<span>Classic trim</span>'}</div><p class="car-cost">${owned ? `Invested ${money(state.cars[car.id].investment)}` : `Price ${money(car.price)}${car.id === 'little-comet' ? '' : ` · lifetime unlock ${money(car.price)}`}`}</p><button class="${active ? 'secondary' : 'primary'} car-action" data-car-action="${car.id}" ${active || unavailable ? 'disabled' : ''}>${actionText}</button></article>`;
+        }
+      ).join('')}</div>`;
+    $('#sellCar').onclick = beginSellConfirmation;
+    $('#content')
+      .querySelectorAll('[data-car-action]')
+      .forEach((button) => {
+        button.onclick = () => {
+          const car = getCar(button.dataset.carAction),
+            alreadyOwned = Boolean(state.cars?.[car.id]);
+          if (car.id !== 'little-comet' && !alreadyOwned && state.totalEarned < car.price) {
+            toast(`Earn ${money(car.price - state.totalEarned)} more to unlock ${car.name}.`);
+            return;
+          }
+          if (!alreadyOwned && state.bank < car.price) {
+            showPurchaseDenied();
+            toast(`You need ${money(car.price - state.bank)} more in your bank.`);
+            return;
+          }
+          act(
+            () => (alreadyOwned ? switchCar(state, car.id) : buyVehicle(state, car.id)),
+            alreadyOwned ? `${car.name} is ready to drive.` : `${car.name} added to your garage.`
+          );
+        };
+      });
+  }
+  function beginSellConfirmation() {
+    if (!state.owned || !state.carId) return;
+    sellConfirmationStep = 1;
+    renderSellConfirmation();
+    $('#sellCarDialog').showModal();
+  }
+  function renderSellConfirmation() {
+    const car = getCar(state.carId),
+      value = vehicleSaleValue(state),
+      prompts = [
+        [
+          `Sell ${car.name}?`,
+          `The estimated offer is ${money(value)}. Your parts and upgrades are included in the car's value.`,
+        ],
+        [
+          'Are you certain?',
+          'Selling removes this car from your collection. Any other garage cars will be kept.',
+        ],
+        ['One last check', `Sell ${car.name} for ${money(value)}? This cannot be undone.`],
+      ];
+    $('#sellCarDialog').innerHTML =
+      `<h2>${prompts[sellConfirmationStep - 1][0]}</h2><p>${prompts[sellConfirmationStep - 1][1]}</p><div class="dialog-actions"><button id="cancelCarSale">Keep car</button><button id="continueCarSale" class="${sellConfirmationStep === 3 ? 'danger' : 'primary'}">${sellConfirmationStep === 3 ? `Sell for ${money(value)}` : 'Continue'}</button></div>`;
+    $('#cancelCarSale').onclick = () => $('#sellCarDialog').close();
+    $('#continueCarSale').onclick = () => {
+      if (sellConfirmationStep < 3) {
+        sellConfirmationStep++;
+        renderSellConfirmation();
+        return;
+      }
+      const soldName = car.name;
+      $('#sellCarDialog').close();
+      view = 'garage';
+      act(() => sellVehicle(state), `${soldName} sold for ${money(value)}.`);
+    };
   }
   function trackPath(name) {
     const mountainTracks = ['Alpine pass', 'Summit Serpent', 'Glacier Pass', 'Midnight Mountain'],
@@ -495,22 +663,23 @@ async function startGarage() {
       saved.getDate() === today.getDate()
     );
   }
-  function safeNrkUrl(value) {
+  function safeGoogleNewsUrl(value) {
     try {
       const url = new URL(value);
       if (
         url.protocol === 'https:' &&
-        (url.hostname === 'nrk.no' || url.hostname.endsWith('.nrk.no'))
+        (url.hostname === 'news.google.com' || url.hostname.endsWith('.news.google.com'))
       )
         return url.href;
     } catch {
-      // Invalid feed URLs fall back to NRK's news front page.
+      // Invalid feed URLs fall back to Google News.
     }
-    return 'https://www.nrk.no/nyheter/';
+    return 'https://news.google.com/';
   }
   function newsShell(content) {
     const now = new Date(),
-      editionDate = new Intl.DateTimeFormat('nb-NO', {
+      locale = NEWS_LOCALES[newsCountry.code] || 'en-US',
+      editionDate = new Intl.DateTimeFormat(locale, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -518,72 +687,103 @@ async function startGarage() {
       }).format(now);
     $('#content').className = 'news-view';
     $('#content').innerHTML =
-      `<header class="newspaper-head"><span>EKTE NYHETER FRA NORGE · NRK</span><h2>Norge i dag</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header><p class="newspaper-deck">Et lite overblikk over dagens overskrifter. Les utdragene her, og åpne saken hos NRK for hele historien, bakgrunnen og eventuelle oppdateringer.</p>${content}`;
+      `<header class="newspaper-head"><span>NEWS FROM ${escapeHtml(newsCountry.name)} · GOOGLE NEWS</span><h2>${escapeHtml(newsCountry.name)} today</h2><time datetime="${now.toISOString().slice(0, 10)}">${editionDate}</time></header><form id="countryNewsForm" class="news-country-search"><label for="countryNewsInput">Find news by country</label><div class="country-search-row"><input id="countryNewsInput" type="search" list="newsCountries" value="${escapeHtml(newsCountry.name)}" placeholder="Search a country" autocomplete="off" required /><datalist id="newsCountries">${NEWS_COUNTRIES.map((country) => `<option value="${escapeHtml(country.name)}"></option>`).join('')}</datalist><button class="primary" type="submit">Show news</button></div><p id="countryNewsError" aria-live="polite">${escapeHtml(newsStatus)}</p></form><p class="newspaper-deck">Latest headlines from ${escapeHtml(newsCountry.name)}. Open a story through Google News to read the full report.</p>${content}`;
+    $('#countryNewsForm').onsubmit = (event) => {
+      event.preventDefault();
+      const value = $('#countryNewsInput').value.trim().toLocaleLowerCase(),
+        selected = NEWS_COUNTRIES.find(
+          (country) =>
+            country.name.toLocaleLowerCase() === value || country.code.toLowerCase() === value
+        );
+      if (!selected) {
+        newsStatus = 'Choose a country from the suggestions.';
+        $('#countryNewsError').textContent = newsStatus;
+        return;
+      }
+      newsCountry = selected;
+      newsStatus = `Showing headlines from ${newsCountry.name}.`;
+      $('#heading').textContent = `Real news from around ${newsCountry.name}.`;
+      renderNews(true);
+    };
   }
-  function showLiveNews(items) {
+  function showLiveNews(items, country, cachedAt) {
+    const locale = NEWS_LOCALES[country.code] || 'en-US';
     const lead = items[0],
       published = (item) =>
-        new Intl.DateTimeFormat('nb-NO', {
+        new Intl.DateTimeFormat(locale, {
           hour: '2-digit',
           minute: '2-digit',
           day: 'numeric',
           month: 'short',
         }).format(item.published);
     newsShell(
-      `<article class="news-lead"><div class="news-kicker">TOPPSAK FRA NRK · ${published(lead)}</div><h2><a href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lead.title)}</a></h2>${lead.summary ? `<p>${escapeHtml(lead.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">Les hele saken hos NRK →</a></article><aside class="news-numbers news-source"><div class="news-kicker">DIREKTE FRA NORGE</div><strong>${items.length} ferske saker</strong><p>Overskrifter og korte sammendrag hentes fra NRKs offisielle toppsaker-feed.</p><a href="https://www.nrk.no/nyheter/" target="_blank" rel="noopener noreferrer">Åpne NRK Nyheter →</a><small>Sist hentet ${new Intl.DateTimeFormat('nb-NO', { hour: '2-digit', minute: '2-digit' }).format(new Date(newsCachedAt))}</small></aside>${items
+      `<article class="news-lead"><div class="news-kicker">TOP STORY · ${published(lead)}</div><h2><a href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(lead.title)}</a></h2>${lead.summary ? `<p>${escapeHtml(lead.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(lead.link)}" target="_blank" rel="noopener noreferrer">Read the full story →</a></article><aside class="news-numbers news-source"><div class="news-kicker">FROM GOOGLE NEWS</div><strong>${items.length} fresh stories</strong><p>Headlines are selected for ${escapeHtml(country.name)} and refreshed daily.</p><a href="https://news.google.com/" target="_blank" rel="noopener noreferrer">Open Google News →</a><small>Updated ${new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(cachedAt))}</small></aside>${items
         .slice(1)
         .map(
           (item, index) =>
-            `<article class="news-brief"><div class="news-kicker">${index === 0 ? 'SISTE' : 'NORGE NÅ'} · ${published(item)}</div><h3><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a></h3>${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">NRK →</a></article>`
+            `<article class="news-brief"><div class="news-kicker">${index === 0 ? 'LATEST' : 'IN THE NEWS'} · ${published(item)}</div><h3><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a></h3>${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ''}<a class="news-read" href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">Google News →</a></article>`
         )
         .join(
           ''
-        )}<footer class="news-footer">Kilde: NRK · Lenker åpnes hos NRK · Ny utgave hver dag</footer>`
+        )}<footer class="news-footer">Source: Google News · Links open at Google News · Updated daily</footer>`
     );
   }
   async function renderNews(forceRefresh = false) {
-    if (!forceRefresh && newsCache && isToday(newsCachedAt)) {
-      showLiveNews(newsCache);
+    const country = newsCountry,
+      cached = newsCache.get(country.code);
+    if (!forceRefresh && cached && isToday(cached.cachedAt)) {
+      showLiveNews(cached.items, country, cached.cachedAt);
       return;
     }
     newsShell(
-      '<div class="news-loading" role="status"><span></span><h3>Henter ferske nyheter fra Norge…</h3><p>Kobler til NRKs offisielle nyhetsfeed.</p></div>'
+      `<div class="news-loading" role="status"><span></span><h3>Fetching news from ${escapeHtml(country.name)}…</h3><p>Connecting to the latest country edition.</p></div>`
     );
     const controller = new AbortController(),
-      timeout = setTimeout(() => controller.abort(), 7000);
+      timeout = setTimeout(() => controller.abort(), 7000),
+      locale = NEWS_LOCALES[country.code] || 'en-US',
+      language = locale.split('-')[0],
+      feed = new URL('https://news.google.com/rss');
+    feed.searchParams.set('hl', locale);
+    feed.searchParams.set('gl', country.code);
+    feed.searchParams.set('ceid', `${country.code}:${language}`);
     try {
-      const response = await fetch('https://www.nrk.no/toppsaker.rss', {
-        signal: controller.signal,
-        cache: 'no-store',
-      });
-      if (!response.ok) throw new Error(`NRK returned ${response.status}`);
-      const xml = new DOMParser().parseFromString(await response.text(), 'application/xml');
-      if (xml.querySelector('parsererror')) throw new Error('NRK feed was not valid XML');
-      const items = [...xml.querySelectorAll('item')].slice(0, 7).map((item) => {
-        const description = item.querySelector('description')?.textContent || '',
+      const response = await fetch(
+        `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.href)}`,
+        {
+          signal: controller.signal,
+          cache: 'no-store',
+        }
+      );
+      if (!response.ok) throw new Error(`News reader returned ${response.status}`);
+      const data = await response.json();
+      if (data.status !== 'ok' || !Array.isArray(data.items))
+        throw new Error('Country news feed was unavailable');
+      const items = data.items.slice(0, 7).map((item) => {
+        const description = String(item.description || item.content || ''),
           summary = new DOMParser()
             .parseFromString(description, 'text/html')
             .body.textContent.replace(/\s+/g, ' ')
             .trim(),
-          published = new Date(item.querySelector('pubDate')?.textContent || Date.now());
+          published = new Date(item.pubDate || Date.now());
         return {
-          title: item.querySelector('title')?.textContent?.trim() || 'Ny sak fra NRK',
-          link: safeNrkUrl(item.querySelector('link')?.textContent?.trim() || ''),
+          title: String(item.title || `News from ${country.name}`).trim(),
+          link: safeGoogleNewsUrl(item.link || ''),
           summary: summary.length > 560 ? `${summary.slice(0, 557)}…` : summary,
           published: Number.isNaN(published.getTime()) ? new Date() : published,
         };
       });
-      if (!items.length) throw new Error('NRK feed contained no stories');
-      newsCache = items;
-      newsCachedAt = Date.now();
-      if (view === 'news') showLiveNews(items);
+      if (!items.length) throw new Error('Country news feed contained no stories');
+      const cachedAt = Date.now();
+      newsCache.set(country.code, { items, cachedAt });
+      if (view === 'news' && newsCountry.code === country.code)
+        showLiveNews(items, country, cachedAt);
     } catch (error) {
-      if (view !== 'news') return;
+      if (view !== 'news' || newsCountry.code !== country.code) return;
       newsShell(
-        `<div class="news-error"><div class="news-kicker">KAN IKKE NÅ NRK</div><h3>Nyhetene tok en liten omvei.</h3><p>Sjekk internettforbindelsen og prøv igjen. Ingen personlige opplysninger sendes.</p><button id="retryNews" class="primary">Prøv igjen</button><a href="https://www.nrk.no/nyheter/" target="_blank" rel="noopener noreferrer">Åpne NRK direkte →</a></div>`
+        `<div class="news-error"><div class="news-kicker">NEWS UNAVAILABLE</div><h3>Could not load news from ${escapeHtml(country.name)}.</h3><p>Check your connection and try again.</p><button id="retryNews" class="primary">Try again</button><a href="https://news.google.com/" target="_blank" rel="noopener noreferrer">Open Google News directly →</a></div>`
       );
       $('#retryNews').onclick = () => renderNews(true);
-      console.warn('Could not load NRK news:', error.message);
+      console.warn(`Could not load news from ${country.name}:`, error.message);
     } finally {
       clearTimeout(timeout);
     }
@@ -795,6 +995,7 @@ async function startGarage() {
     ctx.clearRect(0, 0, 600, 420);
     ctx.save();
     ctx.translate(300, 235);
+    const vehicle = getCar(state.carId);
     ctx.fillStyle = '#142c2920';
     ctx.beginPath();
     ctx.ellipse(0, 70, 208, 48, 0, 0, Math.PI * 2);
@@ -831,10 +1032,25 @@ async function startGarage() {
         })
       );
     }
-    const rusty = state.rust > 45,
+    const shade = (hex, amount) =>
+        '#' +
+        [1, 3, 5]
+          .map((index) =>
+            Math.max(0, Math.min(255, Number.parseInt(hex.slice(index, index + 2), 16) + amount))
+              .toString(16)
+              .padStart(2, '0')
+          )
+          .join(''),
+      rusty = state.rust > 45,
       paint = rusty
         ? ['#a96943', '#b57c50', '#976247', '#bd8655', '#cc9564']
-        : ['#7faaa0', '#a1c2b0', '#6d978c', '#82ac9c', '#c0d5b6'];
+        : [
+            shade(vehicle.color, 18),
+            shade(vehicle.color, 36),
+            shade(vehicle.color, -14),
+            shade(vehicle.color, 4),
+            shade(vehicle.color, 46),
+          ];
     function polygon(v, color) {
       faces.push({
         points: v.map(project),
@@ -883,14 +1099,30 @@ async function startGarage() {
       polygon(rings[0], colors[2]);
       polygon([...rings.at(-1)].reverse(), colors[0]);
     }
+    const wheelRadius = vehicle.monster ? 42 : vehicle.pickup ? 32 : 27,
+      wheelHeight = vehicle.monster ? 14 : 12,
+      wheelDepth = vehicle.monster ? 27 : 20,
+      rimColors = {
+        steel: '#b6c2b1',
+        classic: '#d7d8ca',
+        alloy: '#c7d8d0',
+        rally: '#d7b94f',
+        tuner: '#ca6670',
+        utility: '#909a8d',
+        monster: '#d1dbd1',
+        track: '#d5d9e2',
+        aero: '#95d5d4',
+      },
+      spokeCount =
+        { alloy: 5, rally: 5, tuner: 6, track: 6, aero: 7, monster: 8 }[vehicle.wheelStyle] || 0;
     function wheel(x, z) {
       const ring = (depth, radius) =>
         Array.from({ length: 16 }, (_, i) => {
           const a = (i / 16) * Math.PI * 2;
-          return [x + Math.cos(a) * radius, 12 + Math.sin(a) * radius, depth];
+          return [x + Math.cos(a) * radius, wheelHeight + Math.sin(a) * radius, depth];
         });
-      const front = ring(z, 27),
-        back = ring(z + 20, 27);
+      const front = ring(z, wheelRadius),
+        back = ring(z + wheelDepth, wheelRadius);
       polygon(front, '#243633');
       polygon(back, '#243633');
       front.forEach((p, i) =>
@@ -899,12 +1131,34 @@ async function startGarage() {
           i < 8 ? '#263936' : '#182724'
         )
       );
-      polygon(ring(z - 0.4, 16), '#b6c2b1');
-      polygon(ring(z + 20.4, 16), '#b6c2b1');
-      polygon(ring(z - 0.6, 7), '#425e55');
-      polygon(ring(z + 20.6, 7), '#425e55');
+      polygon(ring(z - 0.4, wheelRadius * 0.6), rimColors[vehicle.wheelStyle] || '#b6c2b1');
+      polygon(
+        ring(z + wheelDepth + 0.4, wheelRadius * 0.6),
+        rimColors[vehicle.wheelStyle] || '#b6c2b1'
+      );
+      polygon(ring(z - 0.6, wheelRadius * 0.26), '#425e55');
+      polygon(ring(z + wheelDepth + 0.6, wheelRadius * 0.26), '#425e55');
+      for (let spoke = 0; spoke < spokeCount; spoke++) {
+        const spokeAngle = (spoke / spokeCount) * Math.PI * 2,
+          innerX = Math.cos(spokeAngle) * wheelRadius * 0.13,
+          innerY = Math.sin(spokeAngle) * wheelRadius * 0.13,
+          outerX = Math.cos(spokeAngle) * wheelRadius * 0.52,
+          outerY = Math.sin(spokeAngle) * wheelRadius * 0.52,
+          sideX = Math.cos(spokeAngle + Math.PI / 2) * 2,
+          sideY = Math.sin(spokeAngle + Math.PI / 2) * 2;
+        polygon(
+          [
+            [x + innerX - sideX, wheelHeight + innerY - sideY, z - 0.8],
+            [x + outerX - sideX, wheelHeight + outerY - sideY, z - 0.8],
+            [x + outerX + sideX, wheelHeight + outerY + sideY, z - 0.8],
+            [x + innerX + sideX, wheelHeight + innerY + sideY, z - 0.8],
+          ],
+          '#f0f3e8'
+        );
+      }
     }
-    for (const x of [-97, 98]) for (const z of [-71, 51]) wheel(x, z);
+    for (const x of vehicle.monster ? [-112, 112] : [-97, 98])
+      for (const z of [-71, 51]) wheel(x, z);
     roundedShell(
       [
         [-150, 45, 12],
@@ -938,55 +1192,89 @@ async function startGarage() {
       72,
       paint
     );
+    const cabinSections = vehicle.pickup
+      ? [
+          [-68, 37, 17],
+          [-57, 51, 10],
+          [-39, 54, 7],
+          [5, 52, 8],
+          [18, 40, 15],
+        ]
+      : [
+          [-68, 37, 17],
+          [-57, 51, 10],
+          [-39, 54, 7],
+          [58, 54, 7],
+          [77, 49, 11],
+          [86, 34, 18],
+        ];
     roundedShell(
-      [
-        [-68, 37, 17],
-        [-57, 51, 10],
-        [-39, 54, 7],
-        [58, 54, 7],
-        [77, 49, 11],
-        [86, 34, 18],
-      ],
+      cabinSections,
       63,
-      116,
+      vehicle.convertible ? 95 : vehicle.pickup ? 104 : vehicle.monster ? 108 : 116,
       paint
     );
-    polygon(
-      [
-        [-56, 75, -54],
-        [-42, 106, -45],
-        [5, 108, -45],
-        [5, 75, -54],
-      ],
-      '#294c50'
-    );
-    polygon(
-      [
-        [12, 75, -54],
-        [12, 108, -45],
-        [61, 104, -43],
-        [76, 75, -52],
-      ],
-      '#294c50'
-    );
-    polygon(
-      [
-        [-56, 75, 54],
-        [-42, 106, 45],
-        [5, 108, 45],
-        [5, 75, 54],
-      ],
-      '#35585b'
-    );
-    polygon(
-      [
-        [12, 75, 54],
-        [12, 108, 45],
-        [61, 104, 43],
-        [76, 75, 52],
-      ],
-      '#35585b'
-    );
+    if (vehicle.convertible) {
+      box(-28, 67, -27, 24, 18, 23, ['#935d55', '#704b46']);
+      box(20, 67, 4, 24, 18, 23, ['#935d55', '#704b46']);
+    } else {
+      polygon(
+        [
+          [-56, 75, -54],
+          [-42, 106, -45],
+          [5, 108, -45],
+          [5, 75, -54],
+        ],
+        '#294c50'
+      );
+      polygon(
+        [
+          [12, 75, -54],
+          [12, 108, -45],
+          [61, 104, -43],
+          [76, 75, -52],
+        ],
+        '#294c50'
+      );
+      polygon(
+        [
+          [-56, 75, 54],
+          [-42, 106, 45],
+          [5, 108, 45],
+          [5, 75, 54],
+        ],
+        '#35585b'
+      );
+      polygon(
+        [
+          [12, 75, 54],
+          [12, 108, 45],
+          [61, 104, 43],
+          [76, 75, 52],
+        ],
+        '#35585b'
+      );
+    }
+    if (vehicle.pickup) {
+      box(-143, 63, -42, 78, 13, 84, [shade(vehicle.color, -20), shade(vehicle.color, 8)]);
+      box(-145, 77, -43, 78, 3, 4, [shade(vehicle.color, -35)]);
+      box(-145, 77, 39, 78, 3, 4, [shade(vehicle.color, -35)]);
+      box(-67, 77, -43, 3, 3, 86, [shade(vehicle.color, -35)]);
+    }
+    if (vehicle.bodyKit) {
+      box(-112, 20, -66, 224, 8, 8, ['#253b3a']);
+      box(-112, 20, 58, 224, 8, 8, ['#253b3a']);
+      box(145, 21, -64, 18, 7, 128, ['#253b3a']);
+    }
+    if (vehicle.spoiler) {
+      box(-153, 82, -76, 8, 4, 152, [shade(vehicle.color, 30)]);
+      box(-150, 70, -57, 4, 13, 5, ['#253b3a']);
+      box(-150, 70, 52, 4, 13, 5, ['#253b3a']);
+    }
+    if (vehicle.popups) {
+      box(143, 67, -44, 10, 13, 30, ['#f5e7ad', '#d8c781']);
+      box(143, 67, 14, 10, 13, 30, ['#f5e7ad', '#d8c781']);
+    }
     polygon(
       [
         [89, 76, -27],
@@ -1245,6 +1533,47 @@ async function startGarage() {
       ctx.fillStyle = '#233c36';
       ctx.fill();
     };
+    const drawPartPreview = (part, x, y, rotation, scale, opacity) => {
+      const glyph =
+        {
+          'Engine internals': '⚙',
+          'Running gear': '◉',
+          'Chassis details': '◉',
+          Electrics: 'ϟ',
+          Body: '▱',
+          'Finishing touches': '✧',
+          Cabin: '▤',
+        }[part.category] || '⚙';
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = opacity;
+      ctx.shadowColor = '#142c2944';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#203b34';
+      ctx.beginPath();
+      ctx.roundRect(-57, -21, 114, 42, 10);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#c5f46b';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#c5f46b';
+      ctx.beginPath();
+      ctx.roundRect(-51, -15, 29, 30, 6);
+      ctx.fill();
+      ctx.fillStyle = '#203b34';
+      ctx.font = 'bold 17px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(glyph, -36.5, 0);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(part.name.toUpperCase(), -16, 0, 66);
+      ctx.restore();
+    };
     if (repair) {
       blockers(state).forEach((p) => {
         const [px, py] = project(anchorFor(p));
@@ -1333,6 +1662,15 @@ async function startGarage() {
       if (fittingAnimation.part.id === 'engine') {
         const spin = reduced ? 0.55 : performance.now() / 190;
         drawEnginePreview(x, y - 69 + eased * 69, spin, 1.28 - eased * 0.42);
+      } else {
+        drawPartPreview(
+          fittingAnimation.part,
+          x,
+          y - 82 * (1 - eased),
+          reduced ? 0 : (1 - eased) * -0.42,
+          1.08 - eased * 0.28,
+          1 - Math.max(0, (progress - 0.72) / 0.28)
+        );
       }
       ctx.strokeStyle = `rgba(197, 244, 107, ${1 - progress})`;
       ctx.lineWidth = 5;

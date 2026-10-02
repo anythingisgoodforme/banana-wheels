@@ -28,13 +28,14 @@
               aria-label="Rotating car. Drag to rotate."
               tabindex="0"
             ></canvas
-            ><span class="stage-label">1978 / LITTLE COMET</span>
+            ><span id="stageLabel" class="stage-label">1978 / LITTLE COMET</span>
           </div>
           <p class="car-hint">↔ Drag to look around · arrow keys to rotate</p>
           <div id="meters" class="meters"></div>
           <div id="care" class="care-actions"></div>
           <nav class="tabs" aria-label="Garage views">
             <button data-view="parts" class="active">▦ Parts shop</button
+            ><button data-view="garage">◈ Garage</button
             ><button data-view="activity">↗ Car activity</button
             ><button data-view="facts">✧ Car facts</button
             ><button data-view="news">▤ Daily news</button
@@ -65,6 +66,7 @@
       </footer>
     </div>
     <div id="toast" class="toast" role="status"></div>
+    <dialog id="sellCarDialog" aria-label="Sell car confirmation"></dialog>
     <dialog id="confirmDialog">
       <h2>A fresh start?</h2>
       <p>This deletes your saved car, parts and money in this browser.</p>

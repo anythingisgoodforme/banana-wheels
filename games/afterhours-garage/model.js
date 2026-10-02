@@ -1,4 +1,378 @@
 export const CONFIG = { STARTING_MONEY: 1500, CAR_PRICE: 400, WASH_PRICE: 1000 };
+export const CAR_CATALOG = [
+  {
+    id: 'little-comet',
+    name: 'Little Comet',
+    type: 'Classic coupe',
+    price: 400,
+    desirability: 4,
+    power: 2,
+    speed: 3,
+    safety: 7,
+    seats: 5,
+    color: '#83aaa0',
+    style: 'classic',
+    wheelStyle: 'steel',
+  },
+  {
+    id: 'pocket-rally',
+    name: 'Pocket Rally',
+    type: 'Rally hatchback',
+    price: 700,
+    desirability: 5,
+    power: 4,
+    speed: 4,
+    safety: 7,
+    seats: 5,
+    color: '#d9b849',
+    style: 'hatch',
+    bodyKit: true,
+    wheelStyle: 'rally',
+  },
+  {
+    id: 'neon-street',
+    name: 'Neon Street',
+    type: 'Street tuner',
+    price: 1200,
+    desirability: 6,
+    power: 5,
+    speed: 6,
+    safety: 6,
+    seats: 4,
+    color: '#cf5963',
+    style: 'sport',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'tuner',
+  },
+  {
+    id: 'sunset-roadster',
+    name: 'Sunset Roadster',
+    type: 'Convertible',
+    price: 1800,
+    desirability: 6,
+    power: 4,
+    speed: 5,
+    safety: 6,
+    seats: 2,
+    color: '#d5874d',
+    style: 'convertible',
+    convertible: true,
+    wheelStyle: 'alloy',
+  },
+  {
+    id: 'popup-legend',
+    name: 'Popup Legend',
+    type: 'Retro sports coupe',
+    price: 2600,
+    desirability: 7,
+    power: 5,
+    speed: 6,
+    safety: 6,
+    seats: 2,
+    color: '#477f9e',
+    style: 'popup',
+    popups: true,
+    wheelStyle: 'classic',
+  },
+  {
+    id: 'midnight-drift',
+    name: 'Midnight Drift',
+    type: 'Drift coupe',
+    price: 3500,
+    desirability: 7,
+    power: 7,
+    speed: 7,
+    safety: 5,
+    seats: 2,
+    color: '#695e9a',
+    style: 'sport',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'tuner',
+  },
+  {
+    id: 'v8-thunder',
+    name: 'V8 Thunder',
+    type: 'Muscle car',
+    price: 4700,
+    desirability: 7,
+    power: 8,
+    speed: 7,
+    safety: 6,
+    seats: 4,
+    color: '#b9473f',
+    style: 'muscle',
+    spoiler: true,
+    wheelStyle: 'classic',
+  },
+  {
+    id: 'safari-rally',
+    name: 'Safari Rally',
+    type: 'Rally wagon',
+    price: 6000,
+    desirability: 6,
+    power: 7,
+    speed: 7,
+    safety: 8,
+    seats: 5,
+    color: '#79934a',
+    style: 'wagon',
+    bodyKit: true,
+    wheelStyle: 'rally',
+  },
+  {
+    id: 'city-pickup',
+    name: 'City Pickup',
+    type: 'Utility pickup',
+    price: 7200,
+    desirability: 6,
+    power: 7,
+    speed: 6,
+    safety: 8,
+    seats: 5,
+    color: '#b78254',
+    style: 'pickup',
+    pickup: true,
+    wheelStyle: 'utility',
+  },
+  {
+    id: 'electric-sprint',
+    name: 'Electric Sprint',
+    type: 'Electric sport hatch',
+    price: 8500,
+    desirability: 7,
+    power: 8,
+    speed: 8,
+    safety: 8,
+    seats: 4,
+    color: '#45a99d',
+    style: 'sport',
+    bodyKit: true,
+    wheelStyle: 'aero',
+  },
+  {
+    id: 'classic-gt',
+    name: 'Classic GT',
+    type: 'Grand touring roadster',
+    price: 9900,
+    desirability: 8,
+    power: 7,
+    speed: 8,
+    safety: 7,
+    seats: 2,
+    color: '#bd9950',
+    style: 'convertible',
+    convertible: true,
+    spoiler: true,
+    wheelStyle: 'alloy',
+  },
+  {
+    id: 'monster-hauler',
+    name: 'Monster Hauler',
+    type: 'Monster truck',
+    price: 11400,
+    desirability: 7,
+    power: 9,
+    speed: 5,
+    safety: 8,
+    seats: 5,
+    color: '#6f985b',
+    style: 'monster',
+    monster: true,
+    pickup: true,
+    wheelStyle: 'monster',
+  },
+  {
+    id: 'track-day-racer',
+    name: 'Track Day Racer',
+    type: 'Circuit racer',
+    price: 12800,
+    desirability: 8,
+    power: 8,
+    speed: 9,
+    safety: 7,
+    seats: 2,
+    color: '#e16c43',
+    style: 'racer',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'track',
+  },
+  {
+    id: 'widebody-coupe',
+    name: 'Widebody Coupe',
+    type: 'Widebody tuner',
+    price: 14000,
+    desirability: 8,
+    power: 8,
+    speed: 9,
+    safety: 6,
+    seats: 4,
+    color: '#5681ad',
+    style: 'sport',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'tuner',
+  },
+  {
+    id: 'carbon-supercar',
+    name: 'Carbon Supercar',
+    type: 'Exotic supercar',
+    price: 15300,
+    desirability: 9,
+    power: 9,
+    speed: 9,
+    safety: 7,
+    seats: 2,
+    color: '#565c68',
+    style: 'supercar',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'aero',
+  },
+  {
+    id: 'grand-tourer',
+    name: 'Grand Tourer',
+    type: 'Luxury GT',
+    price: 16500,
+    desirability: 9,
+    power: 8,
+    speed: 8,
+    safety: 10,
+    seats: 4,
+    color: '#477669',
+    style: 'tourer',
+    wheelStyle: 'alloy',
+  },
+  {
+    id: 'rallycross-pro',
+    name: 'Rallycross Pro',
+    type: 'Rallycross racer',
+    price: 17600,
+    desirability: 8,
+    power: 9,
+    speed: 9,
+    safety: 8,
+    seats: 2,
+    color: '#d4a83f',
+    style: 'racer',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'rally',
+  },
+  {
+    id: 'aero-prototype',
+    name: 'Aero Prototype',
+    type: 'Aerodynamic prototype',
+    price: 18600,
+    desirability: 9,
+    power: 9,
+    speed: 10,
+    safety: 8,
+    seats: 2,
+    color: '#5ba8ba',
+    style: 'prototype',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'aero',
+  },
+  {
+    id: 'hyper-roadster',
+    name: 'Hyper Roadster',
+    type: 'Open-top hypercar',
+    price: 19500,
+    desirability: 9,
+    power: 10,
+    speed: 10,
+    safety: 7,
+    seats: 2,
+    color: '#cf5e75',
+    style: 'convertible',
+    convertible: true,
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'track',
+  },
+  {
+    id: 'twin-turbo-legend',
+    name: 'Twin Turbo Legend',
+    type: 'Twin-turbo street car',
+    price: 20300,
+    desirability: 9,
+    power: 10,
+    speed: 10,
+    safety: 8,
+    seats: 4,
+    color: '#725b9b',
+    style: 'sport',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'tuner',
+  },
+  {
+    id: 'apex-xr',
+    name: 'Apex XR',
+    type: 'Track-focused supercar',
+    price: 20800,
+    desirability: 10,
+    power: 10,
+    speed: 10,
+    safety: 8,
+    seats: 2,
+    color: '#cf553e',
+    style: 'supercar',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'track',
+  },
+  {
+    id: 'nebula-hyper',
+    name: 'Nebula Hyper',
+    type: 'One-of-one hypercar',
+    price: 21000,
+    desirability: 10,
+    power: 10,
+    speed: 10,
+    safety: 9,
+    seats: 2,
+    color: '#75a7a5',
+    style: 'prototype',
+    spoiler: true,
+    bodyKit: true,
+    wheelStyle: 'aero',
+  },
+];
+export function getCar(id) {
+  return CAR_CATALOG.find((car) => car.id === id) || CAR_CATALOG[0];
+}
+export function carExoticness(carOrId) {
+  const car = typeof carOrId === 'string' ? getCar(carOrId) : carOrId;
+  const seatScore = Math.max(1, 10 - (car.seats - 2) * 1.25);
+  return Math.round(
+    (car.desirability * 0.3 +
+      car.power * 0.25 +
+      car.speed * 0.25 +
+      car.safety * 0.1 +
+      seatScore * 0.1) *
+      10
+  );
+}
+export function carEarningsMultiplier(carOrId) {
+  const car = typeof carOrId === 'string' ? getCar(carOrId) : carOrId;
+  return (
+    1 +
+    (car.power - 2) * 0.035 +
+    (car.speed - 3) * 0.045 +
+    (car.desirability - 4) * 0.012 +
+    (car.safety - 7) * 0.008 +
+    (5 - car.seats) * 0.003
+  );
+}
+export function resaleMultiplier(carOrId) {
+  const exoticness = carExoticness(carOrId);
+  return exoticness >= 65 ? 1 + (exoticness - 65) / 100 : 0.9;
+}
 const groups = {
   Engine:
     'Engine,Air filter,Oil filter,Fuel pump,Radiator,Turbocharger,Exhaust,Intake manifold,Camshaft,Crankshaft,Pistons,Connecting rods,Timing belt,Water pump,Oil pump,Intercooler,Throttle body,Injectors,Spark plugs,Head gasket,Valve springs,Flywheel,Engine mounts,Sump,Thermostat',
@@ -42,6 +416,9 @@ export function newState(now = Date.now()) {
     bank: CONFIG.STARTING_MONEY,
     pending: 0,
     owned: false,
+    carId: null,
+    carInvestment: 0,
+    cars: {},
     clean: 0,
     parts: {},
     rust: 65,
@@ -54,13 +431,105 @@ export function newState(now = Date.now()) {
     factsRead: 0,
   };
 }
+export function migrateState(s) {
+  if (!s || s.version !== 1 || !s.parts) return newState();
+  s.cars = s.cars && typeof s.cars === 'object' ? s.cars : {};
+  s.totalEarned = Math.max(0, Number(s.totalEarned) || 0);
+  if (s.owned) {
+    const carId = CAR_CATALOG.some((car) => car.id === s.carId) ? s.carId : 'little-comet';
+    s.carId = carId;
+    const record = s.cars[carId] || {};
+    const recoveredInvestment =
+      getCar(carId).price +
+      Object.entries(s.parts).reduce((total, [partId, part]) => {
+        const catalogPart = PARTS.find((entry) => entry.id === partId),
+          tier = Math.max(1, Number(part.tier) || 1);
+        return total + (catalogPart ? (catalogPart.price * tier * (tier + 1)) / 2 : 0);
+      }, 0);
+    s.carInvestment = Number(record.investment ?? s.carInvestment) || recoveredInvestment;
+    s.cars[carId] = {
+      ...record,
+      id: carId,
+      investment: s.carInvestment,
+      parts: s.parts,
+      clean: s.clean,
+      rust: s.rust,
+    };
+  } else {
+    s.carId = null;
+    s.carInvestment = 0;
+  }
+  return s;
+}
+export function saveActiveCar(s) {
+  if (!s.owned || !s.carId) return;
+  s.cars ||= {};
+  s.cars[s.carId] = {
+    ...(s.cars[s.carId] || {}),
+    id: s.carId,
+    investment: s.carInvestment,
+    parts: s.parts,
+    clean: s.clean,
+    rust: s.rust,
+  };
+}
+export function switchCar(s, id) {
+  const record = s.cars?.[id];
+  if (!record) return false;
+  saveActiveCar(s);
+  s.carId = id;
+  s.owned = true;
+  s.carInvestment = record.investment;
+  s.parts = record.parts || {};
+  s.clean = record.clean;
+  s.rust = record.rust;
+  return true;
+}
+export function buyVehicle(s, id) {
+  const car = CAR_CATALOG.find((vehicle) => vehicle.id === id);
+  if (!car) return false;
+  if (s.cars?.[id]) return switchCar(s, id);
+  if (id === 'little-comet') return buyCar(s);
+  if (s.totalEarned < car.price || s.bank < car.price) return false;
+  saveActiveCar(s);
+  s.bank -= car.price;
+  const parts = Object.fromEntries(
+    PARTS.filter((part) => part.required).map((part) => [part.id, { tier: 1, condition: 100 }])
+  );
+  s.cars[id] = { id, investment: car.price, parts, clean: 100, rust: 0 };
+  return switchCar(s, id);
+}
+export function vehicleSaleValue(s, id = s.carId) {
+  const car = CAR_CATALOG.find((vehicle) => vehicle.id === id);
+  const record = id === s.carId ? { investment: s.carInvestment } : s.cars?.[id];
+  return car && record ? Math.floor(record.investment * resaleMultiplier(car)) : 0;
+}
+export function sellVehicle(s, id = s.carId) {
+  if (!s.owned || id !== s.carId || !s.cars?.[id]) return false;
+  saveActiveCar(s);
+  const value = vehicleSaleValue(s, id);
+  s.bank += value;
+  delete s.cars[id];
+  const nextCarId = Object.keys(s.cars)[0];
+  s.owned = false;
+  s.carId = null;
+  s.carInvestment = 0;
+  s.parts = {};
+  s.clean = 0;
+  s.rust = 65;
+  if (nextCarId) switchCar(s, nextCarId);
+  return value;
+}
 export function blockers(s) {
   return PARTS.filter((p) => p.required && (!s.parts[p.id] || s.parts[p.id].condition <= 0));
 }
 export function rate(s) {
   return !s.owned || s.clean < 100 || s.rust >= 100 || blockers(s).length
     ? 0
-    : 120 + Object.values(s.parts).reduce((n, p) => n + 3 + (p.tier - 1) * 14, 0);
+    : Math.round(
+        (120 + Object.values(s.parts).reduce((n, p) => n + 3 + (p.tier - 1) * 14, 0)) *
+          carEarningsMultiplier(s.carId || 'little-comet')
+      );
 }
 export function partCost(s, p) {
   const old = s.parts[p.id];
@@ -78,6 +547,7 @@ export function buyPart(s, id) {
     tier: old && old.condition > 0 ? Math.min(3, old.tier + 1) : old?.tier || 1,
     condition: 100,
   };
+  s.carInvestment = (s.carInvestment || getCar(s.carId).price) + cost;
   return true;
 }
 export function sellPart(s, id) {
@@ -91,8 +561,15 @@ export function sellPart(s, id) {
 export function buyCar(s) {
   if (s.owned || s.bank < CONFIG.CAR_PRICE) return false;
   s.bank -= CONFIG.CAR_PRICE;
-  s.owned = true;
-  return true;
+  s.cars ||= {};
+  s.cars['little-comet'] = {
+    id: 'little-comet',
+    investment: CONFIG.CAR_PRICE,
+    parts: {},
+    clean: 0,
+    rust: 65,
+  };
+  return switchCar(s, 'little-comet');
 }
 export function cleanCar(s) {
   if (!s.owned) return false;
@@ -124,9 +601,10 @@ export function settle(s, now = Date.now()) {
           : hourly >= 160
             ? ['Fjordlight Loop', 'Saltwind Raceway', 'Lighthouse Run']
             : ['Cloverfield Circuit', 'Birchwood Bend', 'Lantern Lane'],
-        routeCount = Number.isInteger(s.routeCount) && s.routeCount >= 0 ? s.routeCount : s.activity.length,
-        track = routes[routeCount % routes.length];
-      s.routeCount = routeCount + 1;
+      routeCount =
+        Number.isInteger(s.routeCount) && s.routeCount >= 0 ? s.routeCount : s.activity.length,
+      track = routes[routeCount % routes.length];
+    s.routeCount = routeCount + 1;
     for (const [id, p] of Object.entries(s.parts))
       p.condition = Math.max(0, p.condition - (hours * (id === 'tyres' ? 5 : 1.5)) / p.tier);
     s.pending += earned;

@@ -1,6 +1,8 @@
 import {
+  CAR_CATALOG,
   newState,
   buyCar,
+  buyVehicle,
   cleanCar,
   PARTS,
   buyPart,
@@ -8,6 +10,14 @@ import {
   settle,
   rate,
   blockers,
+  carExoticness,
+  carEarningsMultiplier,
+  migrateState,
+  resaleMultiplier,
+  saveActiveCar,
+  sellVehicle,
+  switchCar,
+  vehicleSaleValue,
 } from '../model';
 const HOUR = 3600000;
 function ready() {
@@ -110,4 +120,66 @@ test('later washes cost £1,000 but tutorial scrubbing stays free', () => {
   s.rust = 25;
   expect(cleanCar(s)).toBe(false);
   expect(s.rust).toBe(25);
+});
+test('garage catalog has 21 upgrades and a £21,000 final hypercar', () => {
+  expect(CAR_CATALOG).toHaveLength(22);
+  expect(CAR_CATALOG.at(-1)).toMatchObject({ id: 'nebula-hyper', price: 21000 });
+  expect(new Set(CAR_CATALOG.map((car) => car.id)).size).toBe(22);
+});
+test('Top Trumps specs produce stronger earnings and exotic resale values', () => {
+  expect(carExoticness('nebula-hyper')).toBeGreaterThan(carExoticness('little-comet'));
+  expect(carEarningsMultiplier('nebula-hyper')).toBeGreaterThan(
+    carEarningsMultiplier('little-comet')
+  );
+  expect(resaleMultiplier('little-comet')).toBe(0.9);
+  expect(resaleMultiplier('nebula-hyper')).toBeGreaterThan(1);
+});
+test('cars unlock after lifetime earnings and retain separate parts when switching', () => {
+  const s = ready(),
+    cometParts = s.parts;
+  expect(buyVehicle(s, 'pocket-rally')).toBe(false);
+  s.totalEarned = 700;
+  s.bank = 700;
+  expect(buyVehicle(s, 'pocket-rally')).toBe(true);
+  expect(s.carId).toBe('pocket-rally');
+  expect(rate(s)).toBeGreaterThan(rate({ ...s, carId: 'little-comet' }));
+  s.parts.engine.tier = 2;
+  saveActiveCar(s);
+  expect(switchCar(s, 'little-comet')).toBe(true);
+  expect(s.parts.engine.tier).toBe(1);
+  expect(switchCar(s, 'pocket-rally')).toBe(true);
+  expect(s.parts.engine.tier).toBe(2);
+  expect(s.cars['little-comet'].parts).toBe(cometParts);
+});
+test('version-one saves migrate without losing the Comet or fitted parts', () => {
+  const s = ready(),
+    oldParts = s.parts;
+  delete s.cars;
+  delete s.carId;
+  delete s.carInvestment;
+  migrateState(s);
+  expect(s.carId).toBe('little-comet');
+  expect(s.cars['little-comet'].parts).toBe(oldParts);
+  expect(s.carInvestment).toBeGreaterThan(CAR_CATALOG[0].price);
+});
+test('selling a car returns 90 percent of its investment and leaves no active car', () => {
+  const s = ready();
+  buyPart(s, 'engine');
+  const expected = vehicleSaleValue(s),
+    bank = s.bank;
+  expect(expected).toBe(Math.floor(s.carInvestment * 0.9));
+  expect(sellVehicle(s)).toBe(expected);
+  expect(s.bank).toBe(bank + expected);
+  expect(s.owned).toBe(false);
+  expect(s.carId).toBeNull();
+});
+test('selling the active car switches cleanly to a remaining garage car', () => {
+  const s = ready();
+  s.totalEarned = 700;
+  s.bank = 700;
+  expect(buyVehicle(s, 'pocket-rally')).toBe(true);
+  expect(sellVehicle(s)).toBeGreaterThan(0);
+  expect(s.carId).toBe('little-comet');
+  expect(s.cars['pocket-rally']).toBeUndefined();
+  expect(s.owned).toBe(true);
 });
