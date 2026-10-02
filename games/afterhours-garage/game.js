@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
   CAR_CATALOG,
   CONFIG,
@@ -21,6 +23,30 @@ import {
   switchCar,
   vehicleSaleValue,
 } from './model.js';
+const CAR_MODEL_FILES = {
+  'little-comet': 'classic-car.glb',
+  'pocket-rally': 'buggy.glb',
+  'neon-street': 'mazda-rx7.glb',
+  'sunset-roadster': 'convertible-open-top.glb',
+  'popup-legend': 'sports-car.glb',
+  'midnight-drift': 'mazda-rx7.glb',
+  'v8-thunder': 'dodge-charger.glb',
+  'safari-rally': 'suv.glb',
+  'city-pickup': 'pickup-truck.glb',
+  'electric-sprint': 'ignition-labs-car.glb',
+  'classic-gt': 'convertible.glb',
+  'monster-hauler': 'humvee.glb',
+  'track-day-racer': 'sports-car.glb',
+  'widebody-coupe': 'dominus-body-v2.glb',
+  'carbon-supercar': 'ferrari-f40.glb',
+  'grand-tourer': 'range-rover.glb',
+  'rallycross-pro': 'buggy.glb',
+  'aero-prototype': 'alternate-car.glb',
+  'hyper-roadster': 'convertible-open-top.glb',
+  'twin-turbo-legend': 'dodge-charger.glb',
+  'apex-xr': 'sports-car-alt.glb',
+  'nebula-hyper': 'ignition-labs-car.glb',
+};
 const NEWS_COUNTRY_CODES = `AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW`;
 const NEWS_COUNTRY_NAMES = new Intl.DisplayNames(['en'], { type: 'region' });
 const NEWS_COUNTRIES = NEWS_COUNTRY_CODES.split(' ').map((code) => ({
@@ -171,6 +197,7 @@ async function startGarage() {
       hourly = rate(state),
       activeCar = getCar(state.carId),
       pendingPart = PARTS.find((p) => p.id === pendingFitId);
+    loadVehicleModel(activeCar);
     $('#bank').textContent = money(state.bank);
     $('#collect').textContent = `Collect ${money(state.pending)} ↗`;
     $('#collect').disabled = state.pending < 1;
@@ -951,7 +978,112 @@ async function startGarage() {
     }
   }, 30000);
   const canvas = $('#carCanvas'),
-    ctx = canvas.getContext('2d');
+    ctx = canvas.getContext('2d'),
+    vehicleViewport = $('.vehicle-stage'),
+    vehicleCanvas = $('#vehicleCanvas'),
+    renderer = (() => {
+      try {
+        return new THREE.WebGLRenderer({ canvas: vehicleCanvas, alpha: true, antialias: true });
+      } catch (error) {
+        vehicleCanvas.hidden = true;
+        console.warn('WebGL is unavailable; using the built-in car artwork.', error);
+        return null;
+      }
+    })(),
+    scene = new THREE.Scene(),
+    camera = new THREE.PerspectiveCamera(32, 600 / 420, 0.1, 100),
+    vehicleGroup = new THREE.Group(),
+    modelLoader = new GLTFLoader(),
+    modelCache = new Map();
+  if (renderer) {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x000000, 0);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  }
+  camera.position.set(4.4, 2.7, 5.6);
+  camera.lookAt(0, 0.75, 0);
+  scene.add(new THREE.HemisphereLight(0xe8f4f2, 0x34453e, 2.1));
+  const keyLight = new THREE.DirectionalLight(0xfff5df, 3.2);
+  keyLight.position.set(-3, 7, 5);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(1024, 1024);
+  scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(0xb9d8ff, 1.2);
+  fillLight.position.set(4, 3, -4);
+  scene.add(fillLight);
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(14, 10),
+    new THREE.ShadowMaterial({ opacity: 0.19 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.025;
+  ground.receiveShadow = true;
+  scene.add(ground, vehicleGroup);
+  let modelLoaded = false,
+    currentModelKey = '',
+    modelRequest = 0;
+  function showVehicleModel(source, car, file) {
+    const model = source.clone(true),
+      bounds = new THREE.Box3().setFromObject(model),
+      size = bounds.getSize(new THREE.Vector3()),
+      center = bounds.getCenter(new THREE.Vector3()),
+      scale = 3.45 / Math.max(size.x, size.y, size.z, 0.001);
+    model.scale.setScalar(scale);
+    model.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+    model.traverse((object) => {
+      if (!object.isMesh) return;
+      object.castShadow = true;
+      object.receiveShadow = true;
+    });
+    vehicleGroup.clear();
+    vehicleGroup.add(model);
+    vehicleGroup.userData.modelFile = file;
+    vehicleGroup.userData.carId = car.id;
+    currentModelKey = `${car.id}:${file}`;
+    modelLoaded = true;
+  }
+  function loadVehicleModel(car) {
+    if (!renderer) return;
+    const file = CAR_MODEL_FILES[car.id],
+      key = `${car.id}:${file}`;
+    if (!file || key === currentModelKey) return;
+    currentModelKey = key;
+    modelLoaded = false;
+    const request = ++modelRequest,
+      cached = modelCache.get(file);
+    if (cached) {
+      showVehicleModel(cached, car, file);
+      return;
+    }
+    modelLoader.load(
+      new URL(`./assets/cars/${file}`, import.meta.url).href,
+      (gltf) => {
+        modelCache.set(file, gltf.scene);
+        if (request === modelRequest) showVehicleModel(gltf.scene, car, file);
+      },
+      undefined,
+      (error) => {
+        if (request !== modelRequest) return;
+        currentModelKey = '';
+        modelLoaded = false;
+        console.warn(`Could not load ${car.name} model; using the built-in car.`, error);
+      }
+    );
+  }
+  function resizeVehicleRenderer() {
+    if (!renderer) return;
+    const { width, height } = vehicleViewport.getBoundingClientRect();
+    if (!width || !height) return;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resizeVehicleRenderer).observe(vehicleViewport);
+  resizeVehicleRenderer();
   let drag = null;
   canvas.onpointerdown = (e) => {
     drag = { x: e.clientX, moved: 0 };
@@ -994,6 +1126,7 @@ async function startGarage() {
     }
     ctx.clearRect(0, 0, 600, 420);
     ctx.save();
+    ctx.globalAlpha = modelLoaded ? 0 : 1;
     ctx.translate(300, 235);
     const vehicle = getCar(state.carId);
     ctx.fillStyle = '#142c2920';
@@ -1680,6 +1813,8 @@ async function startGarage() {
       if (progress === 1) fittingAnimation = null;
     }
     if (!drag && !reduced && !pendingFitId) angle += 0.002;
+    vehicleGroup.rotation.y = angle;
+    if (renderer) renderer.render(scene, camera);
     requestAnimationFrame(draw);
   }
   save();
