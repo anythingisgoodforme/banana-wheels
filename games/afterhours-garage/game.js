@@ -479,7 +479,7 @@ async function startGarage() {
               car.monster && 'Monster wheels',
               car.pickup && 'Pickup bed',
             ].filter(Boolean);
-          return `<article class="car-card ${active ? 'active' : ''} ${unavailable ? 'locked' : ''}" style="--car-paint:${car.color}"><div class="car-card-top"><span class="car-type">${car.type}</span><span class="car-status">${active ? 'CURRENT' : owned ? 'OWNED' : locked ? 'LOCKED' : carExoticness(car) >= 65 ? 'EXOTIC' : 'AVAILABLE'}</span></div><div class="car-card-art" data-car-preview="${car.id}" aria-hidden="true"><span class="mini-car"><i class="mini-roof"></i><i class="mini-body"></i><i class="mini-wheel left"></i><i class="mini-wheel right"></i>${car.spoiler ? '<i class="mini-spoiler"></i>' : ''}</span></div><h3>${car.name}</h3><div class="car-specs">${[
+          return `<article class="car-card ${active ? 'active' : ''} ${unavailable ? 'locked' : ''}" style="--car-paint:${car.color}"><div class="car-card-top"><span class="car-type">${car.type}</span><span class="car-status">${active ? 'CURRENT' : owned ? 'OWNED' : locked ? 'LOCKED' : carExoticness(car) >= 65 ? 'EXOTIC' : 'AVAILABLE'}</span></div><div class="car-card-art" data-car-preview="${car.id}" tabindex="0" role="img" aria-label="${car.name}. Drag or use left and right arrow keys to rotate"><span class="mini-car"><i class="mini-roof"></i><i class="mini-body"></i><i class="mini-wheel left"></i><i class="mini-wheel right"></i>${car.spoiler ? '<i class="mini-spoiler"></i>' : ''}</span></div><div class="preview-controls"><small>↔ Drag or use arrow keys</small><button data-preview-open="${car.id}" aria-label="Preview ${car.name}">Preview</button></div><h3>${car.name}</h3><div class="car-specs">${[
             ['DESIRABILITY', car.desirability, 10],
             ['POWER', car.power, 10],
             ['SPEED', car.speed, 10],
@@ -496,6 +496,11 @@ async function startGarage() {
         }
       ).join('')}</div>`;
     renderGaragePreviews();
+    $('#content')
+      .querySelectorAll('[data-preview-open]')
+      .forEach((button) => {
+        button.onclick = () => openCarPreview(button.dataset.previewOpen);
+      });
     $('#sellCar').onclick = beginSellConfirmation;
     $('#content')
       .querySelectorAll('[data-car-action]')
@@ -1079,60 +1084,131 @@ async function startGarage() {
       }
     );
   }
-  const previewCache = new Map();
+  const previewCache = new Map(),
+    previewAngles = new Map();
   function carPreview(file) {
     if (!previewCache.has(file)) {
-      previewCache.set(
-        file,
-        (async () => {
-          const source =
-            modelCache.get(file) ||
-            (await modelLoader.loadAsync(new URL(`./assets/cars/${file}`, import.meta.url).href))
-              .scene;
-          modelCache.set(file, source);
-          const previewScene = new THREE.Scene();
-          previewScene.add(new THREE.HemisphereLight(0xe8f4f2, 0x34453e, 2.1));
-          const light = new THREE.DirectionalLight(0xfff5df, 3.2);
-          light.position.set(-3, 7, 5);
-          previewScene.add(light);
-          const model = prepareVehicleModel(source);
-          model.rotation.y = 0.6;
-          previewScene.add(model);
-          const previewCamera = new THREE.PerspectiveCamera(32, 2, 0.1, 100);
-          previewCamera.position.set(4.4, 2.7, 5.6);
-          previewCamera.lookAt(0, 0.75, 0);
-          try {
-            renderer.setSize(360, 180, false);
-            renderer.render(previewScene, previewCamera);
-            return renderer.domElement.toDataURL('image/png');
-          } finally {
-            resizeVehicleRenderer();
-            renderer.render(scene, camera);
-          }
-        })()
-      );
+      const promise = (async () => {
+        const source =
+          modelCache.get(file) ||
+          (await modelLoader.loadAsync(new URL(`./assets/cars/${file}`, import.meta.url).href))
+            .scene;
+        modelCache.set(file, source);
+        const previewScene = new THREE.Scene();
+        previewScene.add(new THREE.HemisphereLight(0xe8f4f2, 0x34453e, 2.1));
+        const light = new THREE.DirectionalLight(0xfff5df, 3.2);
+        light.position.set(-3, 7, 5);
+        previewScene.add(light);
+        // Rotate a parent so the model's centering offset rotates with it.
+        const model = new THREE.Group();
+        model.add(prepareVehicleModel(source));
+        previewScene.add(model);
+        const previewCamera = new THREE.PerspectiveCamera(32, 2, 0.1, 100);
+        previewCamera.position.set(4.4, 2.7, 5.6);
+        previewCamera.lookAt(0, 0.75, 0);
+        return { scene: previewScene, model, camera: previewCamera };
+      })();
+      previewCache.set(file, promise);
+      promise.catch(() => previewCache.delete(file));
     }
     return previewCache.get(file);
   }
-  function renderGaragePreviews() {
+  async function attachCarPreview(element, carId, large = false) {
     if (!renderer) return;
+    const preview = await carPreview(CAR_MODEL_FILES[carId]);
+    if (!element.isConnected) return;
+    const image = document.createElement('canvas');
+    image.width = large ? 800 : 360;
+    image.height = large ? 480 : 180;
+    image.setAttribute('aria-hidden', 'true');
+    const context = image.getContext('2d');
+    element.replaceChildren(image);
+    let rotation = previewAngles.get(carId) ?? 0.6,
+      pointer = null,
+      scheduled = false;
+    function paint() {
+      scheduled = false;
+      if (!element.isConnected) return;
+      preview.model.rotation.y = rotation;
+      preview.camera.aspect = image.width / image.height;
+      preview.camera.updateProjectionMatrix();
+      try {
+        renderer.setSize(image.width, image.height, false);
+        renderer.render(preview.scene, preview.camera);
+        context.clearRect(0, 0, image.width, image.height);
+        context.drawImage(renderer.domElement, 0, 0, image.width, image.height);
+      } finally {
+        resizeVehicleRenderer();
+        renderer.render(scene, camera);
+      }
+    }
+    function rotate(delta) {
+      rotation += delta;
+      previewAngles.set(carId, rotation);
+      if (!scheduled) {
+        scheduled = true;
+        requestAnimationFrame(paint);
+      }
+    }
+    element.onpointerdown = (event) => {
+      if (!event.isPrimary || event.button !== 0) return;
+      pointer = { id: event.pointerId, x: event.clientX };
+      element.setPointerCapture(event.pointerId);
+      element.focus({ preventScroll: true });
+    };
+    element.onpointermove = (event) => {
+      if (!pointer || pointer.id !== event.pointerId) return;
+      rotate((event.clientX - pointer.x) * 0.02);
+      pointer.x = event.clientX;
+    };
+    element.onpointerup =
+      element.onpointercancel =
+      element.onlostpointercapture =
+        () => {
+          pointer = null;
+        };
+    element.onkeydown = (event) => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      event.preventDefault();
+      rotate(event.key === 'ArrowLeft' ? -0.2 : 0.2);
+    };
+    paint();
+  }
+  function renderGaragePreviews() {
     $('#content')
       .querySelectorAll('[data-car-preview]')
-      .forEach(async (element) => {
-        try {
-          const url = await carPreview(CAR_MODEL_FILES[element.dataset.carPreview]);
-          if (!element.isConnected) return;
-          const image = document.createElement('img');
-          image.src = url;
-          image.alt = '';
-          image.width = 360;
-          image.height = 180;
-          element.replaceChildren(image);
-        } catch (error) {
+      .forEach((element) => {
+        attachCarPreview(element, element.dataset.carPreview).catch((error) => {
           console.warn('Could not render garage preview; keeping built-in artwork.', error);
-        }
+        });
       });
   }
+  function openCarPreview(carId) {
+    const car = getCar(carId),
+      dialog = $('#carPreviewDialog');
+    $('#previewTitle').textContent = car.name;
+    const stage = document.createElement('div');
+    stage.className = 'large-car-preview';
+    stage.tabIndex = 0;
+    stage.setAttribute('role', 'img');
+    stage.setAttribute(
+      'aria-label',
+      `${car.name}. Drag or use left and right arrow keys to rotate`
+    );
+    stage.style.setProperty('--car-paint', car.color);
+    stage.textContent = renderer ? 'Loading car…' : '3D preview is unavailable in this browser.';
+    $('#previewStage').replaceChildren(stage);
+    dialog.showModal();
+    stage.focus();
+    attachCarPreview(stage, carId, true).catch(() => {
+      stage.textContent = 'Could not load this car. Close and try Preview again.';
+    });
+  }
+  $('#closeCarPreview').onclick = () => $('#carPreviewDialog').close();
+  $('#carPreviewDialog').addEventListener('close', () => {
+    $('#previewStage').replaceChildren();
+    if (view === 'garage') renderGaragePreviews();
+  });
   function resizeVehicleRenderer() {
     if (!renderer) return;
     const { width, height } = vehicleViewport.getBoundingClientRect();
