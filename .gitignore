@@ -1,6 +1,7 @@
 node_modules/
 dist/
 build/
+games/afterhours-garage/assets/cars/*.zip
 *.log
 *.pid
 *.bak

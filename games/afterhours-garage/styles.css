@@ -139,6 +139,12 @@ p {
 .stage {
   position: relative;
 }
+.vehicle-stage {
+  position: relative;
+  width: calc(100% + 30px);
+  margin: 0 -15px;
+  aspect-ratio: 10 / 7;
+}
 .stage-label {
   position: absolute;
   bottom: 16px;
@@ -321,14 +327,24 @@ h3 {
   background: #fae6d9;
   color: #964521;
 }
+#vehicleCanvas,
 #carCanvas {
+  position: absolute;
+  inset: 0;
   display: block;
-  width: calc(100% + 30px);
-  max-width: calc(100% + 30px);
-  height: auto;
-  margin: 0 -15px;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+#vehicleCanvas {
+  pointer-events: none;
+}
+#carCanvas {
+  z-index: 1;
   touch-action: none;
   cursor: grab;
+  background: transparent;
 }
 #carCanvas:active {
   cursor: grabbing;
@@ -346,7 +362,7 @@ h3 {
   font-size: 0.7rem;
   margin: -9px 0 23px;
 }
-#carCanvas.fitting + .stage-label,
+.stage:has(#carCanvas.fitting) .stage-label,
 .garage:has(#carCanvas.fitting) .car-hint {
   color: var(--forest);
   font-weight: 800;
@@ -1417,9 +1433,8 @@ footer button {
   h1 {
     font-size: 2rem;
   }
-  #carCanvas {
+  .vehicle-stage {
     width: min(100%, 480px);
-    max-width: 100%;
     margin: -15px auto -12px;
   }
   .car-hint {

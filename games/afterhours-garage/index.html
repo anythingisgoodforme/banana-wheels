@@ -21,14 +21,17 @@
           <h1>A second life.<br />A new adventure.</h1>
           <span id="status" class="status">Barn find · waiting for you</span>
           <div class="stage">
-            <canvas
-              id="carCanvas"
-              width="600"
-              height="420"
-              aria-label="Rotating car. Drag to rotate."
-              tabindex="0"
-            ></canvas
-            ><span id="stageLabel" class="stage-label">1978 / LITTLE COMET</span>
+            <div class="vehicle-stage">
+              <canvas id="vehicleCanvas" width="600" height="420" aria-hidden="true"></canvas>
+              <canvas
+                id="carCanvas"
+                width="600"
+                height="420"
+                aria-label="Rotating car. Drag to rotate."
+                tabindex="0"
+              ></canvas>
+            </div>
+            <span id="stageLabel" class="stage-label">1978 / LITTLE COMET</span>
           </div>
           <p class="car-hint">↔ Drag to look around · arrow keys to rotate</p>
           <div id="meters" class="meters"></div>
@@ -62,6 +65,7 @@
       </main>
       <footer>
         AFTERHOURS CAR CLUB <span>Made for the joy of bringing things back to life.</span
+        ><a class="asset-credits" href="assets/cars/ATTRIBUTION.md">3D model credits</a
         ><button id="reset">Start a new garage</button>
       </footer>
     </div>
@@ -72,6 +76,14 @@
       <p>This deletes your saved car, parts and money in this browser.</p>
       <button id="cancelReset">Keep my car</button><button id="confirmReset">Start again</button>
     </dialog>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/addons/"
+        }
+      }
+    </script>
     <script type="module" src="game.js"></script>
   </body>
 </html>

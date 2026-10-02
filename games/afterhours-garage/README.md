@@ -1,6 +1,6 @@
 # Afterhours Garage
 
-A small car-care game: restore a rusty 1978 Comet, collect 21 more rides, fit their parts, and let them explore while you're away. Static HTML, CSS and JavaScript, with original procedural cars rendered on Canvas.
+A small car-care game: restore a rusty 1978 Comet, collect 21 more rides, fit their parts, and let them explore while you're away. Three.js displays distinct local GLB vehicle models; the interactive canvas keeps the fitting targets and engine animation.
 
 ## Play
 
@@ -37,7 +37,7 @@ Progress, car ownership, and each car's parts are saved as browser-local JSON in
 
 ## Credits
 
-Car model, interface, track diagrams and game code are original work for this repository, covered by its MIT license. No downloaded car assets, fonts, external runtime dependencies or third-party model licenses are required. The model is fictional and not associated with a car manufacturer.
+The Three.js runtime is vendored locally at version 0.180.0 under its MIT license. Vehicle models are downloaded from Poly Pizza; each model's creator and CC0 or CC BY 3.0 license are listed in [the asset credits](assets/cars/ATTRIBUTION.md) and linked in the game footer. The interface, tracks, and game code are original work for this repository.
 
 ## Checks
 

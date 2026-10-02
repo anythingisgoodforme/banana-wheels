@@ -10,6 +10,10 @@ const copyOptions = {
   recursive: true,
   filter: (source) =>
     !['tests', '__tests__', 'node_modules'].includes(path.basename(source)) &&
+    !(
+      source.includes(`${path.sep}games${path.sep}afterhours-garage${path.sep}assets${path.sep}cars${path.sep}`) &&
+      source.endsWith('.zip')
+    ) &&
     !/\.(test|spec)\.[cm]?js$/.test(source),
 };
 
