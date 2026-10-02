@@ -25,6 +25,10 @@ Open `http://localhost:8000/` for the library. The development server keeps the 
 
 `npm start` builds the static site and opens it. `npm run serve` builds it and serves it without opening a browser. Both use `dist/`, which combines `public/` with every immediate `games/` folder containing `index.html`, under `/games/<folder>/`. GitHub Pages builds and publishes this same output when `main` changes; release tags create downloadable releases without redeploying the site.
 
+## Afterhours Garage
+
+Restore a rusty Comet, collect 201 parts, and earn money while the tab is hidden or closed. Open `http://localhost:8000/games/afterhours-garage/` after `npm run dev`. Starting money and balance settings live in `games/afterhours-garage/model.js`; see the [game guide](games/afterhours-garage/README.md).
+
 ## Banana Wheels GT
 
 GT is a first-person arcade lane-driving game. Steer around monkey traffic and time the spring pad near the end of the run.
